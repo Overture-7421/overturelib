@@ -22,7 +22,6 @@ class OverTalonFX: public OverController<TalonFX> {
 public:
   OverTalonFX(int _id, ControllerNeutralMode _neutralMode, bool _inverted, double _gearRatio, std::string _bus);
 
-
   void init();
   void reset();
 

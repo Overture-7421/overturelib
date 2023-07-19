@@ -91,7 +91,7 @@ public:
    * Se utiliza en las clases de cada controlador de motor
    * Se define en cada clase de controlador de motor
    */
-   virtual void setPIDValue(double _kP, double _kI, double _kD, double _kS, double _kV) = 0;
+   virtual void setPIDValues(double _kP, double _kI, double _kD, double _kS, double _kV) = 0;
 
 protected:
    T* motorController;
