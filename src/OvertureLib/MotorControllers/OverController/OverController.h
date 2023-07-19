@@ -79,7 +79,19 @@ public:
    */
    virtual double getVelocity(double _wheelDiameter) = 0;
 
-
+   /**
+   * @brief Se definen los valores de PIDS del controlador de motor
+   * @param _p Valor de P
+   * @param _i valor de I
+   * @param _d valor de D
+   * @param _s valor de S
+   * @param _v valor de V
+   * @param _slot Slot del controlador de motor
+   *
+   * Se utiliza en las clases de cada controlador de motor
+   * Se define en cada clase de controlador de motor
+   */
+   virtual void setPIDValue(double _kP, double _kI, double _kD, double _kS, double _kV) = 0;
 
 protected:
    T* motorController;
