@@ -13,6 +13,6 @@ OverCANCoder::OverCANCoder(int _id, double offset, std::string _bus) {
 }
 
 double OverCANCoder::getAbsolutePosition() {
-    canCoder->GetAbsolutePosition().SetUpdateFrequency(5_ms);
+    canCoder->GetAbsolutePosition().SetUpdateFrequency(200_Hz);
     return canCoder->GetAbsolutePosition().Refresh().GetValue().value();
 }
