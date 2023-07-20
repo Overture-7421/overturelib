@@ -34,6 +34,7 @@ public:
   void setClosedLoopTorqueRamp(double _ramp);
   void setSupplyCurrentLimit(bool _enable, double _currentLimit, double _triggerThresholdCurrent, double _triggerThresholdTime);
   void setTorqueCurrentLimit(double peakForward, double peakBackward, double deadband);
+  void setFollow(int _id, bool _inverted);
   void zeroPosition();
 
   double getDistance(double _wheelDiameter);
