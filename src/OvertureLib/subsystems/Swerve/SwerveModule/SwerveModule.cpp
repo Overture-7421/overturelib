@@ -144,6 +144,14 @@ void SwerveModule::setWheelVoltage(double wheelVoltage) {
 }
 
 /**
+ * @brief Uso del voltaje crudo para caracterizar el motor
+ * @param set Valor Booleano
+ */
+void SwerveModule::setUseRawVoltageSpeed(bool set) {
+    useRawVoltageSpeed = set;
+}
+
+/**
  * @brief Le da valores a los dos motores
  */
 void SwerveModule::setVoltages() {
