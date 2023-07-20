@@ -138,6 +138,15 @@ void OverTalonFX::setTorqueCurrentLimit(double _peakForward, double _peakBackwar
 }
 
 /**
+ * @brief Se configura a cual motor seguir
+ * @param _id Id del motor
+ * @param _inverted invertimos el robot
+ */
+void OverTalonFX::setFollow(int _id, bool _inverted) {
+    motorController->SetControl(Follower{ _id, _inverted });
+}
+
+/**
  * @brief Posicion del motor se pone en zero
  */
 void OverTalonFX::zeroPosition() {
