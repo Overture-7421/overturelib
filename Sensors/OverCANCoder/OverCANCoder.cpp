@@ -4,6 +4,10 @@
 
 #include "OverCANCoder.h"
 
+#ifndef __FRC_ROBORIO__
+#include "OvertureLib/Simulation/SimCANCoderManager/SimCANCoderManager.h"
+#endif
+
 /**
 * @brief Constructor for OverCANCoder
 *
@@ -13,11 +17,16 @@
 *
 * @param bus    CAN Bus of the CANCoder
 */
-OverCANCoder::OverCANCoder(int _id, double offset, std::string _bus) : CANcoder(_id, _bus) {
+OverCANCoder::OverCANCoder(int _id, units::turn_t offset, std::string _bus) : CANcoder(_id, _bus) {
 	canCoderConfiguration.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue::Signed_PlusMinusHalf;
 	canCoderConfiguration.MagnetSensor.SensorDirection = SensorDirectionValue::CounterClockwise_Positive;
-	canCoderConfiguration.MagnetSensor.MagnetOffset = offset / 360;
+	canCoderConfiguration.MagnetSensor.MagnetOffset = offset.value();
 	GetConfigurator().Apply(canCoderConfiguration);
+
+#ifndef __FRC_ROBORIO__
+	SimCANCoderManager* simCANCoderManager = SimCANCoderManager::GetInstance();
+	simCANCoderManager->AddSimCANCoderCandidate(this);
+#endif
 }
 
 /**
@@ -26,5 +35,9 @@ OverCANCoder::OverCANCoder(int _id, double offset, std::string _bus) : CANcoder(
 * @return CANCoder's absolute position
 */
 double OverCANCoder::getSensorAbsolutePosition() {
-	return GetAbsolutePosition().Refresh().GetValue().value();
+	return GetAbsolutePosition().GetValue().value();
+}
+
+const CANcoderConfiguration& OverCANCoder::getConfiguration(){
+	return canCoderConfiguration;
 }

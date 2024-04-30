@@ -12,13 +12,13 @@
 #include <units/angular_acceleration.h>
 #include <units/angular_velocity.h>
 
-#include "OvertureLib/subsystems/Swerve/SwerveChassis/SwerveChassis.h"
-#include "OvertureLib/math/Utils.h"
+#include "Subsystems/Swerve/SwerveChassis/SwerveChassis.h"
+#include "Math/Utils.h"
 
 class Drive
 	: public frc2::CommandHelper<frc2::Command, Drive> {
 public:
-	Drive(SwerveChassis* swerveChassis, frc::XboxController* controller);
+	Drive(units::meters_per_second_t maxModuleSpeed, SwerveChassis* swerveChassis, frc::XboxController* controller);
 
 	void Initialize() override;
 
@@ -32,17 +32,15 @@ private:
 	SwerveChassis* m_swerveChassis;
 
 	/* Speed Constants */
-	double kMaxSpeed{ 5.75 };
-	double kMaxAngularSpeed{ 9.0 };
+	units::meters_per_second_t kMaxModuleSpeed;
+	units::radians_per_second_t kMaxAngularSpeed{ 3_tps };
 
-	/* Constant */
-	units::meters_per_second_squared_t maxAcceleration{ 12 };
-	units::radians_per_second_squared_t maxRotation{ 16 };
+	int alliance = 1;
 
 	/* Limiters */
-	frc::SlewRateLimiter<units::meters_per_second> xLimiter{ maxAcceleration };
-	frc::SlewRateLimiter<units::meters_per_second> yLimiter{ maxAcceleration };
-	frc::SlewRateLimiter<units::radians_per_second> rLimiter{ maxRotation };
+	frc::SlewRateLimiter<units::meters_per_second> xLimiter{ 15.0_mps_sq };
+	frc::SlewRateLimiter<units::meters_per_second> yLimiter{ 15.0_mps_sq };
+	frc::SlewRateLimiter<units::radians_per_second> rLimiter{ 18_tr_per_s_sq };
 
 	/* Controller */
 	frc::XboxController* joystick;

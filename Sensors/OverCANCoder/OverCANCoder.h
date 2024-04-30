@@ -14,8 +14,9 @@ using namespace ctre::phoenix6::signals;
 
 class OverCANCoder : public CANcoder {
 public:
-	OverCANCoder(int _id, double offset, std::string _bus);
+	OverCANCoder(int _id, units::turn_t offset, std::string _bus);
 	double getSensorAbsolutePosition();
+	const CANcoderConfiguration& getConfiguration();
 
 private:
 	CANcoderConfiguration canCoderConfiguration;

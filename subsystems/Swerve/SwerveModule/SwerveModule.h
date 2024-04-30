@@ -9,13 +9,14 @@
 #include <frc/kinematics/SwerveModulePosition.h>
 #include <frc/controller/SimpleMotorFeedforward.h>
 #include <frc/smartdashboard/SmartDashboard.h>
+#include <memory.h>
 
-#include "OvertureLib/MotorControllers/OverTalonFX/OverTalonFX.h"
-#include "OvertureLib/Sensors/OverCANCoder/OverCANCoder.h"
+#include "MotorControllers/OverTalonFX/OverTalonFX.h"
+#include "Sensors/OverCANCoder/OverCANCoder.h"
 
 class SwerveModule : public frc2::SubsystemBase {
 public:
-	SwerveModule(int rotatorID, int wheelID, int canCoderID, double offSet, std::string moduleName, std::string canBus);
+	SwerveModule(int rotatorID, int wheelID, int canCoderID, units::turn_t offSet, std::string moduleName, std::string canBus);
 	void setRotatorPIDValues(double kP, double kI, double kD);
 	void setDrivePIDValues(double kP, double kI, double kD);
 	void setFFConstants(units::volt_t ks, units::volt_t kv, units::volt_t ka);
@@ -26,25 +27,27 @@ public:
 	double setSpeed(double speed);
 	double getDistance();
 	double getAngle();
+	double getVoltage();
 
 	frc::SwerveModuleState getState();
 	void setState(frc::SwerveModuleState state);
 	frc::SwerveModulePosition getPosition();
 
+	void setRawVoltageSpeed(units::volt_t volts);
 	void setVoltages();
 
 	void Periodic() override;
 
 private:
 	//Declaration of motor controllers
-	OverTalonFX* m_driveMotor;
-	OverTalonFX* m_turningMotor;
+	std::unique_ptr<OverTalonFX> m_driveMotor;
+	std::unique_ptr<OverTalonFX> m_turningMotor;
 
 	//Declaration of sensors
-	OverCANCoder* m_canCoder;
+	std::unique_ptr<OverCANCoder> m_canCoder;
 
 	//FeedForward
-	frc::SimpleMotorFeedforward<units::meters> m_feedForward;
+	std::shared_ptr<frc::SimpleMotorFeedforward<units::meters>> m_feedForward;
 
 	//State
 	frc::SwerveModuleState m_state;

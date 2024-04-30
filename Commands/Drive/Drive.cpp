@@ -3,35 +3,40 @@
 // the WPILib BSD license file in the root directory of this project.
 
 #include "Drive.h"
+#include <iostream>
 
-Drive::Drive(SwerveChassis* swerveChassis, frc::XboxController* controller) :
+Drive::Drive(units::meters_per_second_t maxModuleSpeed, SwerveChassis* swerveChassis, frc::XboxController* controller) :
 	m_swerveChassis(swerveChassis), joystick(controller) {
-	// Use addRequirements() here to declare subsystem dependencies.
+	kMaxModuleSpeed = maxModuleSpeed;
 	AddRequirements(m_swerveChassis);
 }
 
 // Called when the command is initially scheduled.
-void Drive::Initialize() {}
+void Drive::Initialize() {
+	if (frc::DriverStation::GetAlliance() == frc::DriverStation::Alliance::kRed){
+		alliance = -1;
+	}else{
+		alliance = 1;
+	}
+}
 
 // Called repeatedly when this Command is scheduled to run
 void Drive::Execute() {
+	units::meters_per_second_t xInput{ Utils::ApplyAxisFilter(-joystick->GetLeftY()) * kMaxModuleSpeed};
+	units::meters_per_second_t yInput{ Utils::ApplyAxisFilter(-joystick->GetLeftX()) * kMaxModuleSpeed};
+	units::radians_per_second_t rInput{ Utils::ApplyAxisFilter(-joystick->GetRightX()) * kMaxAngularSpeed};
 
-	if (joystick->GetRightBumper()) {
-		kMaxSpeed = 2;
-		kMaxAngularSpeed = 3.5;
-	} else {
-		kMaxSpeed = 5.75;
-		kMaxAngularSpeed = 7.0;
+	if (joystick->GetLeftBumper()) {
+		m_swerveChassis->driveRobotRelative({
+			xLimiter.Calculate(xInput),
+			yLimiter.Calculate(yInput),
+			rLimiter.Calculate(rInput) });
+		} else {
+			m_swerveChassis->driveFieldRelative({
+				xLimiter.Calculate(xInput * alliance),
+				yLimiter.Calculate(yInput * alliance),
+				rLimiter.Calculate(rInput) });
 	}
-
-	units::meters_per_second_t xInput{ Utils::ApplyAxisFilter(-joystick->GetLeftY()) * kMaxSpeed };
-	units::meters_per_second_t yInput{ Utils::ApplyAxisFilter(-joystick->GetLeftX()) * kMaxSpeed };
-	units::radians_per_second_t rInput{ Utils::ApplyAxisFilter(-joystick->GetRightX()) * kMaxAngularSpeed };
-
-	m_swerveChassis->driveFieldRelative({
-		xLimiter.Calculate(xInput),
-		yLimiter.Calculate(yInput),
-		rLimiter.Calculate(rInput) });
 }
 
 // Called once the command ends or is interrupted.

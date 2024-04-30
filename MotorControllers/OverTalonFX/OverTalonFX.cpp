@@ -4,6 +4,11 @@
 
 #include "OverTalonFX.h"
 
+#ifndef __FRC_ROBORIO__
+#include "OvertureLib/Simulation/SimMotorManager/SimMotorManager.h"
+#endif
+
+
 /**
  * @brief Constructor for OverTalonFX
  *
@@ -29,6 +34,11 @@ OverTalonFX::OverTalonFX(int id, ControllerNeutralMode neutralMode, bool inverte
 
 	// Aplicar la configuracion
 	GetConfigurator().Apply(config);
+
+#ifndef __FRC_ROBORIO__
+	SimMotorManager* simMotorManager = SimMotorManager::GetInstance();
+	simMotorManager->AddSimMotorCandidate(this);
+#endif
 }
 
 /**
@@ -219,6 +229,11 @@ double OverTalonFX::getPosition() {
 	return GetPosition().GetValue().value();
 }
 
+const TalonFXConfiguration& OverTalonFX::getConfig(){
+	return config;
+}
+
+
 /**
  * @brief Sets the TalonFX voltage
  *
@@ -237,9 +252,10 @@ void OverTalonFX::setVoltage(units::volt_t voltage, bool enableFOC) {
  * @param velocity  The velocity to set the TalonFX to
  * @param enableFOC Whether or not to enable FOC
  */
-void OverTalonFX::setVelocityVoltage(double velocity, bool enableFOC) {
+void OverTalonFX::setVelocityVoltage(double velocity, double feedForward, bool enableFOC) {
 	VelocityVoltage velocityOut{ 0_tps };
 	velocityOut.EnableFOC = enableFOC;
+	velocityOut.FeedForward = units::volt_t(feedForward);
 	SetControl(velocityOut.WithVelocity(units::turns_per_second_t{ velocity }));
 }
 
@@ -301,14 +317,13 @@ void OverTalonFX::setVelocityTorqueCurrentFOC(double velocity) {
  * @param kV The V value of the TalonFX
  */
 void OverTalonFX::setPIDValues(double kP, double kI, double kD, double kS, double kV) {
-	Slot0Configs slot0Configs{};
-	slot0Configs.kP = kP;
-	slot0Configs.kI = kI;
-	slot0Configs.kD = kD;
-	slot0Configs.kS = kS;
-	slot0Configs.kV = kV;
+	config.Slot0.kP = kP;
+	config.Slot0.kI = kI;
+	config.Slot0.kD = kD;
+	config.Slot0.kS = kS;
+	config.Slot0.kV = kV;
 
-	GetConfigurator().Apply(slot0Configs);
+	GetConfigurator().Apply(config);
 }
 
 /**
@@ -319,12 +334,16 @@ void OverTalonFX::setPIDValues(double kP, double kI, double kD, double kS, doubl
  * @param jerk           The jerk of the TalonFX
  */
 void OverTalonFX::configureMotionMagic(double cruiseVelocity, double acceleration, double jerk) {
-	MotionMagicConfigs motionMagicConfigs{};
-	motionMagicConfigs.MotionMagicCruiseVelocity = cruiseVelocity;
-	motionMagicConfigs.MotionMagicAcceleration = acceleration;
-	motionMagicConfigs.MotionMagicJerk = jerk;
+	config.MotionMagic.MotionMagicCruiseVelocity = cruiseVelocity;
+	config.MotionMagic.MotionMagicAcceleration = acceleration;
+	config.MotionMagic.MotionMagicJerk = jerk;
 
-	GetConfigurator().Apply(motionMagicConfigs);
+	GetConfigurator().Apply(config);
+}
+
+void OverTalonFX::configureSoftwareLimitSwitch(ctre::phoenix6::configs::SoftwareLimitSwitchConfigs configs){
+	config.SoftwareLimitSwitch = configs;
+	GetConfigurator().Apply(config);
 }
 
 /**
@@ -333,4 +352,12 @@ void OverTalonFX::configureMotionMagic(double cruiseVelocity, double acceleratio
 void OverTalonFX::setContinuousWrap() {
 	config.ClosedLoopGeneral.ContinuousWrap = true;
 	GetConfigurator().Apply(config);
+}
+
+void OverTalonFX::setPositionUpdateFrequency(units::frequency::hertz_t frequencyHz) {
+	GetPosition().SetUpdateFrequency(frequencyHz);
+}
+
+void OverTalonFX::setVelocityUpdateFrequency(units::frequency::hertz_t frequencyHz) {
+	GetVelocity().SetUpdateFrequency(frequencyHz);
 }

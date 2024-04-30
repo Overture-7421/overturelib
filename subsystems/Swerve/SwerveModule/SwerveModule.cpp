@@ -14,11 +14,10 @@
  * @param moduleName - Name of the module
  * @param canBus     - Can Bus of the module
  */
-SwerveModule::SwerveModule(int rotatorID, int wheelID, int canCoderID, double offset, std::string moduleName, std::string canBus) : m_name(moduleName) {
-	m_driveMotor = new OverTalonFX(wheelID, ControllerNeutralMode::Brake, true, canBus);
-	m_turningMotor = new OverTalonFX(rotatorID, ControllerNeutralMode::Coast, true, canBus);
-	m_canCoder = new OverCANCoder(canCoderID, offset, canBus);
-
+SwerveModule::SwerveModule(int rotatorID, int wheelID, int canCoderID, units::turn_t offset, std::string moduleName, std::string canBus) : m_name(moduleName) {
+	m_driveMotor = std::make_unique<OverTalonFX>(wheelID, ControllerNeutralMode::Brake, false, canBus);
+	m_turningMotor = std::make_unique<OverTalonFX>(rotatorID, ControllerNeutralMode::Coast, true, canBus);
+	m_canCoder = std::make_unique<OverCANCoder>(canCoderID, offset, canBus);
 	m_turningMotor->setContinuousWrap();
 	m_turningMotor->setFusedCANCoder(canCoderID);
 	m_turningMotor->setClosedLoopVoltageRamp(0.1);
@@ -29,7 +28,13 @@ SwerveModule::SwerveModule(int rotatorID, int wheelID, int canCoderID, double of
 	// m_driveMotor->setClosedLoopTorqueRamp(0.1);
 	// m_driveMotor->setTorqueCurrentLimit(40, -40, 0.1);
 	m_driveMotor->setClosedLoopVoltageRamp(0.1);
-	m_driveMotor->setSupplyCurrentLimit(true, 20, 30, 0.5);
+	m_driveMotor->setSupplyCurrentLimit(true, 40, 60, 0.1);
+
+	m_turningMotor->setPositionUpdateFrequency(200_Hz);
+	m_canCoder->GetPosition().SetUpdateFrequency(200_Hz);
+	m_driveMotor->setVelocityUpdateFrequency(200_Hz);
+
+	setFFConstants(0_V, 0_V, 0_V);
 }
 
 /**
@@ -62,7 +67,7 @@ void SwerveModule::setDrivePIDValues(double kP, double kI, double kD) {
  * @param kA - Acceleration Value
  */
 void SwerveModule::setFFConstants(units::volt_t ks, units::volt_t kv, units::volt_t ka) {
-	m_feedForward = frc::SimpleMotorFeedforward<units::meters>(ks, kv / 1_mps, ka / 1_mps_sq);
+	m_feedForward = std::make_shared<frc::SimpleMotorFeedforward<units::meters>>(ks, kv / 1_mps, ka / 1_mps_sq);
 }
 
 /**
@@ -121,6 +126,15 @@ double SwerveModule::getAngle() {
 }
 
 /**
+ * @brief Gets the voltage of the module
+ *
+ * @return - Voltage of the module
+*/
+double SwerveModule::getVoltage() {
+	return m_driveMotor->GetMotorVoltage().GetValueAsDouble();
+}
+
+/**
  * @brief Gets the state of the module
  *
  * @return - State of the module
@@ -152,6 +166,16 @@ frc::SwerveModulePosition SwerveModule::getPosition() {
 	return { units::meter_t{getDistance()}, units::degree_t{getAngle()} };
 }
 
+/**
+ * @brief Sets the raw voltage speed
+ *
+ * @param volts - Voltage
+*/
+void SwerveModule::setRawVoltageSpeed(units::volt_t volts) {
+	m_driveMotor->setVoltage(volts, false);
+
+	m_turningMotor->setPositionVoltage(0, false);
+}
 
 /**
  * @brief Sets the voltage of the module
@@ -159,12 +183,14 @@ frc::SwerveModulePosition SwerveModule::getPosition() {
 void SwerveModule::setVoltages() {
 	m_turningMotor->setPositionVoltage(m_state.angle.Degrees().value() / 360.0, false);
 
-	// m_driveMotor->setVoltage(m_feedForward.Calculate(m_state.speed), false);
-	m_driveMotor->setVoltage(units::volt_t{ setSpeed(m_state.speed.value()) }, false);
+	m_driveMotor->setVoltage(m_feedForward->Calculate(m_state.speed), false);
+	//m_driveMotor->setVoltage(units::volt_t{ setSpeed(m_state.speed.value()) }, false);
 }
 
 void SwerveModule::Periodic() {
 	// frc::SmartDashboard::PutNumber(m_name + "/Speed", getSpeed());
 	// frc::SmartDashboard::PutNumber(m_name + "/Target", m_state.angle.Degrees().value());
 	// frc::SmartDashboard::PutNumber(m_name + "/Angle", getAngle());
+	// frc::SmartDashboard::PutNumber(m_name + "/Distance", getDistance());
+
 }
