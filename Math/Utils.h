@@ -28,4 +28,20 @@ struct Utils {
 
 		return res * sgn(axisValue);
 	}
+
+	/**
+	 * Calculate the target heading of the robot based on the x and y inputs
+	 *
+	 * xInput = The x input of the joystick
+	 * yInput = The y input of the joystick
+	 *
+	 * */
+
+	static double CalculateTargetHeading(double xInput, double yInput) {
+		if (std::abs(xInput) < 0.05 && std::abs(yInput) < 0.05) {
+			return 0.0;
+		}
+
+		return std::atan2(xInput, yInput);
+	}
 };
