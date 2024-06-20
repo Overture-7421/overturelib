@@ -42,6 +42,9 @@ private:
 	frc::SlewRateLimiter<units::meters_per_second> yLimiter{ 15.0_mps_sq };
 	frc::SlewRateLimiter<units::radians_per_second> rLimiter{ 18_tr_per_s_sq };
 
+	/* PID Controllers */
+	frc::ProfiledPIDController<units::radians> headingController{ 11.0, 0.5, 0.35, frc::TrapezoidProfile<units::radians>::Constraints{ 6_rad_per_s, 6_rad_per_s_sq }, RobotConstants::LoopTime };
+
 	/* Controller */
 	frc::XboxController* joystick;
 };
