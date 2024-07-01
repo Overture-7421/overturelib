@@ -4,12 +4,17 @@
 
 #include "OvertureController.h"
 
-OvertureController::OvertureController(int port, bool isXbox){
-    this->isXbox = isXbox;
-    if(isXbox = true){
-        // xboxController = std::make_unique<new frc::XboxController{port}>;
-    }
-        
+OvertureController::OvertureController(int port, bool isXbox, int emulatedPort) {
+	this->isXbox = isXbox;
+	if (isXbox) {
+		xboxController = std::make_shared<frc2::CommandXboxController>(port);
+		abstractedController = std::make_shared<frc2::CommandGenericHID>(xboxController);
+	} else {
+		ps5Controller = std::make_shared<frc2::CommandPS5Controller>(port);
+		emulatedController = std::make_shared<frc2::CommandXboxController>(emulatedPort);
+		abstractedController = std::make_shared<frc2::CommandGenericHID>(ps5Controller);
+	}
+
 };
 
 frc2::Trigger OvertureController::a(){
@@ -93,12 +98,12 @@ frc2::Trigger OvertureController::rightDpad() {
 
 double OvertureController::getRightTriggerAxis() {
         return (isXbox == true) ? xboxController->GetRightTriggerAxis()
-                : units::math::min(units::math::abs(ps5Controller->GetR2Axis()), 0.99);
+                : std::min(std::abs(ps5Controller->GetR2Axis()), 0.99);
     }
 
 double OvertureController::getRightTriggerAxis() {
         return (isXbox == true) ? xboxController->GetRightTriggerAxis()
-                : units::math::min(units::math::abs(ps5Controller->GetL2Axis()), 0.99);
+                : std::min(std::abs(ps5Controller->GetL2Axis()), 0.99);
     }
 
 double OvertureController::getLeftX() {
