@@ -12,8 +12,6 @@
 #include <frc/kinematics/SwerveModulePosition.h>
 #include <frc/estimator/SwerveDrivePoseEstimator.h>
 #include <frc/DriverStation.h>
-#include <frc/RobotController.h>
-#include <frc/filter/LinearFilter.h>
 #include <frc/smartdashboard/Field2d.h>
 #include <frc/controller/ProfiledPIDController.h>
 
@@ -46,7 +44,6 @@ public:
 	void setModulesRatios(double turnRatio, double driveRatio, double wheelDiameter);
 	void setModules(SwerveModule* frontLeft, SwerveModule* frontRight, SwerveModule* backleft, SwerveModule* backRight);
 	void setRotatorPID(double kP, double kI, double kD);
-	void setDrivePID(double kP, double kI, double kD);
 	void setFeedForward(units::volt_t kS, units::volt_t kV, units::volt_t kA);
 
 	void driveRobotRelative(frc::ChassisSpeeds speeds);
@@ -93,9 +90,6 @@ protected:
 
 	frc::ChassisSpeeds fieldRelativeSpeed, lastFieldRelativeSpeed;
 	ChassisAccels fieldRelativeAccel;
-	frc::LinearFilter<units::meters_per_second_squared_t> accelXFilter = frc::LinearFilter<units::meters_per_second_squared_t>::SinglePoleIIR(0.05, RobotConstants::LoopTime);
-	frc::LinearFilter<units::meters_per_second_squared_t> accelYFilter = frc::LinearFilter<units::meters_per_second_squared_t>::SinglePoleIIR(0.05, RobotConstants::LoopTime);
-	frc::LinearFilter<units::radians_per_second_squared_t> accelOmegaFilter = frc::LinearFilter<units::radians_per_second_squared_t>::SinglePoleIIR(0.05, RobotConstants::LoopTime);
 
 private:
 	std::optional<frc::Rotation2d> getRotationTargetOverride();

@@ -155,20 +155,6 @@ void SwerveChassis::setRotatorPID(double kP, double kI, double kD) {
 }
 
 /**
- * @brief Sets each module drive PID values
- *
- * @param kP The proportional value
- * @param kI The integral value
- * @param kD The derivative value
- */
-void SwerveChassis::setDrivePID(double kP, double kI, double kD) {
-	backRightModule->setDrivePIDValues(kP, kI, kD);
-	backLeftModule->setDrivePIDValues(kP, kI, kD);
-	frontRightModule->setDrivePIDValues(kP, kI, kD);
-	frontLeftModule->setDrivePIDValues(kP, kI, kD);
-}
-
-/**
  * @brief Sets the modules feedforward values
  *
  * @param kS The static value
@@ -250,7 +236,7 @@ const frc::SwerveDriveKinematics<4>& SwerveChassis::getKinematics() {
  * @brief Updates odometry using vision
  */
 void SwerveChassis::addVisionMeasurement(frc::Pose2d pose, units::second_t timestamp) {
-	if(acceptVisionMeasurements) {
+	if (acceptVisionMeasurements) {
 		odometry->AddVisionMeasurement(pose, timestamp);
 	}
 }
@@ -356,9 +342,6 @@ void SwerveChassis::updateOdometry() {
 
 	fieldRelativeSpeed = frc::ChassisSpeeds::FromRobotRelativeSpeeds(robotRelativeSpeed, robotHeading);
 	fieldRelativeAccel = ChassisAccels(fieldRelativeSpeed, lastFieldRelativeSpeed);
-	// fieldRelativeAccel.ax = accelXFilter.Calculate(fieldRelativeAccel.ax);
-	// fieldRelativeAccel.ay = accelYFilter.Calculate(fieldRelativeAccel.ay);
-	// fieldRelativeAccel.omega = accelOmegaFilter.Calculate(fieldRelativeAccel.omega);
 
 	lastFieldRelativeSpeed = fieldRelativeSpeed;
 }
@@ -396,7 +379,7 @@ void SwerveChassis::Periodic() {
 		// frc::SmartDashboard::PutNumber("Odometry/HeadingError", headingController.GetPositionError().value());
 	}
 
-	if(vyOverride) {
+	if (vyOverride) {
 		desiredSpeeds.vy = vyTarget;
 	}
 
