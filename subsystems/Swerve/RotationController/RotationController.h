@@ -9,6 +9,7 @@
 
 #include "../SwerveChassis/SwerveChassis.h"
 
+// Class for controlling the rotation of the robot
 class RotationController {
 public:
 	RotationController(SwerveChassis& chassis, double kP, double kI, double kD, frc::TrapezoidProfile<units::radians>::Constraints profile);
