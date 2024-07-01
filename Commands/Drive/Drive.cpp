@@ -18,6 +18,9 @@ void Drive::Initialize() {
 	} else {
 		alliance = 1;
 	}
+
+	headingController.EnableContinuousInput(-180_deg, 180_deg);
+	headingController.SetTolerance(3_deg);
 }
 
 // Called repeatedly when this Command is scheduled to run
@@ -28,10 +31,10 @@ void Drive::Execute() {
 
 	units::degree_t targetHeading = 0_deg;
 
-	if (joystick->GetRightBumper()) {
+	if (!joystick->GetRightBumper()) {
 		rInput = Utils::ApplyAxisFilter(-joystick->GetRightX()) * kMaxAngularSpeed;
 	} else {
-		if (std::abs(-joystick->GetRightX()) < 0.1 && std::abs(-joystick->GetRightY()) < 0.1) {
+		if (std::abs(-joystick->GetRightX()) < 0.5 && std::abs(-joystick->GetRightY()) < 0.5) {
 			targetHeading = m_swerveChassis->getOdometry().Rotation().Degrees();
 		} else {
 			targetHeading = units::degree_t(Utils::CalculateTargetHeading(-joystick->GetRightX(), -joystick->GetRightY()) * 180 / M_PI);
@@ -40,10 +43,12 @@ void Drive::Execute() {
 		headingController.SetGoal(frc::Rotation2d(targetHeading).Radians());
 
 		double outOmega = headingController.Calculate(m_swerveChassis->getOdometry().Rotation().Radians());
-		if (std::abs(outOmega) < 0.1 && std::abs(-joystick->GetRightX()) < 0.1 && std::abs(-joystick->GetRightY()) < 0.1) {
+		if (std::abs(outOmega) < 0.1 && std::abs(-joystick->GetRightX()) < 0.5 && std::abs(-joystick->GetRightY()) < 0.5) {
 			outOmega = 0;
 		}
 
+		frc::SmartDashboard::PutNumber("DriveCommand/Headings", targetHeading.value());
+		frc::SmartDashboard::PutNumber("DriveCommand/CurrentHeading", m_swerveChassis->getOdometry().Rotation().Degrees().value());
 		rInput = units::radians_per_second_t(outOmega);
 	}
 

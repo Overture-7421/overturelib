@@ -33,7 +33,7 @@ private:
 
 	/* Speed Constants */
 	units::meters_per_second_t kMaxModuleSpeed;
-	units::radians_per_second_t kMaxAngularSpeed{ 3_tps };
+	units::radians_per_second_t kMaxAngularSpeed{ 1.5_tps };
 
 	int alliance = 1;
 
@@ -43,7 +43,7 @@ private:
 	frc::SlewRateLimiter<units::radians_per_second> rLimiter{ 18_tr_per_s_sq };
 
 	/* PID Controllers */
-	frc::ProfiledPIDController<units::radians> headingController{ 11.0, 0.5, 0.35, frc::TrapezoidProfile<units::radians>::Constraints{ 6_rad_per_s, 6_rad_per_s_sq }, RobotConstants::LoopTime };
+	frc::ProfiledPIDController<units::radians> headingController{ 8.0, 0, 0, frc::TrapezoidProfile<units::radians>::Constraints{ 10_rad_per_s, 4_rad_per_s_sq }, RobotConstants::LoopTime };
 
 	/* Controller */
 	frc::XboxController* joystick;
