@@ -4,8 +4,9 @@
 
 #include "Gamepad.h"
 
-Gamepad::Gamepad(int port, double deadzone){
-    this->deadzone = deadzone;
+Gamepad::Gamepad(int port, double stickDeadzone, double triggerDeadzone){
+    this->stickDeadzone = stickDeadzone;
+    this->triggerDeadzone = triggerDeadzone;
     m_controller = new frc2::CommandXboxController(port);
     m_genericHID = new frc2::CommandGenericHID(port);
 };
@@ -23,15 +24,15 @@ double Gamepad::getTwist(){
 
 
 frc::Rotation2d Gamepad::getLeftStickDirection(){
-    double x = Utils::ApplyAxisFilter(-m_controller->GetLeftX(), deadzone);
-    double y = Utils::ApplyAxisFilter(-m_controller->GetLeftY(), deadzone);
+    double x = Utils::ApplyAxisFilter(-m_controller->GetLeftX(), stickDeadzone);
+    double y = Utils::ApplyAxisFilter(-m_controller->GetLeftY(), stickDeadzone);
 
     return frc::Rotation2d(x, y);
 };
 
 frc::Rotation2d Gamepad::getRightStickDirection(){
-    double x = Utils::ApplyAxisFilter(-m_controller->GetRightX(), deadzone);
-    double y = Utils::ApplyAxisFilter(-m_controller->GetRightY(), deadzone);
+    double x = Utils::ApplyAxisFilter(-m_controller->GetRightX(), stickDeadzone);
+    double y = Utils::ApplyAxisFilter(-m_controller->GetRightY(), stickDeadzone);
 
     return frc::Rotation2d(x, y);
 };
@@ -53,19 +54,19 @@ frc2::Trigger Gamepad::bothBumpers(){
 }
 
 frc2::Trigger Gamepad::noTriggers(){
-    return !m_controller->LeftTrigger(0) && !m_controller->RightTrigger(0);
+    return !m_controller->LeftTrigger(triggerDeadzone) && !m_controller->RightTrigger(triggerDeadzone);
 }
 
 frc2::Trigger Gamepad::leftTriggerOnly(){
-    return m_controller->LeftTrigger(0) && !m_controller->RightTrigger(0);
+    return m_controller->LeftTrigger(triggerDeadzone) && !m_controller->RightTrigger(triggerDeadzone);
 }
 
 frc2::Trigger Gamepad::rightTriggerOnly(){
-    return m_controller->RightTrigger(0) && !m_controller->LeftTrigger(0);
+    return m_controller->RightTrigger(triggerDeadzone) && !m_controller->LeftTrigger(triggerDeadzone);
 }
 
 frc2::Trigger Gamepad::bothTriggers(){
-    return m_controller->LeftTrigger(0) && m_controller->RightTrigger(0);
+    return m_controller->LeftTrigger(triggerDeadzone) && m_controller->RightTrigger(triggerDeadzone);
 }
 
 frc2::Trigger Gamepad::a(){
@@ -112,3 +113,31 @@ frc2::CommandPtr Gamepad::rumbleCommand(double intensity){
     m_controller->SetRumble(frc::GenericHID::RumbleType::kBothRumble, intensity);
 }
 
+frc2::Trigger Gamepad::leftYTrigger(){
+    {[this]{return std::abs(m_controller->GetLeftY()) >= stickDeadzone;};
+}
+}
+
+frc2::Trigger Gamepad::leftXTrigger(){
+    {[this]{return std::abs(m_controller->GetLeftX()) >= stickDeadzone;};
+}
+}
+
+frc2::Trigger Gamepad::rightYTrigger(){
+    {[this]{return std::abs(m_controller->GetRightY()) >= stickDeadzone;}; 
+}
+}
+
+frc2::Trigger Gamepad::rightXTrigger(){
+    {[this]{return std::abs(m_controller->GetRightX()) >= stickDeadzone;};
+}
+}
+
+frc2::Trigger Gamepad::rightStick(){
+    {[this]{return std::abs(m_controller->GetRightX()) >= stickDeadzone || m_controller->GetRightX() >= stickDeadzone;};};
+    
+}
+
+frc2::Trigger Gamepad::leftStick(){
+    {[this]{return std::abs(m_controller->GetLeftX()) >= stickDeadzone || m_controller->GetLeftX() >= stickDeadzone;};};
+}

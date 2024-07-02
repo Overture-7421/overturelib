@@ -13,7 +13,7 @@
 
 class Gamepad{
 public:
-  Gamepad(int port, double deadzone);
+  Gamepad(int port, double stickDeadzone, double triggerDeadzone);
  
   double getTwist();
   frc::Rotation2d getLeftStickDirection();
@@ -50,8 +50,8 @@ public:
 private:
   frc::Rotation2d storedLeftStickDirection;
   frc::Rotation2d storedRightStickDirection;
-  frc2::Trigger axisTrigger(double v);
-  double deadzone;
+  double stickDeadzone;
+  double triggerDeadzone;
   
   frc2::CommandXboxController* m_controller;
   frc2::CommandGenericHID* m_genericHID;
