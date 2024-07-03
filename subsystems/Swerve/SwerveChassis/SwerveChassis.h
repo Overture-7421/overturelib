@@ -14,6 +14,7 @@
 #include <frc/DriverStation.h>
 #include <frc/smartdashboard/Field2d.h>
 #include <frc/controller/ProfiledPIDController.h>
+#include <frc/filter/SlewRateLimiter.h>
 
 #include <frc2/command/SubsystemBase.h>
 #include <pathplanner/lib/auto/AutoBuilder.h>
@@ -23,6 +24,7 @@
 #include <pathplanner/lib/controllers/PPHolonomicDriveController.h>
 
 #include "Sensors/OverPigeon/OverPigeon.h"
+#include "Subsystems/Swerve/RotationController/RotationController.h"
 #include "Subsystems/Swerve/SwerveModule/SwerveModule.h"
 #include "Math/ChassisAccels.h"
 
@@ -51,6 +53,10 @@ public:
 	frc::ChassisSpeeds getRobotRelativeSpeeds();
 	frc::ChassisSpeeds getFieldRelativeSpeeds();
 	ChassisAccels getFieldRelativeAccels();
+
+	void setAlliance();
+	frc::ChassisSpeeds limitSpeeds(frc::ChassisSpeeds speeds, bool isFieldRelative);
+	void setDrive(frc::ChassisSpeeds speeds, bool isFieldRelative, bool isOpenLoop = true, frc::Rotation2d heading = frc::Rotation2d());
 
 	const frc::Pose2d& getOdometry();
 	void resetOdometry(frc::Pose2d initPose);
@@ -103,11 +109,19 @@ private:
 	wpi::log::StructLogEntry<frc::Pose2d> visionPoseLog = wpi::log::StructLogEntry<frc::Pose2d>(log, "/swerve/vision_pose");
 
 	bool headingOverride = false;
-	frc::ProfiledPIDController<units::radians> headingController{ 11.0, 0.5, 0.35, frc::TrapezoidProfile<units::radians>::Constraints{ 18_rad_per_s, 18_rad_per_s_sq * 2 }, RobotConstants::LoopTime };
+	// frc::ProfiledPIDController<units::radians> headingController{ 11.0, 0.5, 0.35, frc::TrapezoidProfile<units::radians>::Constraints{ 18_rad_per_s, 18_rad_per_s_sq * 2 }, RobotConstants::LoopTime };
+	RotationController headingController{ 11.0, 0.5, 0.35, {18_rad_per_s, 18_rad_per_s_sq * 2} };
 	frc::Rotation2d headingTarget;
 
 	bool vyOverride = false;
 	units::meters_per_second_t vyTarget;
 
 	bool acceptVisionMeasurements = true;
+
+	/* Limiters */
+	frc::SlewRateLimiter<units::meters_per_second> xLimiter{ 15.0_mps_sq };
+	frc::SlewRateLimiter<units::meters_per_second> yLimiter{ 15.0_mps_sq };
+	frc::SlewRateLimiter<units::radians_per_second> rLimiter{ 18_tr_per_s_sq };
+
+	int alliance = 1;
 };

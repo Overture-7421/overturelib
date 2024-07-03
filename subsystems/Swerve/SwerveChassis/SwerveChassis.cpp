@@ -22,9 +22,6 @@ SwerveChassis::SwerveChassis(units::meters_per_second_t maxModuleSpeed, units::m
 			ReplanningConfig()
 		),
 		[]() {
-		// Boolean supplier that controls when the path will be mirrored for the red alliance
-		// This will flip the path being followed to the red side of the field.
-		// THE ORIGIN WILL REMAIN ON THE BLUE SIDE
 
 		auto alliance = frc::DriverStation::GetAlliance();
 		if (alliance) {
@@ -36,13 +33,10 @@ SwerveChassis::SwerveChassis(units::meters_per_second_t maxModuleSpeed, units::m
 	);
 
 	frc::SmartDashboard::PutData("Chassis/Odometry", &field2d);
-	frc::SmartDashboard::PutData("Chassis/HeadingController", &headingController);
 
 	this->maxModuleSpeed = maxModuleSpeed;
 	this->driveBaseRadius = driveBaseRadius;
 
-	headingController.SetIZone(3);
-	headingController.EnableContinuousInput(-1.0 * units::radian_t(M_PI), units::radian_t(M_PI));
 	pathplanner::PPHolonomicDriveController::setRotationTargetOverride([this]() { return getRotationTargetOverride(); });
 }
 
@@ -61,7 +55,6 @@ std::optional<frc::Rotation2d> SwerveChassis::getRotationTargetOverride() {
  */
 void SwerveChassis::setTargetHeading(frc::Rotation2d rotationTarget) {
 	headingTarget = rotationTarget;
-	headingController.SetGoal(headingTarget.Radians());
 }
 
 /**
@@ -71,7 +64,7 @@ void SwerveChassis::setTargetHeading(frc::Rotation2d rotationTarget) {
  */
 void SwerveChassis::setHeadingOverride(bool headingOverride) {
 	this->headingOverride = headingOverride;
-	headingController.Reset(getOdometry().Rotation().Radians());
+	headingController.reset(getOdometry().Rotation().Radians());
 }
 
 void SwerveChassis::setVyOverride(bool vyOverride) {
@@ -203,6 +196,53 @@ frc::ChassisSpeeds SwerveChassis::getFieldRelativeSpeeds() {
 
 ChassisAccels SwerveChassis::getFieldRelativeAccels() {
 	return fieldRelativeAccel;
+}
+
+/**
+ * @brief Sets the robot alliance
+ */
+void SwerveChassis::setAlliance() {
+	if (frc::DriverStation::GetAlliance() == frc::DriverStation::Alliance::kRed) {
+		alliance = -1;
+	} else {
+		alliance = 1;
+	}
+}
+
+/**
+ * @brief Limits the robot speed
+ *
+ * @param speeds ChassisSpeeds object
+ * @return ChassisSpeeds object
+ */
+frc::ChassisSpeeds SwerveChassis::limitSpeeds(frc::ChassisSpeeds speeds, bool isFieldRelative) {
+	units::meters_per_second_t xSpeed = xLimiter.Calculate(speeds.vx);
+	units::meters_per_second_t ySpeed = yLimiter.Calculate(speeds.vy);
+	units::radians_per_second_t omega = rLimiter.Calculate(speeds.omega);
+
+	if (isFieldRelative) {
+		return { alliance * xSpeed, alliance * ySpeed, omega };
+	} else {
+		return { xSpeed, ySpeed, omega };
+	}
+}
+
+/**
+ * @brief Sets the robot target speed
+ *
+ * @param speeds ChassisSpeeds object
+ * @param isFieldRelative Boolean
+ * @param isOpenLoop Boolean
+ */
+void SwerveChassis::setDrive(frc::ChassisSpeeds speeds, bool isFieldRelative, bool isOpenLoop, frc::Rotation2d heading) {
+	if (isFieldRelative && isOpenLoop) {
+		driveFieldRelative(limitSpeeds(speeds, isFieldRelative));
+	} else if (isFieldRelative && !isOpenLoop) {
+		headingTarget = heading;
+		driveFieldRelative(limitSpeeds(speeds, isFieldRelative));
+	} else {
+		driveRobotRelative(limitSpeeds(speeds, isFieldRelative));
+	}
 }
 
 /**
@@ -370,7 +410,7 @@ void SwerveChassis::Periodic() {
 	updateOdometry();
 
 	if (headingOverride) {
-		double outOmega = headingController.Calculate(latestPose.Rotation().Radians());
+		double outOmega = headingController.calculate(headingTarget.Radians(), latestPose.Rotation().Radians());
 		if (std::abs(outOmega) < 0.1 && desiredSpeeds.vx == 0_mps && desiredSpeeds.vy == 0_mps) {
 			outOmega = 0.0;
 		}
