@@ -7,8 +7,6 @@
 #include <frc/controller/ProfiledPIDController.h>
 #include <frc/trajectory/TrapezoidProfile.h>
 
-#include "../SwerveChassis/SwerveChassis.h"
-
 // Class for controlling the rotation of the robot
 class RotationController {
 public:
