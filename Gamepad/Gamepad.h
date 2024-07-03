@@ -26,13 +26,13 @@ public:
 	frc2::Trigger leftTriggerOnly();
 	frc2::Trigger rightTriggerOnly();
 	frc2::Trigger bothTriggers();
-	frc2::Trigger leftYTrigger();
-	frc2::Trigger leftXTrigger();
-	frc2::Trigger rightYTrigger();
-	frc2::Trigger rightXTrigger();
-	frc2::Trigger rightStick();
-	frc2::Trigger leftStick();
-	frc2::CommandPtr rumbleCommand(double intensity); // combinar
+	frc2::Trigger leftYTrigger(double triggerTreshold);
+	frc2::Trigger leftXTrigger(double triggerTreshold);
+	frc2::Trigger rightYTrigger(double triggerTreshold);
+	frc2::Trigger rightXTrigger(double triggerTreshold);
+	frc2::Trigger rightStick(double triggerTreshold);
+	frc2::Trigger leftStick(double triggerTreshold);
+	frc2::CommandPtr rumbleCommand(double intensity);
 	frc2::Trigger a();
 	frc2::Trigger b();
 	frc2::Trigger x();

@@ -109,35 +109,27 @@ frc2::CommandPtr Gamepad::rumbleCommand(double intensity) {
 	SetRumble(frc::GenericHID::RumbleType::kBothRumble, intensity);
 }
 
-frc2::Trigger Gamepad::leftYTrigger() {
-	{
-		[this] {return std::abs(GetLeftY()) >= stickDeadzone;};
-	}
+frc2::Trigger Gamepad::leftYTrigger(double triggerTreshold) {
+	return frc2::Trigger([this, triggerTreshold] {return std::abs(GetLeftY()) >= triggerTreshold;});
 }
 
-frc2::Trigger Gamepad::leftXTrigger() {
-	{
-		[this] {return std::abs(GetLeftX()) >= stickDeadzone;};
-	}
+frc2::Trigger Gamepad::leftXTrigger(double triggerTreshold) {
+	return frc2::Trigger([this, triggerTreshold] {return std::abs(GetLeftX()) >= triggerTreshold;});
 }
 
-frc2::Trigger Gamepad::rightYTrigger() {
-	{
-		[this] {return std::abs(GetRightY()) >= stickDeadzone;};
-	}
+frc2::Trigger Gamepad::rightYTrigger(double triggerTreshold) {
+	return frc2::Trigger([this, triggerTreshold] {return std::abs(GetRightY()) >= triggerTreshold;});
 }
 
-frc2::Trigger Gamepad::rightXTrigger() {
-	{
-		[this] {return std::abs(GetRightX()) >= stickDeadzone;};
-	}
-}
-
-frc2::Trigger Gamepad::rightStick() {
-	{ [this] {return std::abs(GetRightX()) >= stickDeadzone || GetRightX() >= stickDeadzone;}; };
+frc2::Trigger Gamepad::rightXTrigger(double triggerTreshold) {
 
 }
 
-frc2::Trigger Gamepad::leftStick() {
-	{ [this] {return std::abs(GetLeftX()) >= stickDeadzone || GetLeftX() >= stickDeadzone;}; };
+frc2::Trigger Gamepad::rightStick(double triggerTreshold) {
+	{ [this, triggerTreshold] {return std::abs(GetRightX()) >= triggerTreshold || GetRightX() >= triggerTreshold;}; };
+
+}
+
+frc2::Trigger Gamepad::leftStick(double triggerTreshold) {
+	{ [this, triggerTreshold] {return std::abs(GetLeftX()) >= triggerTreshold || GetLeftX() >= triggerTreshold;}; };
 }
