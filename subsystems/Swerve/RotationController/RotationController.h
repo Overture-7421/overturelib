@@ -12,15 +12,14 @@
 // Class for controlling the rotation of the robot
 class RotationController {
 public:
-	RotationController(SwerveChassis& chassis, double kP, double kI, double kD, frc::TrapezoidProfile<units::radians>::Constraints profile);
-	double calculate(units::radian_t targetAngle);
+	RotationController(double kP, double kI, double kD, frc::TrapezoidProfile<units::radians>::Constraints profile);
+	double calculate(units::radian_t targetAngle, units::radian_t currentAngle);
 	bool atSetpoint();
 	bool atFeedbackSetpoint();
-	void reset();
+	void reset(units::radian_t currentAngle);
 	void updatePID(double kP, double kI, double kD);
 
 private:
-	SwerveChassis* m_chassis;
 	// PID controller for the rotation
 	frc::ProfiledPIDController<units::radians> m_controller;
 

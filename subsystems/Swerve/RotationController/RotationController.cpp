@@ -4,17 +4,18 @@
 
 #include "RotationController.h"
 
-RotationController::RotationController(SwerveChassis& chassis, double kP, double kI, double kD, frc::TrapezoidProfile<units::radians>::Constraints profile)
-	: m_chassis(&chassis), m_controller(kP, kI, kD, profile) {
+RotationController::RotationController(double kP, double kI, double kD, frc::TrapezoidProfile<units::radians>::Constraints profile)
+	: m_controller(kP, kI, kD, profile) {
 	m_controller.EnableContinuousInput(units::radian_t(-180_deg), units::radian_t(180_deg));
 	m_controller.SetTolerance(tolerance);
+	m_controller.SetIZone(3);
+
 
 	calculatedValue = 0;
 	feedbackSetpoint = 0.35;
 }
 
-double RotationController::calculate(units::radian_t targetAngle) {
-	units::radian_t currentAngle = m_chassis->getOdometry().Rotation().Radians();
+double RotationController::calculate(units::radian_t targetAngle, units::radian_t currentAngle) {
 	calculatedValue = m_controller.Calculate(currentAngle, targetAngle);
 
 	if (atSetpoint()) {
@@ -32,8 +33,8 @@ bool RotationController::atFeedbackSetpoint() {
 	return std::abs(calculatedValue) <= feedbackSetpoint;
 }
 
-void RotationController::reset() {
-	m_controller.Reset(m_chassis->getOdometry().Rotation().Radians());
+void RotationController::reset(units::radian_t currentAngle) {
+	m_controller.Reset(currentAngle);
 }
 
 void RotationController::updatePID(double kP, double kI, double kD) {
