@@ -24,7 +24,7 @@
 #include <pathplanner/lib/controllers/PPHolonomicDriveController.h>
 
 #include "Sensors/OverPigeon/OverPigeon.h"
-#include "Subsystems/Swerve/RotationController/RotationController.h"
+#include "Controllers/RotationController/RotationController.h"
 #include "Subsystems/Swerve/SwerveModule/SwerveModule.h"
 #include "Math/ChassisAccels.h"
 
