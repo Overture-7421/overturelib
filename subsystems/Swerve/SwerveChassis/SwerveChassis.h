@@ -15,6 +15,7 @@
 #include <frc/smartdashboard/Field2d.h>
 #include <frc/controller/ProfiledPIDController.h>
 #include <frc/filter/SlewRateLimiter.h>
+#include <frc2/command/Commands.h>
 
 #include <frc2/command/SubsystemBase.h>
 #include <pathplanner/lib/auto/AutoBuilder.h>
@@ -64,6 +65,7 @@ public:
 	void addVisionMeasurement(frc::Pose2d pose, units::second_t Latency);
 	void setAcceptingVisionMeasurements(bool acceptVisionMeasurements);
 	void resetAngle(double angle = 0);
+	frc2::CommandPtr resetHeading();
 
 	void setModuleStates(wpi::array<frc::SwerveModuleState, 4> desiredStates);
 	wpi::array<frc::SwerveModuleState, 4> getModuleStates();

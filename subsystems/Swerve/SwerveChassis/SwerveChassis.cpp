@@ -297,6 +297,18 @@ void SwerveChassis::resetAngle(double angle) {
 }
 
 /**
+ * @brief Resets the robot heading
+ *
+ * @return CommandPtr
+ */
+frc2::CommandPtr SwerveChassis::resetHeading() {
+	return frc2::cmd::RunOnce([this] {
+		double angle = alliance = 1 ? 0 : 180;
+		resetAngle(angle);
+	});
+}
+
+/**
  * @brief Updates module states
  *
  * @param desiredStates SwerveModuleState array
