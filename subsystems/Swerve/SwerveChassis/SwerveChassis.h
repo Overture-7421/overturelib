@@ -59,8 +59,9 @@ public:
 	ChassisAccels getFieldRelativeAccels();
 
 	void setAlliance();
-	frc::ChassisSpeeds limitSpeeds(frc::ChassisSpeeds speeds, bool isFieldRelative);
-	void setDrive(frc::ChassisSpeeds speeds, bool isFieldRelative, bool isOpenLoop = true, frc::Rotation2d heading = frc::Rotation2d());
+	void setFieldRelative(units::meters_per_second_t x, units::meters_per_second_t y, units::radians_per_second_t r);
+	void setClosedLoop(units::meters_per_second_t x, units::meters_per_second_t y, frc::Rotation2d heading);
+	void setRobotRelative(units::meters_per_second_t x, units::meters_per_second_t y, units::radians_per_second_t r);
 
 	const frc::Pose2d& getOdometry();
 	void resetOdometry(frc::Pose2d initPose);

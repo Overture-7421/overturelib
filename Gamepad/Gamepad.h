@@ -33,12 +33,6 @@ public:
 	frc2::Trigger rightStick(double triggerTreshold);
 	frc2::Trigger leftStick(double triggerTreshold);
 	frc2::CommandPtr rumbleCommand(double intensity);
-	frc2::Trigger a();
-	frc2::Trigger b();
-	frc2::Trigger x();
-	frc2::Trigger y();
-	frc2::Trigger start();
-	frc2::Trigger select();
 	frc2::Trigger upDpad();
 	frc2::Trigger downDpad();
 	frc2::Trigger leftDpad();
@@ -50,6 +44,4 @@ private:
 	frc::Rotation2d storedRightStickDirection;
 	double stickDeadzone;
 	double triggerDeadzone;
-
-	frc2::CommandGenericHID* m_genericHID;
 };

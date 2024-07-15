@@ -210,40 +210,40 @@ void SwerveChassis::setAlliance() {
 }
 
 /**
- * @brief Limits the robot speed
+ * @brief Returns a field relative command
  *
- * @param speeds ChassisSpeeds object
- * @return ChassisSpeeds object
+ * @param x The x speed
+ * @param y The y speed
+ * @param r The rotation speed
  */
-frc::ChassisSpeeds SwerveChassis::limitSpeeds(frc::ChassisSpeeds speeds, bool isFieldRelative) {
-	units::meters_per_second_t xSpeed = xLimiter.Calculate(speeds.vx);
-	units::meters_per_second_t ySpeed = yLimiter.Calculate(speeds.vy);
-	units::radians_per_second_t omega = rLimiter.Calculate(speeds.omega);
 
-	if (isFieldRelative) {
-		return { alliance * xSpeed, alliance * ySpeed, omega };
-	} else {
-		return { xSpeed, ySpeed, omega };
-	}
+void SwerveChassis::setFieldRelative(units::meters_per_second_t x, units::meters_per_second_t y, units::radians_per_second_t r) {
+	driveFieldRelative({ xLimiter.Calculate(x) * alliance, yLimiter.Calculate(y) * alliance, rLimiter.Calculate(r) });
 }
 
 /**
- * @brief Sets the robot target speed
+ * @brief Returns a closed loop command
  *
- * @param speeds ChassisSpeeds object
- * @param isFieldRelative Boolean
- * @param isOpenLoop Boolean
+ * @param x The x speed
+ * @param y The y speed
+ * @param heading The heading
  */
-void SwerveChassis::setDrive(frc::ChassisSpeeds speeds, bool isFieldRelative, bool isOpenLoop, frc::Rotation2d heading) {
-	if (isFieldRelative && isOpenLoop) {
-		driveFieldRelative(limitSpeeds(speeds, isFieldRelative));
-	} else if (isFieldRelative && !isOpenLoop) {
-		headingTarget = heading;
-		driveFieldRelative(limitSpeeds(speeds, isFieldRelative));
-	} else {
-		driveRobotRelative(limitSpeeds(speeds, isFieldRelative));
-	}
+void SwerveChassis::setClosedLoop(units::meters_per_second_t x, units::meters_per_second_t y, frc::Rotation2d heading) {
+	headingTarget = heading;
+	driveFieldRelative({ xLimiter.Calculate(x) * alliance, yLimiter.Calculate(y) * alliance, 0_rad_per_s });
 }
+
+/**
+ * @brief Returns a robot relative command
+ *
+ * @param x The x speed
+ * @param y The y speed
+ * @param r The rotation speed
+ */
+void SwerveChassis::setRobotRelative(units::meters_per_second_t x, units::meters_per_second_t y, units::radians_per_second_t r) {
+	driveRobotRelative({ xLimiter.Calculate(x), yLimiter.Calculate(y), rLimiter.Calculate(r) });
+}
+
 
 /**
  * @brief Returns the robot odometry

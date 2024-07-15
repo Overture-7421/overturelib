@@ -7,7 +7,6 @@
 Gamepad::Gamepad(int port, double stickDeadzone, double triggerDeadzone) : frc2::CommandXboxController(port) {
 	this->stickDeadzone = stickDeadzone;
 	this->triggerDeadzone = triggerDeadzone;
-	m_genericHID = new frc2::CommandGenericHID(port);
 };
 
 
@@ -65,44 +64,20 @@ frc2::Trigger Gamepad::bothTriggers() {
 	return LeftTrigger(triggerDeadzone) && RightTrigger(triggerDeadzone);
 }
 
-frc2::Trigger Gamepad::a() {
-	return A();
-};
-
-frc2::Trigger Gamepad::b() {
-	return B();
-}
-
-frc2::Trigger Gamepad::x() {
-	return X();
-}
-
-frc2::Trigger Gamepad::y() {
-	return Y();
-}
-
-frc2::Trigger Gamepad::start() {
-	return Start();
-}
-
-frc2::Trigger Gamepad::select() {
-	return Back();
-}
-
 frc2::Trigger Gamepad::upDpad() {
-	return m_genericHID->POVUp();
+	return frc2::Trigger([this] {return GetPOV(0);});
 }
 
 frc2::Trigger Gamepad::downDpad() {
-	return m_genericHID->POVDown();
+	return frc2::Trigger([this] {return GetPOV(180);});
 }
 
 frc2::Trigger Gamepad::leftDpad() {
-	return m_genericHID->POVLeft();
+	return frc2::Trigger([this] {return GetPOV(270);});
 }
 
 frc2::Trigger Gamepad::rightDpad() {
-	return m_genericHID->POVRight();
+	return frc2::Trigger([this] {return GetPOV(90);});
 }
 
 frc2::CommandPtr Gamepad::rumbleCommand(double intensity) {
