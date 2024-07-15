@@ -64,7 +64,7 @@ void SwerveChassis::setTargetHeading(frc::Rotation2d rotationTarget) {
  */
 void SwerveChassis::setHeadingOverride(bool headingOverride) {
 	this->headingOverride = headingOverride;
-	headingController.reset(getOdometry().Rotation().Radians());
+	headingController.Reset(getOdometry().Rotation().Radians());
 }
 
 void SwerveChassis::setVyOverride(bool vyOverride) {
@@ -228,7 +228,7 @@ void SwerveChassis::setFieldRelative(units::meters_per_second_t x, units::meters
  * @param y The y speed
  * @param heading The heading
  */
-void SwerveChassis::setClosedLoop(units::meters_per_second_t x, units::meters_per_second_t y, frc::Rotation2d heading) {
+void SwerveChassis::setRotationClosedLoop(units::meters_per_second_t x, units::meters_per_second_t y, frc::Rotation2d heading) {
 	headingTarget = heading;
 	driveFieldRelative({ xLimiter.Calculate(x) * alliance, yLimiter.Calculate(y) * alliance, 0_rad_per_s });
 }
@@ -454,7 +454,7 @@ void SwerveChassis::Periodic() {
 	updateOdometry();
 
 	if (headingOverride) {
-		double outOmega = headingController.calculate(headingTarget.Radians(), latestPose.Rotation().Radians());
+		double outOmega = headingController.calculateValue(headingTarget.Radians(), latestPose.Rotation().Radians());
 		if (std::abs(outOmega) < 0.1 && desiredSpeeds.vx == 0_mps && desiredSpeeds.vy == 0_mps) {
 			outOmega = 0.0;
 		}

@@ -60,7 +60,7 @@ public:
 
 	void setAlliance();
 	void setFieldRelative(units::meters_per_second_t x, units::meters_per_second_t y, units::radians_per_second_t r);
-	void setClosedLoop(units::meters_per_second_t x, units::meters_per_second_t y, frc::Rotation2d heading);
+	void setRotationClosedLoop(units::meters_per_second_t x, units::meters_per_second_t y, frc::Rotation2d heading);
 	void setRobotRelative(units::meters_per_second_t x, units::meters_per_second_t y, units::radians_per_second_t r);
 
 	const frc::Pose2d& getOdometry();
@@ -86,6 +86,8 @@ public:
 	void updateOdometry();
 	void shuffleboardPeriodic();
 	void Periodic() override;
+
+	RotationController headingController{ 11.0, 0.5, 0.35, {18_rad_per_s, 18_rad_per_s_sq * 2} };
 
 protected:
 	OverPigeon* pigeon;
@@ -119,8 +121,6 @@ private:
 	wpi::log::StructLogEntry<frc::Pose2d> visionPoseLog = wpi::log::StructLogEntry<frc::Pose2d>(log, "/swerve/vision_pose");
 
 	bool headingOverride = false;
-	// frc::ProfiledPIDController<units::radians> headingController{ 11.0, 0.5, 0.35, frc::TrapezoidProfile<units::radians>::Constraints{ 18_rad_per_s, 18_rad_per_s_sq * 2 }, RobotConstants::LoopTime };
-	RotationController headingController{ 11.0, 0.5, 0.35, {18_rad_per_s, 18_rad_per_s_sq * 2} };
 	frc::Rotation2d headingTarget;
 
 	bool vyOverride = false;

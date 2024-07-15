@@ -10,18 +10,13 @@
 #include "subsystems/Swerve/SwerveChassis/SwerveChassis.h"
 
 // Class for controlling the position of the robot
-class PositionController {
+class PositionController : public frc::ProfiledPIDController<units::meters> {
 public:
-	PositionController(SwerveChassis& chassis, double kP, double kI, double kD, frc::TrapezoidProfile<units::meters>::Constraints profile);
+	PositionController(double kP, double kI, double kD, frc::TrapezoidProfile<units::meters>::Constraints profile);
 
-	double calculate(units::meter_t targetPosition);
-	bool atSetpoint();
-	void reset();
+	double calculate(units::meter_t targetPosition, units::meter_t currentPosition);
 
 private:
-	SwerveChassis* m_chassis;
-	// PID controller for the rotation
-	frc::ProfiledPIDController<units::meters> m_controller;
 
-	units::meter_t tolerance{ 0.04 }; // 4 cm tolerance
+	double calculatedValue = 0;
 };
