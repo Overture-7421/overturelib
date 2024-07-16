@@ -46,6 +46,8 @@ public:
 	void setHeadingOverride(bool headingOverride);
 	void setVyOverride(bool vyOverride);
 	void setVyTarget(units::meters_per_second_t vy);
+	void setPositionAssist(bool positionAssist);
+	void setPositionTarget(units::meters_per_second_t vy, units::meters_per_second_t vx);
 	void setModulePositions(std::array<frc::Translation2d, 4>* positions);
 	void setModulesRatios(double turnRatio, double driveRatio, double wheelDiameter);
 	void setModules(SwerveModule* frontLeft, SwerveModule* frontRight, SwerveModule* backleft, SwerveModule* backRight);
@@ -124,7 +126,10 @@ private:
 	frc::Rotation2d headingTarget;
 
 	bool vyOverride = false;
+	bool positionAssist = false;
+
 	units::meters_per_second_t vyTarget;
+	units::meters_per_second_t vxTarget;
 
 	bool acceptVisionMeasurements = true;
 

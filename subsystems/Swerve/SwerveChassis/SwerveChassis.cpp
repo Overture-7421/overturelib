@@ -75,6 +75,15 @@ void SwerveChassis::setVyTarget(units::meters_per_second_t vy) {
 	this->vyTarget = vy;
 }
 
+void SwerveChassis::setPositionAssist(bool positionAssist) {
+	this->positionAssist = positionAssist;
+}
+
+void SwerveChassis::setPositionTarget(units::meters_per_second_t vy, units::meters_per_second_t vx) {
+	this->vyTarget = vy;
+	this->vxTarget = vx;
+}
+
 /**
  * @brief Sets the swerve module positions for the kinematics and odometry.
  *
@@ -465,6 +474,11 @@ void SwerveChassis::Periodic() {
 
 	if (vyOverride) {
 		desiredSpeeds.vy = vyTarget;
+	}
+
+	if (positionAssist) {
+		desiredSpeeds.vy += vyTarget;
+		desiredSpeeds.vx += vxTarget;
 	}
 
 	wpi::array<frc::SwerveModuleState, 4U> desiredStates = kinematics->ToSwerveModuleStates(desiredSpeeds);
