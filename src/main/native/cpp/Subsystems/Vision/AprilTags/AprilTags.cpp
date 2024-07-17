@@ -2,16 +2,16 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-#include "AprilTags.h"
+#include "OvertureLib/Subsystems/Vision/AprilTags/AprilTags.h"
 #include <iostream>
 
 AprilTags::AprilTags(frc::AprilTagFieldLayout* tagLayout, SwerveChassis* chassis, Config config) {
 	this->config = config;
 	this->tagLayout = tagLayout;
 	this->chassis = chassis;
-	
+
 	camera = std::make_unique<photon::PhotonCamera>(this->config.cameraName);
-	poseEstimator = std::make_unique<photon::PhotonPoseEstimator> (
+	poseEstimator = std::make_unique<photon::PhotonPoseEstimator>(
 		*this->tagLayout,
 		photon::PoseStrategy::MULTI_TAG_PNP_ON_COPROCESSOR,
 		this->config.cameraToRobot
@@ -20,12 +20,12 @@ AprilTags::AprilTags(frc::AprilTagFieldLayout* tagLayout, SwerveChassis* chassis
 
 //Check if distance between robot and tag is less than a certain value ;)
 bool AprilTags::checkTagDistance(const photon::PhotonPipelineResult& result, size_t numberOfTags, units::meter_t distance) {
-	if(numberOfTags >= 4) {
+	if (numberOfTags >= 4) {
 		return true;
 	}
 
 	if (result.GetTargets().size() == numberOfTags) {
-		if (result.GetBestTarget().GetBestCameraToTarget().Translation().Distance({0_m, 0_m, 0_m}) < distance) {
+		if (result.GetBestTarget().GetBestCameraToTarget().Translation().Distance({ 0_m, 0_m, 0_m }) < distance) {
 			return true;
 		}
 	}
@@ -47,7 +47,7 @@ void AprilTags::addMeasurementToChassis(const photon::PhotonPipelineResult& resu
 //Update odometry with vision :0
 void AprilTags::updateOdometry() {
 	std::optional<photon::PhotonPipelineResult> result = getCameraResult();
-	if(!result.has_value()) {
+	if (!result.has_value()) {
 		return;
 	}
 	photon::PhotonPipelineResult pipelineResult = result.value();

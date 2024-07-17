@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-#include "OverTalonFX.h"
+#include "OvertureLib/MotorControllers/OverTalonFX/OverTalonFX.h"
 
 #ifndef __FRC_ROBORIO__
 #include "OvertureLib/Simulation/SimMotorManager/SimMotorManager.h"
@@ -229,7 +229,7 @@ double OverTalonFX::getPosition() {
 	return GetPosition().GetValue().value();
 }
 
-const TalonFXConfiguration& OverTalonFX::getConfig(){
+const TalonFXConfiguration& OverTalonFX::getConfig() {
 	return config;
 }
 
@@ -341,7 +341,7 @@ void OverTalonFX::configureMotionMagic(double cruiseVelocity, double acceleratio
 	GetConfigurator().Apply(config);
 }
 
-void OverTalonFX::configureSoftwareLimitSwitch(ctre::phoenix6::configs::SoftwareLimitSwitchConfigs configs){
+void OverTalonFX::configureSoftwareLimitSwitch(ctre::phoenix6::configs::SoftwareLimitSwitchConfigs configs) {
 	config.SoftwareLimitSwitch = configs;
 	GetConfigurator().Apply(config);
 }

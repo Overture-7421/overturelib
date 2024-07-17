@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-#include "OverCANCoder.h"
+#include "OvertureLib/Sensors/OverCANCoder/OverCANCoder.h"
 
 #ifndef __FRC_ROBORIO__
 #include "OvertureLib/Simulation/SimCANCoderManager/SimCANCoderManager.h"
@@ -38,6 +38,6 @@ double OverCANCoder::getSensorAbsolutePosition() {
 	return GetAbsolutePosition().GetValue().value();
 }
 
-const CANcoderConfiguration& OverCANCoder::getConfiguration(){
+const CANcoderConfiguration& OverCANCoder::getConfiguration() {
 	return canCoderConfiguration;
 }
