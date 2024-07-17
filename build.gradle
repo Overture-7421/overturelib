@@ -45,6 +45,7 @@ model {
       }
 
       nativeUtils.useRequiredLibrary(it, 'wpilib_shared')
+      nativeUtils.useRequiredLibrary(it, 'wpimath_shared')
     }
 
   }
