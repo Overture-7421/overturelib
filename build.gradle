@@ -1,0 +1,69 @@
+plugins {
+  id 'cpp'
+  id 'java'
+  id 'google-test'
+  id 'edu.wpi.first.wpilib.repositories.WPILibRepositoriesPlugin' version '2020.2'
+  id 'edu.wpi.first.NativeUtils' version '2024.7.2'
+  id 'edu.wpi.first.GradleJni' version '1.1.0'
+  id 'edu.wpi.first.GradleVsCode' version '2.1.0'
+}
+
+repositories {
+  mavenCentral()
+}
+if (project.hasProperty('releaseMode')) {
+  wpilibRepositories.addAllReleaseRepositories(project)
+} else {
+  wpilibRepositories.addAllDevelopmentRepositories(project)
+}
+
+// Apply C++ configuration
+apply from: 'config.gradle'
+
+// Set up exports properly
+nativeUtils {
+  exportsConfigs {
+    // Main library is just default empty. This will export everything
+    OvertureLib {
+    }
+  }
+}
+
+model {
+  components {
+    OvertureLib(NativeLibrarySpec) {
+      sources {
+        cpp {
+          source {
+            srcDirs 'src/main/native/cpp'
+            include '**/*.cpp'
+          }
+          exportedHeaders {
+            srcDirs 'src/main/native/include'
+          }
+        }
+      }
+
+      nativeUtils.useRequiredLibrary(it, 'wpilib_shared')
+    }
+
+  }
+  testSuites {
+    OvertureLibTest {
+        sources.cpp {
+            source {
+                srcDir 'src/test/native/cpp'
+                include '**/*.cpp'
+            }
+        }
+
+        nativeUtils.useRequiredLibrary(it, "wpilib_executable_shared", "googletest_static")
+    }
+  }
+}
+
+apply from: 'publish.gradle'
+
+wrapper {
+  gradleVersion '8.5'
+}
