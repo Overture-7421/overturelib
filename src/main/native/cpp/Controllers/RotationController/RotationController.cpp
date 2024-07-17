@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-#include "RotationController.h"
+#include "OvertureLib/Controllers/RotationController/RotationController.h"
 
 RotationController::RotationController(double kP, double kI, double kD, frc::TrapezoidProfile<units::radians>::Constraints profile)
 	: frc::ProfiledPIDController<units::radians>(kP, kI, kD, profile) {
