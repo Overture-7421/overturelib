@@ -11,8 +11,8 @@
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <memory.h>
 
-#include "MotorControllers/OverTalonFX/OverTalonFX.h"
-#include "Sensors/OverCANCoder/OverCANCoder.h"
+#include "OvertureLib/MotorControllers/OverTalonFX/OverTalonFX.h"
+#include "OvertureLib/Sensors/OverCANCoder/OverCANCoder.h"
 
 class SwerveModule : public frc2::SubsystemBase {
 public:

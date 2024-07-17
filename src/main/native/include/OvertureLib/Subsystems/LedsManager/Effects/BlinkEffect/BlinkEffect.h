@@ -6,7 +6,7 @@
 
 #include <frc2/command/Command.h>
 #include <frc2/command/CommandHelper.h>
-#include "Subsystems/LedsManager/LedsManager.h"
+#include "OvertureLib/Subsystems/LedsManager/LedsManager.h"
 
 /**
  * An example command.
@@ -16,19 +16,19 @@
  * Command will *not* work!
  */
 class BlinkEffect
-    : public frc2::CommandHelper<frc2::Command, BlinkEffect> {
- public:
-  BlinkEffect(LedsManager* leds, LedStripName name, frc::Color8Bit color, units::second_t period = 1_s, bool addRequirement = true);
+	: public frc2::CommandHelper<frc2::Command, BlinkEffect> {
+public:
+	BlinkEffect(LedsManager* leds, LedStripName name, frc::Color8Bit color, units::second_t period = 1_s, bool addRequirement = true);
 
-  void Initialize() override;
+	void Initialize() override;
 
-  void Execute() override;
+	void Execute() override;
 
-  void End(bool interrupted) override;
+	void End(bool interrupted) override;
 
-  bool IsFinished() override;
+	bool IsFinished() override;
 private:
-  units::second_t startTime, period;
-  std::span<frc::AddressableLED::LEDData> ledStrip;
-  frc::Color8Bit color;
+	units::second_t startTime, period;
+	std::span<frc::AddressableLED::LEDData> ledStrip;
+	frc::Color8Bit color;
 };

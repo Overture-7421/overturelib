@@ -7,8 +7,6 @@
 #include <frc/controller/ProfiledPIDController.h>
 #include <frc/trajectory/TrapezoidProfile.h>
 
-#include "subsystems/Swerve/SwerveChassis/SwerveChassis.h"
-
 // Class for controlling the position of the robot
 class PositionController : public frc::ProfiledPIDController<units::meters> {
 public:

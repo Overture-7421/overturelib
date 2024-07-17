@@ -6,7 +6,7 @@
 
 #include <frc2/command/Command.h>
 #include <frc2/command/CommandHelper.h>
-#include "Subsystems/LedsManager/LedsManager.h"
+#include "OvertureLib/Subsystems/LedsManager/LedsManager.h"
 
 /**
  * An example command.
@@ -16,19 +16,19 @@
  * Command will *not* work!
  */
 class StaticEffect
-    : public frc2::CommandHelper<frc2::Command, StaticEffect> {
- public:
-  StaticEffect(LedsManager* leds, LedStripName name, frc::Color8Bit color, bool addRequirement = true);
+	: public frc2::CommandHelper<frc2::Command, StaticEffect> {
+public:
+	StaticEffect(LedsManager* leds, LedStripName name, frc::Color8Bit color, bool addRequirement = true);
 
-  void Initialize() override;
+	void Initialize() override;
 
-  void Execute() override;
+	void Execute() override;
 
-  void End(bool interrupted) override;
+	void End(bool interrupted) override;
 
-  bool IsFinished() override;
+	bool IsFinished() override;
 private:
-  LedsManager* leds;
-  std::span<frc::AddressableLED::LEDData> ledStrip;
-  frc::Color8Bit color;
+	LedsManager* leds;
+	std::span<frc::AddressableLED::LEDData> ledStrip;
+	frc::Color8Bit color;
 };

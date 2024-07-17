@@ -4,7 +4,7 @@
 
 #pragma once 
 
-#include "MotorControllers/ControllerNeutralMode/ControllerNeutralMode.h"
+#include "OvertureLib/MotorControllers/ControllerNeutralMode/ControllerNeutralMode.h"
 
 #include <math.h>
 #include <ctre/phoenix6/TalonFX.hpp>

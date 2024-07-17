@@ -27,12 +27,12 @@
 #include <pathplanner/lib/util/ReplanningConfig.h>
 #include <pathplanner/lib/controllers/PPHolonomicDriveController.h>
 
-#include "Sensors/OverPigeon/OverPigeon.h"
-#include "Controllers/RotationController/RotationController.h"
-#include "Subsystems/Swerve/SwerveModule/SwerveModule.h"
-#include "Math/ChassisAccels.h"
+#include "OvertureLib/Sensors/OverPigeon/OverPigeon.h"
+#include "OvertureLib/Controllers/RotationController/RotationController.h"
+#include "OvertureLib/Subsystems/Swerve/SwerveModule/SwerveModule.h"
+#include "OvertureLib/Math/ChassisAccels.h"
 
-#include "Robots/OverRobot/RobotConstants.h"
+#include "OvertureLib/Robots/OverRobot/RobotConstants.h"
 
 #include <wpi/DataLog.h>
 #include <frc/DataLogManager.h>
