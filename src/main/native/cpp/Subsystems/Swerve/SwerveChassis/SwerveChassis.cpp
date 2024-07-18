@@ -89,8 +89,9 @@ void SwerveChassis::setPositionTarget(units::meters_per_second_t vy, units::mete
  *
  * @param positions The positions of the modules relative to the center of the robot.
  */
-void SwerveChassis::setModulePositions(std::array<frc::Translation2d, 4>* positions) {
-	kinematics = std::make_unique<frc::SwerveDriveKinematics<4>>(*positions);
+void SwerveChassis::setModulePositions(std::array<frc::Translation2d, 4> moduleTranslations) {
+	positions = moduleTranslations;
+	kinematics = frc::SwerveDriveKinematics<4>{ positions };
 };
 
 /**
@@ -134,7 +135,7 @@ void SwerveChassis::setModules(SwerveModule* frontLeft, SwerveModule* frontRight
 			backRightModule->getPosition() };
 
 	odometry = std::make_unique<frc::SwerveDrivePoseEstimator<4>>(
-		*kinematics,
+		kinematics,
 		frc::Rotation2d{},
 		odometryPos,
 		frc::Pose2d{}
@@ -196,7 +197,7 @@ void SwerveChassis::driveFieldRelative(frc::ChassisSpeeds speeds) {
  * @return ChassisSpeeds object
  */
 frc::ChassisSpeeds SwerveChassis::getRobotRelativeSpeeds() {
-	return kinematics->ToChassisSpeeds(getModuleStates());
+	return kinematics.ToChassisSpeeds(getModuleStates());
 }
 
 frc::ChassisSpeeds SwerveChassis::getFieldRelativeSpeeds() {
@@ -270,15 +271,6 @@ const frc::Pose2d& SwerveChassis::getOdometry() {
  */
 void SwerveChassis::resetOdometry(frc::Pose2d initPose) {
 	odometry->ResetPosition(pigeon->GetRotation2d(), getModulePosition(), initPose);
-}
-
-/**
- * @brief Return the robot kinematics
- *
- * @return SwerveDriveKinematics object
- */
-const frc::SwerveDriveKinematics<4>& SwerveChassis::getKinematics() {
-	return *kinematics;
 }
 
 /**
@@ -481,9 +473,9 @@ void SwerveChassis::Periodic() {
 		desiredSpeeds.vx += vxTarget;
 	}
 
-	wpi::array<frc::SwerveModuleState, 4U> desiredStates = kinematics->ToSwerveModuleStates(desiredSpeeds);
+	wpi::array<frc::SwerveModuleState, 4U> desiredStates = kinematics.ToSwerveModuleStates(desiredSpeeds);
 
-	kinematics->DesaturateWheelSpeeds(&desiredStates, maxModuleSpeed);
+	kinematics.DesaturateWheelSpeeds(&desiredStates, maxModuleSpeed);
 
 	setModuleStates(desiredStates);
 	shuffleboardPeriodic();

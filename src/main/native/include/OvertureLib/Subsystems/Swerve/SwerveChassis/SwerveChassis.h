@@ -27,12 +27,12 @@
 #include <pathplanner/lib/util/ReplanningConfig.h>
 #include <pathplanner/lib/controllers/PPHolonomicDriveController.h>
 
-#include "OvertureLib/Sensors/OverPigeon/OverPigeon.h"
-#include "OvertureLib/Controllers/RotationController/RotationController.h"
-#include "OvertureLib/Subsystems/Swerve/SwerveModule/SwerveModule.h"
-#include "OvertureLib/Math/ChassisAccels.h"
+#include <OvertureLib/Sensors/OverPigeon/OverPigeon.h>
+#include <OvertureLib/Controllers/RotationController/RotationController.h>
+#include <OvertureLib/Subsystems/Swerve/SwerveModule/SwerveModule.h>
+#include <OvertureLib/Math/ChassisAccels.h>
 
-#include "OvertureLib/Robots/OverRobot/RobotConstants.h"
+#include <OvertureLib/Robots/OverRobot/RobotConstants.h>
 
 #include <wpi/DataLog.h>
 #include <frc/DataLogManager.h>
@@ -48,7 +48,7 @@ public:
 	void setVyTarget(units::meters_per_second_t vy);
 	void setPositionAssist(bool positionAssist);
 	void setPositionTarget(units::meters_per_second_t vy, units::meters_per_second_t vx);
-	void setModulePositions(std::array<frc::Translation2d, 4>* positions);
+	void setModulePositions(std::array<frc::Translation2d, 4> moduleTranslations);
 	void setModulesRatios(double turnRatio, double driveRatio, double wheelDiameter);
 	void setModules(SwerveModule* frontLeft, SwerveModule* frontRight, SwerveModule* backleft, SwerveModule* backRight);
 	void setRotatorPID(double kP, double kI, double kD);
@@ -67,7 +67,6 @@ public:
 
 	const frc::Pose2d& getOdometry();
 	void resetOdometry(frc::Pose2d initPose);
-	const frc::SwerveDriveKinematics<4>& getKinematics();
 	void addVisionMeasurement(frc::Pose2d pose, units::second_t Latency);
 	void setAcceptingVisionMeasurements(bool acceptVisionMeasurements);
 	void resetAngle(double angle = 0);
@@ -99,9 +98,15 @@ protected:
 	SwerveModule* backLeftModule;
 	SwerveModule* backRightModule;
 
-	std::unique_ptr<frc::SwerveDriveKinematics<4>> kinematics;
+	frc::SwerveDriveKinematics<4> kinematics = frc::SwerveDriveKinematics<4>(
+		frc::Translation2d{ 0_m, 0_m },
+		frc::Translation2d{ 0.5_m, 0.5_m },
+		frc::Translation2d{ 0.5_m, -0.5_m },
+		frc::Translation2d{ -0.5_m, 0.5_m }
+	);
 
 	std::array<frc::SwerveModulePosition, 4> odometryPos;
+	std::array<frc::Translation2d, 4> positions;
 
 	std::unique_ptr<frc::SwerveDrivePoseEstimator<4>> odometry;
 	frc::Pose2d latestPose;
