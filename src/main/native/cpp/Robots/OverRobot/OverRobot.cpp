@@ -53,8 +53,6 @@ void OverRobot::StartCompetition() {
 		// at the end of the loop.
 		auto callback = m_callbacks.pop();
 
-		int32_t status = 0;
-
 		units::second_t simTime = GetSimulationTime();
 
 		while (simTime - m_lastTime < GetPeriod()) {
