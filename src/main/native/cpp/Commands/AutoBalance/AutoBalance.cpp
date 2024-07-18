@@ -8,7 +8,7 @@
 
 AutoBalance::AutoBalance(SwerveChassis* swerveChassis) : m_swerveChassis(swerveChassis) {
 	// Use addRequirements() here to declare subsystem dependencies.
-	AddRequirements({ m_swerveChassis });
+	AddRequirements( m_swerveChassis );
 }
 
 // Called when the command is initially scheduled.

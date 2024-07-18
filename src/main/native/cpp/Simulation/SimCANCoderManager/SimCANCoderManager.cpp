@@ -46,7 +46,6 @@ void SimCANCoderManager::RegisterSimCANCoder(OverCANCoder* canCoder) {
 }
 
 void SimCANCoderManager::Init(const std::map<unsigned int, NTCANCoderName> CANIDToCANCoderNameMap) {
-	this->robotName = robotName;
 	this->CANIDToCANCoderNameMap = CANIDToCANCoderNameMap;
 
 	std::for_each(canCodersToRegister.begin(), canCodersToRegister.end(), std::bind(&SimCANCoderManager::RegisterSimCANCoder, this, std::placeholders::_1));
