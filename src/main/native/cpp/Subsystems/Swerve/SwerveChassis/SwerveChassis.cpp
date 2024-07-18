@@ -91,7 +91,7 @@ void SwerveChassis::setPositionTarget(units::meters_per_second_t vy, units::mete
  */
 void SwerveChassis::setModulePositions(std::array<frc::Translation2d, 4> moduleTranslations) {
 	positions = moduleTranslations;
-	kinematics = frc::SwerveDriveKinematics<4>{ positions };
+	kinematics = frc::SwerveDriveKinematics<4>(positions);
 };
 
 /**
