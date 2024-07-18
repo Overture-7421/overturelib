@@ -12,7 +12,6 @@ SimMotorManager* SimMotorManager::instancePtr = NULL;
 SimMotorManager::SimMotorManager() {}
 
 void SimMotorManager::Init(const std::map<unsigned int, NTMotorName> CANIDToMotorNameMap) {
-	this->robotName = robotName;
 	this->CANIDToMotorNameMap = CANIDToMotorNameMap;
 
 	std::for_each(motorsToRegister.begin(), motorsToRegister.end(), std::bind(&SimMotorManager::RegisterSimMotor, this, std::placeholders::_1));

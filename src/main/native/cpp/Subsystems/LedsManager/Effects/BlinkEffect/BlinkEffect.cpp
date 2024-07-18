@@ -11,7 +11,7 @@ BlinkEffect::BlinkEffect(LedsManager* leds, LedStripName name, frc::Color8Bit co
 	this->period = period;
 
 	if (addRequirement) {
-		AddRequirements({ leds });
+		AddRequirements(leds);
 	}
 }
 

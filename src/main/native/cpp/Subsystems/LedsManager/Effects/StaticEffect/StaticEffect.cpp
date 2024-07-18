@@ -8,7 +8,7 @@ StaticEffect::StaticEffect(LedsManager* leds, LedStripName name, frc::Color8Bit 
 	ledStrip = leds->getLedStrip(name);
 	this->color = color;
 	if (addRequirement) {
-		AddRequirements({ leds });
+		AddRequirements(leds);
 	}
 }
 
