@@ -156,6 +156,7 @@ jobs:
 
       - name: Commit and push
         run: |
+          cd overture-7421.github.io
           git add .
           git commit -m "Add OvertureLib-cpp ${{ github.event.inputs.version }}"
           git push
