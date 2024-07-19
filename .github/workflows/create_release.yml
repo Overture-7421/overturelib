@@ -48,7 +48,7 @@ jobs:
 
   build-host:
     env: 
-      MACOSX_DEPLOYMENT_TARGET: 13
+      MACOSX_DEPLOYMENT_TARGET: 12
     strategy:
       fail-fast: false
       matrix:
@@ -57,7 +57,7 @@ jobs:
             os-name: windows
             artifact-name: Win64
             architecture: x64
-          - os: macos-14
+          - os: macos-13
             os-name: macos
             artifact-name: macOS
             architecture: x64
