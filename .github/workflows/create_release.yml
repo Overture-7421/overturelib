@@ -43,7 +43,7 @@ jobs:
         working-directory: ./
 
       - name: Build with Gradle
-        run: ./gradlew build ${{ matrix.build-options }}
+        run: ./gradlew build -PreleaseMode ${{ matrix.build-options }}
         working-directory: ./
 
   build-host:
@@ -87,8 +87,14 @@ jobs:
         working-directory: ./
       
       - name: Build with Gradle
-        run: ./gradlew build -Pbuildalldesktop
+        run: ./gradlew build -Pbuildalldesktop -PreleaseMode
+        working-directory: ./
 
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: build/allOutputs
 
   combine:
     name: Combine
