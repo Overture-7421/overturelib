@@ -151,7 +151,7 @@ jobs:
         run: |
           git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/Overture-7421/overture-7421.github.io.git
           cd overture-7421.github.io
-          git config user.email "
+          git config user.email ""
           git config user.name "GitHub Actions"
           git checkout master
 
