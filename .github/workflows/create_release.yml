@@ -52,59 +52,59 @@ jobs:
           name: ${{ matrix.artifact-name }}
           path: build/allOutputs
 
-  build-host:
-    env: 
-      MACOSX_DEPLOYMENT_TARGET: 13
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-2022
-            os-name: windows
-            artifact-name: Win64
-            architecture: x64
-        #   - os: macos-14
-        #     os-name: macos
-        #     artifact-name: macOS
-        #     architecture: x64
-    name: "Build - ${{ matrix.artifact-name }}"
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
+  # build-host:
+  #   env: 
+  #     MACOSX_DEPLOYMENT_TARGET: 13
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         - os: windows-2022
+  #           os-name: windows
+  #           artifact-name: Win64
+  #           architecture: x64
+  #       #   - os: macos-14
+  #       #     os-name: macos
+  #       #     artifact-name: macOS
+  #       #     architecture: x64
+  #   name: "Build - ${{ matrix.artifact-name }}"
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: true
 
-      - name: Fetch all history and metadata
-        run: git fetch --prune --unshallow
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 17
-          architecture: ${{ matrix.architecture }}
+  #     - name: Fetch all history and metadata
+  #       run: git fetch --prune --unshallow
+  #     - uses: actions/setup-java@v4
+  #       with:
+  #         distribution: 'temurin'
+  #         java-version: 17
+  #         architecture: ${{ matrix.architecture }}
 
-      - name: Set version
-        if: ${{ matrix.os-name != 'macos' }}
-        run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
-        working-directory: ./
+  #     - name: Set version
+  #       if: ${{ matrix.os-name != 'macos' }}
+  #       run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
+  #       working-directory: ./
     
-      - name: Set version (mac)
-        if: ${{ matrix.os-name == 'macos' }}
-        run: sed -i '' "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
-        working-directory: ./
+  #     - name: Set version (mac)
+  #       if: ${{ matrix.os-name == 'macos' }}
+  #       run: sed -i '' "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
+  #       working-directory: ./
       
-      - name: Build with Gradle
-        run: ./gradlew build -Pbuildalldesktop -PreleaseMode
-        working-directory: ./
+  #     - name: Build with Gradle
+  #       run: ./gradlew build -Pbuildalldesktop -PreleaseMode
+  #       working-directory: ./
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact-name }}
-          path: build/allOutputs
+  #     - name: Upload artifact
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: ${{ matrix.artifact-name }}
+  #         path: build/allOutputs
 
   combine:
     name: Combine
-    needs: [build-docker, build-host]
+    needs: [build-docker]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -157,7 +157,7 @@ jobs:
       #   run: unzip /home/runner/releases/Maven-${{ github.event.inputs.version }} -d ~/releases/Maven-${{ github.event.inputs.version }}
 
       - name: Copy artifacts
-        run: cp -r /home/runner/releases/Maven-${{ github.event.inputs.version }}/maven/development/com/overture/lib/OvertureLib-cpp/ overture-7421.github.io/overturelib/repo/com/overture/lib/OvertureLib-cpp
+        run: cp -r /home/runner/releases/Maven-${{ github.event.inputs.version }}/maven/development/com overture-7421.github.io/overturelib/repo/com
 
       - name: Commit and push
         run: |
