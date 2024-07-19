@@ -32,7 +32,7 @@ jobs:
         run: |
           git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
       - name: Build with Gradle
-        run: ./gradlew build PreleaseMode ${{ matrix.build-options }}
+        run: ./gradlew build -PreleaseMode ${{ matrix.build-options }}
 
   build-host:
     env: 
@@ -44,9 +44,9 @@ jobs:
           - os: windows-2022
             artifact-name: Win64
             architecture: x64
-          - os: macos-14
-            artifact-name: macOS
-            architecture: x64
+        #   - os: macos-14
+        #     artifact-name: macOS
+        #     architecture: x64
     name: "Build - ${{ matrix.artifact-name }}"
     runs-on: ${{ matrix.os }}
     steps:
