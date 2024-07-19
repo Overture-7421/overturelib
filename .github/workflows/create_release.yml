@@ -155,7 +155,7 @@ jobs:
           git config user.name "GitHub Actions"
 
       - name: Unzip artifacts
-        run: unzip ~/releases/Maven-${{ github.event.inputs.version }}.zip -d ~/releases/Maven-${{ github.event.inputs.version }}
+        run: unzip ~/releases/Maven-${{ github.event.inputs.version }} -d ~/releases/Maven-${{ github.event.inputs.version }}
 
       - name: Copy artifacts
         run: cp -r ~/releases/Maven-${{ github.event.inputs.version }}/maven/development/com/overture/lib/OvertureLib-cpp/ overture-7421.github.io/overturelib/repo/com/overture/lib/OvertureLib-cpp
