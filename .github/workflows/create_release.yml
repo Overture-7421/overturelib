@@ -157,7 +157,7 @@ jobs:
         run: ls ~/releases/
 
       - name: Copy artifacts
-        run: cp -r ~/releases/\maven/development/com overture-7421.github.io/overturelib/repo/com
+        run: cp -r ~/releases/maven/development/com overture-7421.github.io/overturelib/repo/com
 
       - name: Commit and push
         run: |
