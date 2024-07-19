@@ -146,7 +146,6 @@ jobs:
           name: Maven-${{ github.event.inputs.version }}
           path: ~/releases/
 
-      # clone from https://github.com/Overture-7421/overture-7421.github.io
       - name: Clone GitHub Pages repository
         run: |
           git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/Overture-7421/overture-7421.github.io.git
@@ -154,11 +153,11 @@ jobs:
           git config user.email ""
           git config user.name "GitHub Actions"
 
-      - name: Unzip artifacts
-        run: unzip ~/releases/Maven-${{ github.event.inputs.version }} -d ~/releases/Maven-${{ github.event.inputs.version }}
+      # - name: Unzip artifacts
+      #   run: unzip /home/runner/releases/Maven-${{ github.event.inputs.version }} -d ~/releases/Maven-${{ github.event.inputs.version }}
 
       - name: Copy artifacts
-        run: cp -r ~/releases/Maven-${{ github.event.inputs.version }}/maven/development/com/overture/lib/OvertureLib-cpp/ overture-7421.github.io/overturelib/repo/com/overture/lib/OvertureLib-cpp
+        run: cp -r /home/runner/releases/Maven-${{ github.event.inputs.version }}/maven/development/com/overture/lib/OvertureLib-cpp/ overture-7421.github.io/overturelib/repo/com/overture/lib/OvertureLib-cpp
 
       - name: Commit and push
         run: |
