@@ -46,7 +46,7 @@ model {
       binaries.all {
         cppCompiler.define('_USE_MATH_DEFINES')
         if (targetPlatform.operatingSystem.macOsX) {
-          cppCompiler.args.removeAll { it == '-Wdeprecated-copy' }
+          cppCompiler.args.removeAll { it == '-Wdeprecated-copy' || it == '-Werror' }
         }
       }
 
