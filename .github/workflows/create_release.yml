@@ -128,5 +128,42 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Maven
+          name: Maven - ${{ github.event.inputs.version }}
+          path: ~/releases/
+
+  # Upload the artifacts to the GitHub Pages repository
+  upload-to-github:
+    name: Upload to GitHub
+    needs: [combine]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: wpilibsuite/build-tools
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: Maven - ${{ github.event.inputs.version }}
           path: ~/releases
+
+      # clone from https://github.com/Overture-7421/overture-7421.github.io
+      - name: Clone GitHub Pages repository
+        run: |
+          git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/Overture-7421/overture-7421.github.io.git
+          cd overture-7421.github.io
+          git config user.email "
+          git config user.name "GitHub Actions"
+          git checkout master
+
+      - name: Unzip artifacts
+        run: unzip ~/releases/*.zip -d ~/releases/
+
+      - name: Copy artifacts
+        run: cp -r ~/releases/Maven - ${{ github.event.inputs.version }}/maven/development/com/overture/lib/OvertureLib-cpp/ overture-7421.github.io/overturelib/repo/com/overture/lib/OvertureLib-cpp
+
+      - name: Commit and push
+        run: |
+          git add .
+          git commit -m "Add OvertureLib-cpp ${{ github.event.inputs.version }}"
+          git push
+
