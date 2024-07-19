@@ -45,9 +45,8 @@ model {
       
       binaries.all {
         cppCompiler.define('_USE_MATH_DEFINES')
-        if (targetPlatform.operatingSystem.macOsX) {
-          cppCompiler.args.clear()
-        }
+        cppCompiler.args.clear()
+
       }
 
       nativeUtils.useRequiredLibrary(it, 'wpilib_shared')
