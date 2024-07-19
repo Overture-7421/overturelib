@@ -144,7 +144,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: Maven - ${{ github.event.inputs.version }}
-          path: ~/releases
+          path: ~/releases/
 
       # clone from https://github.com/Overture-7421/overture-7421.github.io
       - name: Clone GitHub Pages repository
@@ -155,7 +155,7 @@ jobs:
           git config user.name "GitHub Actions"
 
       - name: Unzip artifacts
-        run: unzip ~/releases/*.zip -d ~/releases/
+        run: unzip ~/releases/Maven - ${{ github.event.inputs.version }}.zip -d ~/releases/Maven - ${{ github.event.inputs.version }}
 
       - name: Copy artifacts
         run: cp -r ~/releases/Maven - ${{ github.event.inputs.version }}/maven/development/com/overture/lib/OvertureLib-cpp/ overture-7421.github.io/overturelib/repo/com/overture/lib/OvertureLib-cpp
