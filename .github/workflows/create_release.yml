@@ -131,16 +131,11 @@ jobs:
           name: Maven-${{ github.event.inputs.version }}
           path: ~/releases/
 
-  # Upload the artifacts to the GitHub Pages repository
   upload-to-github:
     name: Upload to GitHub
     needs: [combine]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: wpilibsuite/build-tools
-
       - name: Clone GitHub Pages repository
         run: |
           git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/Overture-7421/overture-7421.github.io.git
