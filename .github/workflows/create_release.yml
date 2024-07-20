@@ -101,7 +101,7 @@ jobs:
 
   combine:
     name: Combine
-    needs: [build-docker]
+    needs: [build-docker, build-host]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -128,7 +128,7 @@ jobs:
           name: Maven-${{ github.event.inputs.version }}
           path: ~/releases/
 
-  upload-to-github:
+  upload:
     name: Upload to GitHub
     needs: [combine]
     runs-on: ubuntu-latest
@@ -151,11 +151,15 @@ jobs:
       - name: Copy artifacts
         run: cp -r ~/releases/maven/development/com overture-7421.github.io/overturelib/repo/
 
-      - name: Commit and push
+      - name: Update json
+        run: |
+          sed -i 's/"version"\: \"[0-9]*\.[0-9]*\.[0-9]*\"/"version": "${{ github.event.inputs.version }}"/g' overture-7421.github.io/overturelib/OvertureLib.json
+
+      - name: Commit
         run: |
           cd overture-7421.github.io
           git add .
-          git commit -m "Add OvertureLib-cpp ${{ github.event.inputs.version }}"
+          git commit -m "Upgrade to ${{ github.event.inputs.version }}"
       
       - name: Push changes
         uses: ad-m/github-push-action@master
