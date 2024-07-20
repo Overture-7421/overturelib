@@ -1,6 +1,8 @@
 // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 #include "OvertureLib/Subsystems/Swerve/SwerveChassis/SwerveChassis.h"
 
@@ -480,3 +482,4 @@ void SwerveChassis::Periodic() {
 	setModuleStates(desiredStates);
 	shuffleboardPeriodic();
 }
+#pragma GCC diagnostic pop

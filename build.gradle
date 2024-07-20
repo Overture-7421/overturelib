@@ -46,7 +46,6 @@ model {
       binaries.all {
         cppCompiler.define('_USE_MATH_DEFINES')
         cppCompiler.args.clear()
-
       }
 
       nativeUtils.useRequiredLibrary(it, 'wpilib_shared')
@@ -66,6 +65,7 @@ model {
 
         binaries.all {
           cppCompiler.define('_USE_MATH_DEFINES')
+          cppCompiler.args.clear()
         }
 
         nativeUtils.useRequiredLibrary(it, "cscore_shared")
