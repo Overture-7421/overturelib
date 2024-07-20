@@ -50,8 +50,6 @@ jobs:
           path: build/allOutputs
 
   build-host:
-    env: 
-      MACOSX_DEPLOYMENT_TARGET: 13
     strategy:
       fail-fast: false
       matrix:
