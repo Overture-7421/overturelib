@@ -162,4 +162,5 @@ jobs:
         with:
           repository: overture-7421/overture-7421.github.io
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          directory: overture-7421.github.io
 
