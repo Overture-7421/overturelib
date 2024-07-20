@@ -1,163 +1,164 @@
 name: Create Release
 
 on:
-    workflow_dispatch:
-        inputs:
-            version:
-                type: string
-                description: The full version string, i.e. 2024.0.0-alpha-1 or 2024.1.1
-                required: true
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: The full version string, i.e. 2024.0.0-alpha-1 or 2024.1.1
+        required: true
 
 jobs:
-    build-docker:
-        strategy:
-            fail-fast: false
-            matrix:
-                include:
-                    - container: wpilib/roborio-cross-ubuntu:2024-22.04
-                      artifact-name: Athena
-                      build-options: "-Ponlylinuxathena"
+  build-docker:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - container: wpilib/roborio-cross-ubuntu:2024-22.04
+            artifact-name: Athena
+            build-options: "-Ponlylinuxathena"
 
-                    - container: wpilib/ubuntu-base:22.04
-                      artifact-name: Linux
-                      build-options: ""
-        name: "Build - ${{ matrix.artifact-name }}"
-        runs-on: ubuntu-latest
-        container: ${{ matrix.container }}
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  submodules: true
-                  fetch-depth: 0
+          - container: wpilib/ubuntu-base:22.04
+            artifact-name: Linux
+            build-options: ""
+    name: "Build - ${{ matrix.artifact-name }}"
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
 
-            - name: Grant execute permission for gradlew
-              run: chmod +x gradlew
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
-            - name: Fetch all history and metadata
-              run: |
-                  git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
+      - name: Fetch all history and metadata
+        run: |
+          git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
 
-            - name: Set version
-              run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
+      - name: Set version
+        run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
 
-            - name: Build with Gradle
-              run: ./gradlew build -PreleaseMode ${{ matrix.build-options }}
+      - name: Build with Gradle
+        run: ./gradlew build -PreleaseMode ${{ matrix.build-options }}
 
-            - name: Upload artifact
-              uses: actions/upload-artifact@v4
-              with:
-                  name: ${{ matrix.artifact-name }}
-                  path: build/allOutputs
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: build/allOutputs
 
-    # build-host:
-    #   env:
-    #     MACOSX_DEPLOYMENT_TARGET: 13
-    #   strategy:
-    #     fail-fast: false
-    #     matrix:
-    #       include:
-    #         - os: windows-2022
-    #           os-name: windows
-    #           artifact-name: Win64
-    #           architecture: x64
-    #       #   - os: macos-14
-    #       #     os-name: macos
-    #       #     artifact-name: macOS
-    #       #     architecture: x64
-    #   name: "Build - ${{ matrix.artifact-name }}"
-    #   runs-on: ${{ matrix.os }}
-    #   steps:
-    #     - uses: actions/checkout@v4
-    #       with:
-    #         submodules: true
+  # build-host:
+  #   env: 
+  #     MACOSX_DEPLOYMENT_TARGET: 13
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         - os: windows-2022
+  #           os-name: windows
+  #           artifact-name: Win64
+  #           architecture: x64
+  #       #   - os: macos-14
+  #       #     os-name: macos
+  #       #     artifact-name: macOS
+  #       #     architecture: x64
+  #   name: "Build - ${{ matrix.artifact-name }}"
+  #   runs-on: ${{ matrix.os }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: true
 
-    #     - name: Fetch all history and metadata
-    #       run: git fetch --prune --unshallow
-    #     - uses: actions/setup-java@v4
-    #       with:
-    #         distribution: 'temurin'
-    #         java-version: 17
-    #         architecture: ${{ matrix.architecture }}
+  #     - name: Fetch all history and metadata
+  #       run: git fetch --prune --unshallow
+  #     - uses: actions/setup-java@v4
+  #       with:
+  #         distribution: 'temurin'
+  #         java-version: 17
+  #         architecture: ${{ matrix.architecture }}
 
-    #     - name: Set version
-    #       if: ${{ matrix.os-name != 'macos' }}
-    #       run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
-    #       working-directory: ./
+  #     - name: Set version
+  #       if: ${{ matrix.os-name != 'macos' }}
+  #       run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
+  #       working-directory: ./
+    
+  #     - name: Set version (mac)
+  #       if: ${{ matrix.os-name == 'macos' }}
+  #       run: sed -i '' "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
+  #       working-directory: ./
+      
+  #     - name: Build with Gradle
+  #       run: ./gradlew build -Pbuildalldesktop -PreleaseMode
+  #       working-directory: ./
 
-    #     - name: Set version (mac)
-    #       if: ${{ matrix.os-name == 'macos' }}
-    #       run: sed -i '' "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
-    #       working-directory: ./
+  #     - name: Upload artifact
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: ${{ matrix.artifact-name }}
+  #         path: build/allOutputs
 
-    #     - name: Build with Gradle
-    #       run: ./gradlew build -Pbuildalldesktop -PreleaseMode
-    #       working-directory: ./
+  combine:
+    name: Combine
+    needs: [build-docker]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: wpilibsuite/build-tools
 
-    #     - name: Upload artifact
-    #       uses: actions/upload-artifact@v4
-    #       with:
-    #         name: ${{ matrix.artifact-name }}
-    #         path: build/allOutputs
+      - uses: actions/download-artifact@v4
+        with:
+          path: combiner/products/build/allOutputs
 
-    combine:
-        name: Combine
-        needs: [build-docker]
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  repository: wpilibsuite/build-tools
+      - name: Flatten Artifacts
+        run: rsync -a --delete combiner/products/build/allOutputs/*/* combiner/products/build/allOutputs/
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
 
-            - uses: actions/download-artifact@v4
-              with:
-                  path: combiner/products/build/allOutputs
+      - name: Combine
+        run: ./gradlew publish -Pthirdparty
+        working-directory: combiner
 
-            - name: Flatten Artifacts
-              run: rsync -a --delete combiner/products/build/allOutputs/*/* combiner/products/build/allOutputs/
-            - uses: actions/setup-java@v4
-              with:
-                  distribution: "temurin"
-                  java-version: 17
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Maven-${{ github.event.inputs.version }}
+          path: ~/releases/
 
-            - name: Combine
-              run: ./gradlew publish -Pthirdparty
-              working-directory: combiner
+  upload-to-github:
+    name: Upload to GitHub
+    needs: [combine]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone Pages
+        run: |
+          git clone https://github.com/Overture-7421/overture-7421.github.io.git
 
-            - uses: actions/upload-artifact@v4
-              with:
-                  name: Maven-${{ github.event.inputs.version }}
-                  path: ~/releases/
+      - name : Set up git
+        run: |
+          cd overture-7421.github.io
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
 
-    upload-to-github:
-        name: Upload to GitHub
-        needs: [combine]
-        runs-on: ubuntu-latest
-        steps:
-            - name: Clone Pages
-              run: |
-                  git clone https://github.com/Overture-7421/overture-7421.github.io.git
+      - uses: actions/download-artifact@v4
+        with:
+          name: Maven-${{ github.event.inputs.version }}
+          path: ~/releases/
 
-            - name: Set up git
-              run: |
-                  cd overture-7421.github.io
-                  git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-                  git config --global user.name "github-actions[bot]"
+      - name: Copy artifacts
+        run: cp -r ~/releases/maven/development/com overture-7421.github.io/overturelib/repo/${{ github.event.inputs.version }}
 
-            - uses: actions/download-artifact@v4
-              with:
-                  name: Maven-${{ github.event.inputs.version }}
-                  path: ~/releases/
+      - name: Commit and push
+        run: |
+          cd overture-7421.github.io
+          git add .
+          git commit -m "Add OvertureLib-cpp ${{ github.event.inputs.version }}"
+      
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Copy artifacts
-              run: cp -r ~/releases/maven/development/com overture-7421.github.io/overturelib/repo/${{ github.event.inputs.version }}
-
-            - name: Commit and push
-              run: |
-                  cd overture-7421.github.io
-                  git add .
-                  git commit -m "Add OvertureLib-cpp ${{ github.event.inputs.version }}"
-
-            - name: Push changes
-              uses: ad-m/github-push-action@master
-              with:
-                  github_token: ${{ secrets.GITHUB_TOKEN }}
