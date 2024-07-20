@@ -32,7 +32,6 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-        working-directory: ./
 
       - name: Fetch all history and metadata
         run: |
@@ -40,11 +39,9 @@ jobs:
 
       - name: Set version
         run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
-        working-directory: ./
 
       - name: Build with Gradle
         run: ./gradlew build -PreleaseMode ${{ matrix.build-options }}
-        working-directory: ./
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -63,10 +60,10 @@ jobs:
             os-name: windows
             artifact-name: Win64
             architecture: x64
-        #   - os: macos-14
-        #     os-name: macos
-        #     artifact-name: macOS
-        #     architecture: x64
+          - os: macos-14
+            os-name: macos
+            artifact-name: macOS
+            architecture: x64
     name: "Build - ${{ matrix.artifact-name }}"
     runs-on: ${{ matrix.os }}
     steps:
@@ -131,37 +128,43 @@ jobs:
           name: Maven-${{ github.event.inputs.version }}
           path: ~/releases/
 
-  # Upload the artifacts to the GitHub Pages repository
-  upload-to-github:
+  upload:
     name: Upload to GitHub
     needs: [combine]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: wpilibsuite/build-tools
+      - name: Clone Pages
+        run: |
+          git clone https://github.com/Overture-7421/overture-7421.github.io.git
+
+      - name : Set up git
+        run: |
+          cd overture-7421.github.io
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
 
       - uses: actions/download-artifact@v4
         with:
           name: Maven-${{ github.event.inputs.version }}
           path: ~/releases/
 
-      - name: Clone GitHub Pages repository
-        run: |
-          git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/Overture-7421/overture-7421.github.io.git
-          cd overture-7421.github.io
-          git config user.email ""
-          git config user.name "GitHub Actions"
-
-      # - name: Unzip artifacts
-      #   run: unzip /home/runner/releases/Maven-${{ github.event.inputs.version }} -d ~/releases/Maven-${{ github.event.inputs.version }}
-
       - name: Copy artifacts
-        run: cp -r /home/runner/releases/Maven-${{ github.event.inputs.version }}/maven/development/com/overture/lib/OvertureLib-cpp/ overture-7421.github.io/overturelib/repo/com/overture/lib/OvertureLib-cpp
+        run: cp -r ~/releases/maven/development/com overture-7421.github.io/overturelib/repo/
 
-      - name: Commit and push
+      - name: Update json
         run: |
+          sed -i 's/"version"\: \"[0-9]*\.[0-9]*\.[0-9]*\"/"version": "${{ github.event.inputs.version }}"/g' overture-7421.github.io/overturelib/OvertureLib.json
+
+      - name: Commit
+        run: |
+          cd overture-7421.github.io
           git add .
-          git commit -m "Add OvertureLib-cpp ${{ github.event.inputs.version }}"
-          git push
+          git commit -m "Upgrade to ${{ github.event.inputs.version }}"
+      
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          repository: overture-7421/overture-7421.github.io
+          github_token: ${{ secrets.ACCESS_TOKEN }}
+          directory: overture-7421.github.io
 
