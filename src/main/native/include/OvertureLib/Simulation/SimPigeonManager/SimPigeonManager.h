@@ -9,7 +9,7 @@
 
 class SimPigeonManager {
 public:
-	void SetSimPigeon(OverPigeon* pigeon);
+	void SetSimPigeon(OverPigeon *pigeon);
 	void Init(std::string imuName);
 	void Update();
 
@@ -31,16 +31,16 @@ public:
 			return instancePtr;
 		}
 	}
-	SimPigeonManager(const SimPigeonManager& obj) = delete;
+	SimPigeonManager(const SimPigeonManager &obj) = delete;
 
 private:
 	SimPigeonManager();
-	OverPigeon* pigeon = NULL;
-	ctre::phoenix6::sim::Pigeon2SimState* pigeonSimState = NULL;
+	OverPigeon *pigeon = NULL;
+	ctre::phoenix6::sim::Pigeon2SimState *pigeonSimState = NULL;
 
 	nt::NetworkTableInstance ntInst = nt::NetworkTableInstance::GetDefault();
 	nt::NetworkTableEntry rollEntry, pitchEntry, yawEntry;
 
-	static SimPigeonManager* instancePtr;
+	static SimPigeonManager *instancePtr;
 
 };

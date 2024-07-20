@@ -6,7 +6,7 @@
 
 #include <ctre/phoenix6/Pigeon2.hpp>
 
-class OverPigeon : public ctre::phoenix6::hardware::Pigeon2{
- public:
-  OverPigeon(int deviceId, std::string canbus = "");
+class OverPigeon: public ctre::phoenix6::hardware::Pigeon2 {
+public:
+	OverPigeon(int deviceId, std::string canbus = "");
 };

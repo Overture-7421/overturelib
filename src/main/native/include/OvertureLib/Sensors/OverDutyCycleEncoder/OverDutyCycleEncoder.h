@@ -5,7 +5,7 @@
 #pragma once
 #include <frc/DutyCycleEncoder.h>
 
-class OverDutyCycleEncoder : public frc::DutyCycleEncoder {
- public:
-  OverDutyCycleEncoder(int channel);
+class OverDutyCycleEncoder: public frc::DutyCycleEncoder {
+public:
+	OverDutyCycleEncoder(int channel);
 };

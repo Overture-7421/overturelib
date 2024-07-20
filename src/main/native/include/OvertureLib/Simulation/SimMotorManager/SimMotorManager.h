@@ -14,7 +14,7 @@ typedef std::string NTMotorName;
 
 class SimMotorManager {
 public:
-	void AddSimMotorCandidate(OverTalonFX* motor);
+	void AddSimMotorCandidate(OverTalonFX *motor);
 	void Init(const std::map<unsigned int, NTMotorName> CANIDToMotorNameMap);
 	void Update();
 
@@ -36,15 +36,15 @@ public:
 			return instancePtr;
 		}
 	}
-	SimMotorManager(const SimMotorManager& obj) = delete;
+	SimMotorManager(const SimMotorManager &obj) = delete;
 
 private:
 	SimMotorManager();
-	void RegisterSimMotor(OverTalonFX* motor);
+	void RegisterSimMotor(OverTalonFX *motor);
 
 	struct MotorNTPair {
 		std::shared_ptr<nt::NetworkTable> ntable;
-		OverTalonFX* motor;
+		OverTalonFX *motor;
 	};
 
 	nt::NetworkTableInstance ntInst = nt::NetworkTableInstance::GetDefault();
@@ -54,6 +54,6 @@ private:
 	std::vector<OverTalonFX*> motorsToRegister;
 	std::string robotName;
 
-	static SimMotorManager* instancePtr;
+	static SimMotorManager *instancePtr;
 
 };

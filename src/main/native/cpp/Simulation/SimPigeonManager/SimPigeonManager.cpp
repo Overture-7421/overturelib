@@ -7,14 +7,13 @@
 #include <frc/RobotController.h>
 #include <iostream>
 
-SimPigeonManager* SimPigeonManager::instancePtr = NULL;
-
+SimPigeonManager *SimPigeonManager::instancePtr = NULL;
 
 SimPigeonManager::SimPigeonManager() {
 
 }
 
-void SimPigeonManager::SetSimPigeon(OverPigeon* pigeon) {
+void SimPigeonManager::SetSimPigeon(OverPigeon *pigeon) {
 	if (pigeon == NULL || pigeon == 0) {
 		throw std::invalid_argument("SimPigeonManager given null pointer!");
 	}
@@ -29,13 +28,14 @@ void SimPigeonManager::Init(std::string imuName) {
 		return;
 	}
 
-	std::shared_ptr<nt::NetworkTable> ntable = ntInst.GetTable(imuName);
+	std::shared_ptr < nt::NetworkTable > ntable = ntInst.GetTable(imuName);
 	rollEntry = ntable->GetEntry("roll");
 	pitchEntry = ntable->GetEntry("pitch");
 	yawEntry = ntable->GetEntry("yaw");
 
 	pigeonSimState = &pigeon->GetSimState();
-	std::cout << "SimPigeonManager Info: Initialized for Pigeon with ID: " << pigeon->GetDeviceID() << std::endl;
+	std::cout << "SimPigeonManager Info: Initialized for Pigeon with ID: "
+			<< pigeon->GetDeviceID() << std::endl;
 }
 
 void SimPigeonManager::Update() {
@@ -51,5 +51,4 @@ void SimPigeonManager::Update() {
 
 	ntInst.Flush();
 }
-
 
