@@ -13,8 +13,9 @@ typedef std::string NTDutyCycleEncoderName;
 
 class SimDutyCycleEncoderManager {
 public:
-	void AddSimDutyCycleEncoderCandidate(OverDutyCycleEncoder* encoder);
-	void Init(const std::map<unsigned int, NTDutyCycleEncoderName> CHNToDutyCycleEncoderNameMap);
+	void AddSimDutyCycleEncoderCandidate(OverDutyCycleEncoder *encoder);
+	void Init(
+			const std::map<unsigned int, NTDutyCycleEncoderName> CHNToDutyCycleEncoderNameMap);
 	void Update();
 
 	static SimDutyCycleEncoderManager* GetInstance() {
@@ -35,11 +36,11 @@ public:
 			return instancePtr;
 		}
 	}
-	SimDutyCycleEncoderManager(const SimDutyCycleEncoderManager& obj) = delete;
+	SimDutyCycleEncoderManager(const SimDutyCycleEncoderManager &obj) = delete;
 
 private:
 	SimDutyCycleEncoderManager();
-	void RegisterSimDutyCycleEncoder(OverDutyCycleEncoder* encoder);
+	void RegisterSimDutyCycleEncoder(OverDutyCycleEncoder *encoder);
 
 	struct DutyCycleEncoderNTPair {
 		std::shared_ptr<nt::NetworkTable> ntable;
@@ -53,6 +54,5 @@ private:
 	std::vector<OverDutyCycleEncoder*> dutyCycleEncodersToRegister;
 	std::string robotName;
 
-
-	static SimDutyCycleEncoderManager* instancePtr;
+	static SimDutyCycleEncoderManager *instancePtr;
 };

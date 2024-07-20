@@ -8,9 +8,12 @@
 #include "OvertureLib/Simulation/SimDutyCycleEncoderManager/SimDutyCycleEncoderManager.h"
 #endif
 
-OverDutyCycleEncoder::OverDutyCycleEncoder(int channel) : frc::DutyCycleEncoder(channel) {
+OverDutyCycleEncoder::OverDutyCycleEncoder(int channel) : frc::DutyCycleEncoder(
+		channel) {
 #ifndef __FRC_ROBORIO__
-	SimDutyCycleEncoderManager* simDutyCycleEncoderManager = SimDutyCycleEncoderManager::GetInstance();
+	SimDutyCycleEncoderManager *simDutyCycleEncoderManager =
+			SimDutyCycleEncoderManager::GetInstance();
 	simDutyCycleEncoderManager->AddSimDutyCycleEncoderCandidate(this);
 #endif
-};
+}
+;

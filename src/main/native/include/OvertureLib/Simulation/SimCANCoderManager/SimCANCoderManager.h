@@ -13,8 +13,9 @@ typedef std::string NTCANCoderName;
 
 class SimCANCoderManager {
 public:
-	void AddSimCANCoderCandidate(OverCANCoder* motor);
-	void Init(const std::map<unsigned int, NTCANCoderName> CANIDToCANCoderNameMap);
+	void AddSimCANCoderCandidate(OverCANCoder *motor);
+	void Init(
+			const std::map<unsigned int, NTCANCoderName> CANIDToCANCoderNameMap);
 	void Update();
 
 	static SimCANCoderManager* GetInstance() {
@@ -35,15 +36,15 @@ public:
 			return instancePtr;
 		}
 	}
-	SimCANCoderManager(const SimCANCoderManager& obj) = delete;
+	SimCANCoderManager(const SimCANCoderManager &obj) = delete;
 
 private:
 	SimCANCoderManager();
-	void RegisterSimCANCoder(OverCANCoder* canCoder);
+	void RegisterSimCANCoder(OverCANCoder *canCoder);
 
 	struct CANCoderNTPair {
 		std::shared_ptr<nt::NetworkTable> ntable;
-		OverCANCoder* canCoder;
+		OverCANCoder *canCoder;
 	};
 
 	nt::NetworkTableInstance ntInst = nt::NetworkTableInstance::GetDefault();
@@ -53,6 +54,5 @@ private:
 	std::vector<OverCANCoder*> canCodersToRegister;
 	std::string robotName;
 
-
-	static SimCANCoderManager* instancePtr;
+	static SimCANCoderManager *instancePtr;
 };

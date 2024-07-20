@@ -11,7 +11,7 @@
 
 #pragma once
 
-class Gamepad : public frc2::CommandXboxController {
+class Gamepad: public frc2::CommandXboxController {
 public:
 	Gamepad(int port, double stickDeadzone, double triggerDeadzone);
 
@@ -37,7 +37,6 @@ public:
 	frc2::Trigger downDpad();
 	frc2::Trigger leftDpad();
 	frc2::Trigger rightDpad();
-
 
 private:
 	frc::Rotation2d storedLeftStickDirection;

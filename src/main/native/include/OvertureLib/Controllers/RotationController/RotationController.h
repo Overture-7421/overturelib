@@ -8,10 +8,12 @@
 #include <frc/trajectory/TrapezoidProfile.h>
 
 // Class for controlling the rotation of the robot
-class RotationController : public frc::ProfiledPIDController<units::radians> {
+class RotationController: public frc::ProfiledPIDController<units::radians> {
 public:
-	RotationController(double kP, double kI, double kD, frc::TrapezoidProfile<units::radians>::Constraints profile);
-	double calculateValue(units::radian_t targetAngle, units::radian_t currentAngle);
+	RotationController(double kP, double kI, double kD,
+			frc::TrapezoidProfile<units::radians>::Constraints profile);
+	double calculateValue(units::radian_t targetAngle,
+			units::radian_t currentAngle);
 
 private:
 	double calculatedValue = 0;

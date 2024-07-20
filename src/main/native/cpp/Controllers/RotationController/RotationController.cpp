@@ -4,15 +4,17 @@
 
 #include "OvertureLib/Controllers/RotationController/RotationController.h"
 
-RotationController::RotationController(double kP, double kI, double kD, frc::TrapezoidProfile<units::radians>::Constraints profile)
-	: frc::ProfiledPIDController<units::radians>(kP, kI, kD, profile) {
+RotationController::RotationController(double kP, double kI, double kD,
+		frc::TrapezoidProfile<units::radians>::Constraints profile) : frc::ProfiledPIDController<
+		units::radians>(kP, kI, kD, profile) {
 	EnableContinuousInput(units::radian_t(-180_deg), units::radian_t(180_deg));
 	SetIZone(3);
 
 	calculatedValue = 0;
 }
 
-double RotationController::calculateValue(units::radian_t targetAngle, units::radian_t currentAngle) {
+double RotationController::calculateValue(units::radian_t targetAngle,
+		units::radian_t currentAngle) {
 	calculatedValue = Calculate(currentAngle, targetAngle);
 
 	if (AtSetpoint()) {

@@ -18,9 +18,10 @@ using namespace ctre::phoenix6::configs;
 using namespace ctre::phoenix6::signals;
 using namespace ctre::phoenix6::controls;
 
-class OverTalonFX : public TalonFX {
+class OverTalonFX: public TalonFX {
 public:
-	OverTalonFX(int id, ControllerNeutralMode neutralMode, bool inverted, std::string bus);
+	OverTalonFX(int id, ControllerNeutralMode neutralMode, bool inverted,
+			std::string bus);
 
 	void setNeutralMode(ControllerNeutralMode neutralMode);
 	void setSensorToMechanism(double gearRatio);
@@ -29,8 +30,10 @@ public:
 	void setFusedCANCoder(int id);
 	void setClosedLoopVoltageRamp(double ramp);
 	void setClosedLoopTorqueRamp(double ramp);
-	void setSupplyCurrentLimit(bool enable, double currentLimit, double triggerThresholdCurrent, double triggerThresholdTime);
-	void setTorqueCurrentLimit(double peakForward, double peakBackward, double deadband);
+	void setSupplyCurrentLimit(bool enable, double currentLimit,
+			double triggerThresholdCurrent, double triggerThresholdTime);
+	void setTorqueCurrentLimit(double peakForward, double peakBackward,
+			double deadband);
 	void setFollow(int masterID, bool inverted);
 	void zeroPosition();
 	void setSensorPosition(double position);
@@ -43,15 +46,19 @@ public:
 	const TalonFXConfiguration& getConfig();
 
 	void setVoltage(units::volt_t voltage, bool enableFOC);
-	void setVelocityVoltage(double velocity, double feedForward, bool enableFOC);
+	void setVelocityVoltage(double velocity, double feedForward,
+			bool enableFOC);
 	void setDutyCycle(double dutyCycle, bool enableFOC);
 	void setPositionVoltage(double position, bool enableFOC);
-	void setMotionMagicPosition(double position, double feedForward, bool enableFOC);
+	void setMotionMagicPosition(double position, double feedForward,
+			bool enableFOC);
 	void setVelocityTorqueCurrentFOC(double velocity);
 
 	void setPIDValues(double kP, double kI, double kD, double kS, double kV);
-	void configureMotionMagic(double cruiseVelocity, double acceleration, double jerk);
-	void configureSoftwareLimitSwitch(ctre::phoenix6::configs::SoftwareLimitSwitchConfigs configs);
+	void configureMotionMagic(double cruiseVelocity, double acceleration,
+			double jerk);
+	void configureSoftwareLimitSwitch(
+			ctre::phoenix6::configs::SoftwareLimitSwitchConfigs configs);
 	void setContinuousWrap();
 
 	void setPositionUpdateFrequency(units::frequency::hertz_t frequencyHz);
