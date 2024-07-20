@@ -140,9 +140,10 @@ jobs:
         run: |
           git clone https://github.com/Overture-7421/overture-7421.github.io.git
           cd overture-7421.github.io
-          git config url.https://${{ secrets.GITHUB_TOKEN }}@github.com/.insteadOf https://github.com/
-          git config user.email ""
-          git config user.name "GitHub Actions"
+          git config --global url.https://${{ secrets.GITHUB_TOKEN }}@github.com/.insteadOf https://github.com/
+          git config --global credential.helper "!f() { echo \`"username=`${GIT_USER}`npassword=`${GIT_PASS}\`"; }; f"
+          git config --global user.email ""
+          git config --global user.name "GitHub Actions"
 
       - uses: actions/download-artifact@v4
         with:
@@ -150,7 +151,7 @@ jobs:
           path: ~/releases/
 
       - name: Copy artifacts
-        run: cp -r ~/releases/maven/development/com overture-7421.github.io/overturelib/repo
+        run: cp -r ~/releases/maven/development/com overture-7421.github.io/overturelib/repo/${{ github.event.inputs.version }}
 
       - name: Commit and push
         run: |
