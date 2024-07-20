@@ -136,16 +136,13 @@ jobs:
     needs: [combine]
     runs-on: ubuntu-latest
     steps:
-      - name: Setup credentials to access private repositories
-        run: |
-          git config url.https://${{ secrets.GITHUB_TOKEN }}@github.com/.insteadOf https://github.com/
-          git config user.email ""
-          git config user.name "GitHub Actions"
-
       - name: Clone GitHub Pages repository
         run: |
           git clone https://github.com/Overture-7421/overture-7421.github.io.git
           cd overture-7421.github.io
+          git config url.https://${{ secrets.GITHUB_TOKEN }}@github.com/.insteadOf https://github.com/
+          git config user.email ""
+          git config user.name "GitHub Actions"
 
       - uses: actions/download-artifact@v4
         with:
