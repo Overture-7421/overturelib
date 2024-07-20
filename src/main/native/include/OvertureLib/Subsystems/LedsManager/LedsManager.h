@@ -12,26 +12,27 @@
 typedef std::string LedStripName;
 typedef std::vector<frc::AddressableLED::LEDData> LedStrip;
 
-class LedsManager : public frc2::SubsystemBase {
- public:
-  struct LedStripRange {
-    int startLed;
-    int endLed;
-    bool reversed = false;
-  };
+class LedsManager: public frc2::SubsystemBase {
+public:
+	struct LedStripRange {
+		int startLed;
+		int endLed;
+		bool reversed = false;
+	};
 
-  LedsManager(int pwmPort, int ledLength, const std::map<LedStripName, LedStripRange>& ledStripMap);
+	LedsManager(int pwmPort, int ledLength,
+			const std::map<LedStripName, LedStripRange> &ledStripMap);
 
-  std::span<frc::AddressableLED::LEDData> getLedStrip(LedStripName name);
+	std::span<frc::AddressableLED::LEDData> getLedStrip(LedStripName name);
 
-  /**
-   * Will be called periodically whenever the CommandScheduler runs.
-   */
-  void Periodic() final;
-  
- private:
-  frc::AddressableLED ledStrip;
-  LedStrip ledBuffer;
-  std::span<frc::AddressableLED::LEDData> ledBufferSpan;
-  std::map<LedStripName, LedStripRange> ledStripMap;
+	/**
+	 * Will be called periodically whenever the CommandScheduler runs.
+	 */
+	void Periodic() final;
+
+private:
+	frc::AddressableLED ledStrip;
+	LedStrip ledBuffer;
+	std::span<frc::AddressableLED::LEDData> ledBufferSpan;
+	std::map<LedStripName, LedStripRange> ledStripMap;
 };

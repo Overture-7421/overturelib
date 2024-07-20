@@ -15,10 +15,10 @@
  * directly; this is crucially important, or else the decorator functions in
  * Command will *not* work!
  */
-class BlinkEffect
-	: public frc2::CommandHelper<frc2::Command, BlinkEffect> {
+class BlinkEffect: public frc2::CommandHelper<frc2::Command, BlinkEffect> {
 public:
-	BlinkEffect(LedsManager* leds, LedStripName name, frc::Color8Bit color, units::second_t period = 1_s, bool addRequirement = true);
+	BlinkEffect(LedsManager *leds, LedStripName name, frc::Color8Bit color,
+			units::second_t period = 1_s, bool addRequirement = true);
 
 	void Initialize() override;
 

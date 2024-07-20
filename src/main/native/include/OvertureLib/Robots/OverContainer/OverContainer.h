@@ -11,6 +11,8 @@ public:
 	virtual void ConfigDriverBindings() = 0;
 	virtual void ConfigOperatorBindings() = 0;
 	virtual void ConfigDefaultCommands() = 0;
-	virtual void setCharacterizationBindings() {};
+	virtual void setCharacterizationBindings() {
+	}
+	;
 
 };

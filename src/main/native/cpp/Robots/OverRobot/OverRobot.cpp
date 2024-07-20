@@ -18,17 +18,20 @@
 OverRobot::OverRobot(units::second_t period) : frc::IterativeRobotBase(period) {
 	std::puts("\nSimulation OverRobot Started!!!!");
 
-	const auto ntable = nt::NetworkTableInstance::GetDefault().GetTable("nt_simworld");
+	const auto ntable = nt::NetworkTableInstance::GetDefault().GetTable(
+			"nt_simworld");
 	simTimeEntry = ntable->GetEntry("sim_time");
 
 	m_startTime = GetSimulationTime();
-	AddPeriodic([=, this] { LoopFunc(); }, period);
+	AddPeriodic([=, this] {
+		LoopFunc();
+	}, period);
 
 	int32_t status = 0;
 	FRC_CheckErrorStatus(status, "InitializeNotifier");
 
 	HAL_Report(HALUsageReporting::kResourceType_Framework,
-		HALUsageReporting::kFramework_Timed);
+			HALUsageReporting::kFramework_Timed);
 
 	frc::DriverStation::SilenceJoystickConnectionWarning(true);
 
@@ -74,8 +77,8 @@ void OverRobot::StartCompetition() {
 
 		m_callbacks.push(std::move(callback));
 		// Process all other callbacks that are ready to run
-		while (static_cast<double>(m_callbacks.top().expirationTime * 1e6) <=
-			curTime) {
+		while (static_cast<double>(m_callbacks.top().expirationTime * 1e6)
+				<= curTime) {
 			callback = m_callbacks.pop();
 
 			callback.func();
@@ -101,7 +104,7 @@ units::second_t OverRobot::GetSimulationTime() {
 }
 
 void OverRobot::AddPeriodic(std::function<void()> callback,
-	units::second_t period, units::second_t offset) {
+		units::second_t period, units::second_t offset) {
 	m_callbacks.emplace(callback, m_startTime, period, offset, this);
 }
 

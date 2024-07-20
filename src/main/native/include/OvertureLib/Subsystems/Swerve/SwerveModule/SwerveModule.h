@@ -14,9 +14,10 @@
 #include "OvertureLib/MotorControllers/OverTalonFX/OverTalonFX.h"
 #include "OvertureLib/Sensors/OverCANCoder/OverCANCoder.h"
 
-class SwerveModule : public frc2::SubsystemBase {
+class SwerveModule: public frc2::SubsystemBase {
 public:
-	SwerveModule(int rotatorID, int wheelID, int canCoderID, units::turn_t offSet, std::string moduleName, std::string canBus);
+	SwerveModule(int rotatorID, int wheelID, int canCoderID,
+			units::turn_t offSet, std::string moduleName, std::string canBus);
 	void setRotatorPIDValues(double kP, double kI, double kD);
 	void setDrivePIDValues(double kP, double kI, double kD);
 	void setFFConstants(units::volt_t ks, units::volt_t kv, units::volt_t ka);

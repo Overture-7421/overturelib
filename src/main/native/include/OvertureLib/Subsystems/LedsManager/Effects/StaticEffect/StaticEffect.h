@@ -15,10 +15,10 @@
  * directly; this is crucially important, or else the decorator functions in
  * Command will *not* work!
  */
-class StaticEffect
-	: public frc2::CommandHelper<frc2::Command, StaticEffect> {
+class StaticEffect: public frc2::CommandHelper<frc2::Command, StaticEffect> {
 public:
-	StaticEffect(LedsManager* leds, LedStripName name, frc::Color8Bit color, bool addRequirement = true);
+	StaticEffect(LedsManager *leds, LedStripName name, frc::Color8Bit color,
+			bool addRequirement = true);
 
 	void Initialize() override;
 
@@ -28,7 +28,7 @@ public:
 
 	bool IsFinished() override;
 private:
-	LedsManager* leds;
+	LedsManager *leds;
 	std::span<frc::AddressableLED::LEDData> ledStrip;
 	frc::Color8Bit color;
 };

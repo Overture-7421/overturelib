@@ -2,7 +2,7 @@
 #include <cmath>
 
 struct Utils {
-	template <typename T>
+	template<typename T>
 	static int sgn(T vol) {
 		return (T(0) < vol) - (vol < T(0));
 	}
@@ -18,13 +18,15 @@ struct Utils {
 	 * To learn more: https://www.desmos.com/calculator/kvubon8yfw?lang=es
 	 *
 	 * */
-	static double ApplyAxisFilter(double axisValue, double deadzone = 0.05, double exponentialGain = 0.5) {
+	static double ApplyAxisFilter(double axisValue, double deadzone = 0.05,
+			double exponentialGain = 0.5) {
 		double axisMag = std::abs(axisValue);
-		if (axisMag < deadzone) return 0.0;
+		if (axisMag < deadzone)
+			return 0.0;
 
-		double res =
-			exponentialGain * std::pow((axisMag - deadzone) / (1 - deadzone), 3) +
-			(1 - exponentialGain) * (axisMag - deadzone) / (1 - deadzone);
+		double res = exponentialGain
+				* std::pow((axisMag - deadzone) / (1 - deadzone), 3)
+				+ (1 - exponentialGain) * (axisMag - deadzone) / (1 - deadzone);
 
 		return res * sgn(axisValue);
 	}

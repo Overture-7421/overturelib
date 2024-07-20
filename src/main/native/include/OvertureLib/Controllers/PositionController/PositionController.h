@@ -9,11 +9,13 @@
 #include <units/length.h>
 
 // Class for controlling the position of the robot
-class PositionController : public frc::ProfiledPIDController<units::meters> {
+class PositionController: public frc::ProfiledPIDController<units::meters> {
 public:
-	PositionController(double kP, double kI, double kD, frc::TrapezoidProfile<units::meters>::Constraints profile);
+	PositionController(double kP, double kI, double kD,
+			frc::TrapezoidProfile<units::meters>::Constraints profile);
 
-	double calculate(units::meter_t targetPosition, units::meter_t currentPosition);
+	double calculate(units::meter_t targetPosition,
+			units::meter_t currentPosition);
 
 private:
 
