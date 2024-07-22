@@ -10,29 +10,22 @@ SwerveChassis::SwerveChassis() : SwerveBase(this) {
 	frc::SmartDashboard::PutData("Chassis/Odometry", &field2d);
 
 	configureSwerveBase();
-	pathplanner::PPHolonomicDriveController::setRotationTargetOverride(
-			[this]() {
-				return headingTarget;
-			});
 }
 
 /**
- * @brief Sets the target heading
- *
- * @param rotationTarget The target heading
+ * @brief Disbable the speed helper
  */
-void SwerveChassis::disableHeadingOverride() {
-	headingOverride = false;
+void SwerveChassis::disableSpeedHelper() {
+	speedsHelper = std::nullopt;
 }
 
 /**
- * @brief Sets the heading override
+ * @brief Sets the speed helper
  *
  * @param headingOverride The heading override
  */
-void SwerveChassis::enableHeadingOverride(frc::Rotation2d headingTarget) {
-	headingOverride = true;
-	this->headingTarget = headingTarget;
+void SwerveChassis::enableSpeedHelper(SpeedsHelper *speedsHelper) {
+	this->speedsHelper = speedsHelper;
 }
 
 /**
@@ -113,8 +106,12 @@ const wpi::array<frc::SwerveModulePosition, 4>& SwerveChassis::getModulesPositio
 frc2::CommandPtr SwerveChassis::SysIdQuadstatic(
 		frc2::sysid::Direction direction) {
 	return frc2::cmd::Sequence(frc2::InstantCommand([this]() {
+		characterizing = true;
 		sysIdVoltage(0_V);
-	}).ToPtr(), frc2::cmd::Wait(0.5_s), m_sysIdRoutine.Quasistatic(direction));
+	}).ToPtr(), frc2::cmd::Wait(0.5_s), m_sysIdRoutine.Quasistatic(direction)).FinallyDo(
+			[this] {
+				characterizing = false;
+			});
 }
 
 /**
@@ -122,8 +119,12 @@ frc2::CommandPtr SwerveChassis::SysIdQuadstatic(
  */
 frc2::CommandPtr SwerveChassis::SysIdDinamic(frc2::sysid::Direction direction) {
 	return frc2::cmd::Sequence(frc2::InstantCommand([this]() {
+		characterizing = true;
 		sysIdVoltage(0_V);
-	}).ToPtr(), frc2::cmd::Wait(0.5_s), m_sysIdRoutine.Dynamic(direction));
+	}).ToPtr(), frc2::cmd::Wait(0.5_s), m_sysIdRoutine.Dynamic(direction)).FinallyDo(
+			[this] {
+				characterizing = false;
+			});
 }
 
 /**
@@ -170,24 +171,18 @@ void SwerveChassis::shuffleboardPeriodic() {
 	getPoseLog().Append(latestPose);
 	frc::SmartDashboard::PutNumber("Odometry/X", latestPose.X().value());
 	frc::SmartDashboard::PutNumber("Odometry/Y", latestPose.Y().value());
-
-	frc::SmartDashboard::PutNumber("Odometry/HeadingTarget",
-			headingTarget.Degrees().value());
-	frc::SmartDashboard::PutNumber("Odometry/HeadingError",
-			getHeadingController().GetPositionError().value());
 }
 
 void SwerveChassis::Periodic() {
 	updateOdometry();
+	shuffleboardPeriodic();
 
-	if (headingOverride) {
-		double outOmega = getHeadingController().calculateValue(
-				headingTarget.Radians(), latestPose.Rotation().Radians());
-		if (std::abs(outOmega) < 0.1 && desiredSpeeds.vx == 0_mps
-				&& desiredSpeeds.vy == 0_mps) {
-			outOmega = 0.0;
-		}
-		desiredSpeeds.omega = units::radians_per_second_t { outOmega };
+	if (characterizing) {
+		return;
+	}
+
+	if (speedsHelper) {
+		speedsHelper.value()->AlterSpeed(desiredSpeeds);
 	}
 
 	modulesPositions[0] = getFrontLeftModule().getPosition();
@@ -208,5 +203,4 @@ void SwerveChassis::Periodic() {
 	getKinematics().DesaturateWheelSpeeds(&desiredStates, getMaxModuleSpeed());
 
 	setModuleStates (desiredStates);
-	shuffleboardPeriodic();
 }

@@ -26,6 +26,7 @@
 #include <OvertureLib/Subsystems/Swerve/SwerveModule/SwerveModule.h>
 #include <OvertureLib/Subsystems/Swerve/SwerveChassis/SwerveBase.h>
 #include <OvertureLib/Math/ChassisAccels.h>
+#include <OvertureLib/Subsystems/Swerve/SpeedsHelper/SpeedsHelper.h>
 
 #include <OvertureLib/Robots/OverRobot/RobotConstants.h>
 
@@ -34,8 +35,8 @@
 class SwerveChassis: public SwerveBase, public frc2::SubsystemBase {
 public:
 	SwerveChassis();
-	void disableHeadingOverride();
-	void enableHeadingOverride(frc::Rotation2d headingTarget);
+	void disableSpeedHelper();
+	void enableSpeedHelper(SpeedsHelper *speedsHelper);
 
 	void setTargetSpeeds(frc::ChassisSpeeds speeds) override;
 	frc::ChassisSpeeds getCurrentSpeeds() override;
@@ -77,10 +78,9 @@ private:
 
 	frc::Field2d field2d;
 
-	bool headingOverride = false;
-	frc::Rotation2d headingTarget;
+	std::optional<SpeedsHelper*> speedsHelper;
 
-	frc2::sysid::SysIdRoutine m_sysIdRoutine {
+	bool characterizing = false;frc2::sysid::SysIdRoutine m_sysIdRoutine {
 		frc2::sysid::Config {std::nullopt, std::nullopt, std::nullopt, std::nullopt},
 		frc2::sysid::Mechanism {
 			[this](units::volt_t driveVoltage) {
