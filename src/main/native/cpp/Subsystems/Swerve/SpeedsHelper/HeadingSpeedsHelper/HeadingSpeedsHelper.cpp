@@ -10,6 +10,10 @@ HeadingSpeedsHelper::HeadingSpeedsHelper(frc::ProfiledPIDController<units::radia
 	this->headingController.SetIZone(3);
 }
 
+void HeadingSpeedsHelper::setTargetAngle(units::radian_t targetAngle) {
+	this->targetAngle = targetAngle;
+}	
+
 void HeadingSpeedsHelper::alterSpeed(frc::ChassisSpeeds &inputSpeed) {
 	double out = headingController.Calculate(chassis->getRotation2d().Radians(), targetAngle);
 
