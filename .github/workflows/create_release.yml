@@ -157,7 +157,7 @@ jobs:
           path: ~/releases/
 
       - name: Copy artifacts
-        run: cp -r ~/releases/OvertureLib/development/com overture-7421.github.io/overturelib/repo/
+        run: cp -r ~/releases/OvertureLib-${{ github.event.inputs.version }}/development/com overture-7421.github.io/overturelib/repo/
 
       - name: Update json
         run: |
