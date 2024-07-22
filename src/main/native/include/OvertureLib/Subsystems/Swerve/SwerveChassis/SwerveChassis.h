@@ -22,12 +22,10 @@
 #include <frc2/command/SubsystemBase.h>
 
 #include <OvertureLib/Sensors/OverPigeon/OverPigeon.h>
-#include <OvertureLib/Controllers/RotationController/RotationController.h>
 #include <OvertureLib/Subsystems/Swerve/SwerveModule/SwerveModule.h>
 #include <OvertureLib/Subsystems/Swerve/SwerveChassis/SwerveBase.h>
 #include <OvertureLib/Math/ChassisAccels.h>
 #include <OvertureLib/Subsystems/Swerve/SpeedsHelper/SpeedsHelper.h>
-
 #include <OvertureLib/Robots/OverRobot/RobotConstants.h>
 
 #include <wpi/DataLog.h>

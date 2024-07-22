@@ -1,7 +1,6 @@
 #pragma once
 #include <frc/filter/SlewRateLimiter.h>
 #include <OvertureLib/Sensors/OverPigeon/OverPigeon.h>
-#include <OvertureLib/Controllers/RotationController/RotationController.h>
 #include <OvertureLib/Subsystems/Swerve/SwerveModule/SwerveModule.h>
 #include <OvertureLib/Math/ChassisAccels.h>
 #include <frc/kinematics/SwerveDriveKinematics.h>
@@ -77,7 +76,7 @@ protected:
 
 	virtual frc::SwerveDriveKinematics<4>& getKinematics() = 0;
 
-	virtual RotationController& getHeadingController() = 0;
+	virtual HeadingSpeedsHelper& getHeadingController() = 0;
 
 	virtual wpi::log::StructLogEntry<frc::Pose2d>& getPoseLog() = 0;
 	virtual wpi::log::StructLogEntry<frc::Pose2d>& getVisionPoseLog() = 0;
