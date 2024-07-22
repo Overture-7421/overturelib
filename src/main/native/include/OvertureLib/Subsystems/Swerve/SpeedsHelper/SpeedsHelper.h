@@ -4,5 +4,5 @@
 
 class SpeedsHelper {
 public:
-	virtual void AlterSpeed(frc::ChassisSpeeds &inputSpeed) = 0;
+	virtual void alterSpeed(frc::ChassisSpeeds &inputSpeed) = 0;
 };

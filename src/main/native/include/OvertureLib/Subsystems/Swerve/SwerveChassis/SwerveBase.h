@@ -76,8 +76,6 @@ protected:
 
 	virtual frc::SwerveDriveKinematics<4>& getKinematics() = 0;
 
-	virtual HeadingSpeedsHelper& getHeadingController() = 0;
-
 	virtual wpi::log::StructLogEntry<frc::Pose2d>& getPoseLog() = 0;
 	virtual wpi::log::StructLogEntry<frc::Pose2d>& getVisionPoseLog() = 0;
 

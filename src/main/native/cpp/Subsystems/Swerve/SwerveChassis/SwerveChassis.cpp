@@ -182,7 +182,7 @@ void SwerveChassis::Periodic() {
 	}
 
 	if (speedsHelper) {
-		speedsHelper.value()->AlterSpeed(desiredSpeeds);
+		speedsHelper.value()->alterSpeed(desiredSpeeds);
 	}
 
 	modulesPositions[0] = getFrontLeftModule().getPosition();
