@@ -133,7 +133,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Maven-${{ github.event.inputs.version }}
+          name: OvertureLib-${{ github.event.inputs.version }}
           path: ~/releases/
 
   upload:
@@ -153,11 +153,11 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: Maven-${{ github.event.inputs.version }}
+          name: OvertureLib-${{ github.event.inputs.version }}
           path: ~/releases/
 
       - name: Copy artifacts
-        run: cp -r ~/releases/maven/development/com overture-7421.github.io/overturelib/repo/
+        run: cp -r ~/releases/OvertureLib/development/com overture-7421.github.io/overturelib/repo/
 
       - name: Update json
         run: |
@@ -181,44 +181,19 @@ jobs:
     needs: [upload]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-        with:
-          tag_name: ${{ github.event.inputs.version }}
-          release_name: OvertureLib ${{ github.event.inputs.version }}
-          body: |
-            Release ${{ github.event.inputs.version }}
-            # Changelog
-          draft: true
-          prerelease: ${{ github.event.inputs.prerelease }}
-
-      - name: Download Artifact
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: Maven-${{ github.event.inputs.version }}
-          path: ~/releases/
-
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          name: OvertureLib-${{ github.event.inputs.version }}
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ~/releases/
-          asset_name: overturelib-${{ github.event.inputs.version }}.zip
-          asset_content_type: application/zip
+          name: OvertureLib ${{ github.event.inputs.version }}
+          files: ~/releases/OvertureLib-${{ github.event.inputs.version }}
+          tag_name: ${{ github.event.inputs.version }}
+          generate_release_notes: true
+          prerelease: ${{ github.event.inputs.prerelease }}
+          make_latest: ${{ !github.event.inputs.prerelease }}
 
-      - name: Publish Release
-        uses: StuYarrow/publish-release@v1.1.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          id: ${{ steps.create_release.outputs.id }}
 

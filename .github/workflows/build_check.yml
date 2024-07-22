@@ -1,6 +1,10 @@
 name: Build Check
 
-on: [push, pull_request]
+on: 
+  push:
+    branches:
+      - master
+  pull_request:
 
 jobs:
   build-docker:
@@ -32,8 +36,8 @@ jobs:
         run: |
           git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
 
-      - name: Spotless Apply
-        run : ./gradlew spotlessApplya
+      - name: Ensure spotless is applied
+        run: ./gradlew spotlessApply
 
       - name: Build with Gradle
         run: ./gradlew build -PreleaseMode ${{ matrix.build-options }}
