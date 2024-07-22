@@ -40,6 +40,9 @@ jobs:
       - name: Set version
         run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
 
+      - name: Ensure spotless is applied
+        run: ./gradlew spotlessApply
+
       - name: Build with Gradle
         run: ./gradlew build -PreleaseMode ${{ matrix.build-options }}
 
@@ -86,6 +89,9 @@ jobs:
         if: ${{ matrix.os-name == 'macos' }}
         run: sed -i '' "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
         working-directory: ./
+
+      - name: Ensure spotless is applied
+        run: ./gradlew spotlessApply
       
       - name: Build with Gradle
         run: ./gradlew build -Pbuildalldesktop -PreleaseMode
