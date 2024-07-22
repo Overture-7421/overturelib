@@ -11,6 +11,7 @@ on:
         type: boolean
         description: Is this a pre-release?
         required: true
+        default: false
 
 jobs:
   build-docker:
@@ -184,16 +185,29 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
+          path: ~/releases/
           name: OvertureLib-${{ github.event.inputs.version }}
       
       - name: Create Release
+        if: github.event.inputs.prerelease == 'false'
         uses: softprops/action-gh-release@v2
         with:
           name: OvertureLib ${{ github.event.inputs.version }}
           files: ~/releases/maven
           tag_name: ${{ github.event.inputs.version }}
           generate_release_notes: true
-          prerelease: ${{ github.event.inputs.prerelease }}
-          make_latest: ${{ !github.event.inputs.prerelease }}
+          prerelease: false
+          make_latest: true
+        
+      - name: Create Pre-Release
+        if: github.event.inputs.prerelease == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: OvertureLib ${{ github.event.inputs.version }}-alpha
+          files: ~/releases/maven
+          tag_name: ${{ github.event.inputs.version }}-alpha
+          generate_release_notes: true
+          prerelease: true
+          make_latest: false
 
 
