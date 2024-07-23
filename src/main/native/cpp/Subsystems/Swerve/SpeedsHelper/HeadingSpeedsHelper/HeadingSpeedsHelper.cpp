@@ -4,18 +4,22 @@
 
 #include "OvertureLib/Subsystems/Swerve/SpeedsHelper/HeadingSpeedsHelper/HeadingSpeedsHelper.h"
 
-HeadingSpeedsHelper::HeadingSpeedsHelper(frc::ProfiledPIDController<units::radian> headingController, SwerveChassis* chassis) : headingController(headingController){
+HeadingSpeedsHelper::HeadingSpeedsHelper(
+		frc::ProfiledPIDController<units::radian> headingController,
+		SwerveChassis *chassis) : headingController(headingController) {
 	this->chassis = chassis;
-	this->headingController.EnableContinuousInput(units::radian_t(-180_deg), units::radian_t(180_deg));
+	this->headingController.EnableContinuousInput(units::radian_t(-180_deg),
+			units::radian_t(180_deg));
 	this->headingController.SetIZone(3);
 }
 
 void HeadingSpeedsHelper::setTargetAngle(units::radian_t targetAngle) {
 	this->targetAngle = targetAngle;
-}	
+}
 
 void HeadingSpeedsHelper::alterSpeed(frc::ChassisSpeeds &inputSpeed) {
-	double out = headingController.Calculate(chassis->getRotation2d().Radians(), targetAngle);
+	double out = headingController.Calculate(chassis->getRotation2d().Radians(),
+			targetAngle);
 
 	if (headingController.AtSetpoint()) {
 		out = 0;

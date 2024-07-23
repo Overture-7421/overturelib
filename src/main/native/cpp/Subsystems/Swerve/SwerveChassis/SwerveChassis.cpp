@@ -37,6 +37,10 @@ frc::ChassisSpeeds SwerveChassis::getCurrentSpeeds() {
 	return currentSpeeds;
 }
 
+ChassisAccels SwerveChassis::getCurrentAccels() {
+	return currentAccels;
+}
+
 /**
  * @brief Returns the robot odometry
  *
@@ -60,7 +64,15 @@ void SwerveChassis::resetOdometry(frc::Pose2d initPose) {
  */
 void SwerveChassis::addVisionMeasurement(frc::Pose2d pose,
 		units::second_t timestamp) {
+	if (!acceptingVisionMeasurements) {
+		return;
+	}
 	odometry->AddVisionMeasurement(pose, timestamp);
+}
+
+void SwerveChassis::setAcceptingVisionMeasurements(
+		bool acceptingVisionMeasurements) {
+	this->acceptingVisionMeasurements = acceptingVisionMeasurements;
 }
 
 /**

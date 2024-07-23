@@ -44,6 +44,7 @@ public:
 	void resetOdometry(frc::Pose2d initPose) override;
 
 	void addVisionMeasurement(frc::Pose2d pose, units::second_t Latency);
+	void setAcceptingVisionMeasurements(bool acceptingVisionMeasurements);
 
 	void resetHeading(double angle = 0);
 	const wpi::array<frc::SwerveModuleState, 4>& getModulesStates();
@@ -77,6 +78,7 @@ private:
 	frc::Field2d field2d;
 
 	std::optional<SpeedsHelper*> speedsHelper;
+	bool acceptingVisionMeasurements = false;
 
 	bool characterizing = false;frc2::sysid::SysIdRoutine m_sysIdRoutine {
 		frc2::sysid::Config {std::nullopt, std::nullopt, std::nullopt, std::nullopt},
