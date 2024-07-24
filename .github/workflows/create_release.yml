@@ -187,16 +187,17 @@ jobs:
         with:
           path: ~/releases/
           name: OvertureLib-${{ github.event.inputs.version }}
-
-      - name: Zip artifacts
-        run: zip -r ~/releases/maven.zip ~/releases/maven
       
+      - name: Artifact list
+      
+        run: ls ~/releases/
+        
       - name: Create Release
         if: github.event.inputs.prerelease == 'false'
         uses: softprops/action-gh-release@v2
         with:
           name: OvertureLib ${{ github.event.inputs.version }}
-          files: ~/releases/maven.zip
+          files: ~/releases/OvertureLib-${{ github.event.inputs.version }}
           tag_name: ${{ github.event.inputs.version }}
           generate_release_notes: true
           prerelease: false
@@ -207,7 +208,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: OvertureLib ${{ github.event.inputs.version }}
-          files: ~/releases/maven.zip
+          files: ~/maven
           tag_name: ${{ github.event.inputs.version }}
           generate_release_notes: true
           prerelease: true
