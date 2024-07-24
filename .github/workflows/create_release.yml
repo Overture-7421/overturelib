@@ -188,7 +188,8 @@ jobs:
           path: ~/releases/
           name: OvertureLib-${{ github.event.inputs.version }}
       
-      - name: Check if artifacts exist
+      - name: Artifact list
+      
         run: ls ~/releases/
         
       - name: Create Release
