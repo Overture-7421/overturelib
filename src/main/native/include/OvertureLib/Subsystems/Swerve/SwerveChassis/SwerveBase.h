@@ -34,17 +34,18 @@ public:
 
 protected:
 	void configureSwerveBase() {
+			configuredChassis = true;
 			AutoBuilder::configureHolonomic(
-			[&]() {
+			[this]() {
 				return getEstimatedPose();
 			},
-			[&](frc::Pose2d pose) {
+			[this](frc::Pose2d pose) {
 				resetOdometry(pose);
 			},
-			[&]() {
+			[this]() {
 				return getCurrentSpeeds();
 			},
-			[&](frc::ChassisSpeeds speeds) {
+			[this](frc::ChassisSpeeds speeds) {
 				setTargetSpeeds(speeds);
 			},
 			HolonomicPathFollowerConfig(
@@ -78,6 +79,7 @@ protected:
 
 	virtual wpi::log::StructLogEntry<frc::Pose2d>& getPoseLog() = 0;
 	virtual wpi::log::StructLogEntry<frc::Pose2d>& getVisionPoseLog() = 0;
+	bool configuredChassis = false;
 
 	private:
 	frc2::Subsystem *driveSubsystem;

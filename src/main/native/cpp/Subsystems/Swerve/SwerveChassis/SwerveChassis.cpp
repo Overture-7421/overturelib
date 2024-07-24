@@ -8,8 +8,6 @@
  */
 SwerveChassis::SwerveChassis() : SwerveBase(this) {
 	frc::SmartDashboard::PutData("Chassis/Odometry", &field2d);
-
-	configureSwerveBase();
 }
 
 /**
@@ -186,6 +184,9 @@ void SwerveChassis::shuffleboardPeriodic() {
 }
 
 void SwerveChassis::Periodic() {
+	if(!configuredChassis) {
+		throw new std::runtime_error("Have not called SwerveBase::configureSwerveBase!!!");
+	}
 	updateOdometry();
 	shuffleboardPeriodic();
 
