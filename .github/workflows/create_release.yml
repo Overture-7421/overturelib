@@ -207,7 +207,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: OvertureLib ${{ github.event.inputs.version }}
-          files: ~/releases/OvertureLib-${{ github.event.inputs.version }}
+          files: ~/maven
           tag_name: ${{ github.event.inputs.version }}
           generate_release_notes: true
           prerelease: true
