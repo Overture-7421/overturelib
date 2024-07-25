@@ -101,15 +101,6 @@ void SwerveChassis::setModuleStates(
 	getBackRightModule().setVoltages();
 	getBackLeftModule().setVoltages();
 }
-
-const wpi::array<frc::SwerveModuleState, 4>& SwerveChassis::getModulesStates() {
-	return modulesStates;
-}
-
-const wpi::array<frc::SwerveModulePosition, 4>& SwerveChassis::getModulesPositions() {
-	return modulesPositions;
-}
-
 /**
  * @brief Runs the SysId Quasisstatic command
  */
@@ -151,9 +142,9 @@ void SwerveChassis::sysIdVoltage(units::volt_t voltage) {
  * @brief Updates the robot odometry
  */
 void SwerveChassis::updateOdometry() {
-	odometry->Update(getRotation2d(), getModulesPositions());
+	odometry->Update(getRotation2d(), modulesPositions);
 	latestPose = odometry->GetEstimatedPosition();
-	currentSpeeds = getKinematics().ToChassisSpeeds(getModulesStates());
+	currentSpeeds = getKinematics().ToChassisSpeeds(modulesStates);
 
 	currentAccels = ChassisAccels(currentSpeeds, lastSpeeds);
 	lastSpeeds = currentSpeeds;
@@ -184,11 +175,10 @@ void SwerveChassis::shuffleboardPeriodic() {
 }
 
 void SwerveChassis::Periodic() {
-	if(!configuredChassis) {
-		throw new std::runtime_error("Have not called SwerveBase::configureSwerveBase!!!");
+	if (!configuredChassis) {
+		throw new std::runtime_error(
+				"Have not called SwerveBase::configureSwerveBase!!!");
 	}
-	updateOdometry();
-	shuffleboardPeriodic();
 
 	if (characterizing) {
 		return;
@@ -214,6 +204,9 @@ void SwerveChassis::Periodic() {
 	wpi::array < frc::SwerveModuleState, 4U > desiredStates =
 			getKinematics().ToSwerveModuleStates(targetSpeeds);
 	getKinematics().DesaturateWheelSpeeds(&desiredStates, getMaxModuleSpeed());
+
+	updateOdometry();
+	shuffleboardPeriodic();
 
 	setModuleStates (desiredStates);
 }

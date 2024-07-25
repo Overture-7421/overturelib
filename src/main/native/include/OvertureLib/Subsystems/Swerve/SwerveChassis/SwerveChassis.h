@@ -47,8 +47,6 @@ public:
 	void setAcceptingVisionMeasurements(bool acceptingVisionMeasurements);
 
 	void resetHeading(double angle = 0);
-	const wpi::array<frc::SwerveModuleState, 4>& getModulesStates();
-	const wpi::array<frc::SwerveModulePosition, 4>& getModulesPositions();
 
 	frc2::CommandPtr SysIdQuadstatic(frc2::sysid::Direction direction);
 	frc2::CommandPtr SysIdDinamic(frc2::sysid::Direction direction);
