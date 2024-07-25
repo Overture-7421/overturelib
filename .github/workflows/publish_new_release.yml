@@ -1,4 +1,4 @@
-name: Create Release
+name: Publish New Release
 
 on:
   workflow_dispatch:
@@ -189,9 +189,6 @@ jobs:
 
       - name: Zip artifacts
         run: zip -r OvertureLib-${{ github.event.inputs.version }}.zip maven/development/com/overture/lib/OvertureLib-cpp
-
-      - name: Artifact list
-        run: ls
         
       - name: Create Release
         if: github.event.inputs.prerelease == 'false'
