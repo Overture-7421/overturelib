@@ -60,13 +60,6 @@ private:
 			const wpi::array<frc::SwerveModuleState, 4> &desiredStates);
 	void updateOdometry();
 
-	std::unique_ptr<frc::SwerveDrivePoseEstimator<4>> odometry;
-	wpi::array<frc::SwerveModulePosition, 4U> modulesPositions {
-			frc::SwerveModulePosition(), frc::SwerveModulePosition(),
-			frc::SwerveModulePosition(), frc::SwerveModulePosition() };
-	wpi::array<frc::SwerveModuleState, 4U> modulesStates {
-			frc::SwerveModuleState(), frc::SwerveModuleState(),
-			frc::SwerveModuleState(), frc::SwerveModuleState() };
 	frc::Pose2d latestPose;
 
 	frc::ChassisSpeeds desiredSpeeds;

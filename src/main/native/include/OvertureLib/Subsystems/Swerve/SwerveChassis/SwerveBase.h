@@ -64,6 +64,7 @@ protected:
 			}, 
 			driveSubsystem
 		);
+		odometry = std::make_unique<frc::SwerveDrivePoseEstimator<4>>(getKinematics(), frc::Rotation2d{}, modulesPositions, frc::Pose2d{});
 	}
 	
  	virtual SwerveModule& getFrontLeftModule() = 0;
@@ -80,6 +81,14 @@ protected:
 	virtual wpi::log::StructLogEntry<frc::Pose2d>& getPoseLog() = 0;
 	virtual wpi::log::StructLogEntry<frc::Pose2d>& getVisionPoseLog() = 0;
 	bool configuredChassis = false;
+
+	std::unique_ptr<frc::SwerveDrivePoseEstimator<4>> odometry;
+	wpi::array<frc::SwerveModulePosition, 4U> modulesPositions {
+			frc::SwerveModulePosition(), frc::SwerveModulePosition(),
+			frc::SwerveModulePosition(), frc::SwerveModulePosition() };
+	wpi::array<frc::SwerveModuleState, 4U> modulesStates {
+			frc::SwerveModuleState(), frc::SwerveModuleState(),
+			frc::SwerveModuleState(), frc::SwerveModuleState() };
 
 	private:
 	frc2::Subsystem *driveSubsystem;
