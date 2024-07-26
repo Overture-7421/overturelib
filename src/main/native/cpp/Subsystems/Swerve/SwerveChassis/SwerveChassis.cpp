@@ -166,6 +166,7 @@ void SwerveChassis::shuffleboardPeriodic() {
 	field2d.SetRobotPose(latestPose);
 	frc::SmartDashboard::PutNumber("Odometry/X", latestPose.X().value());
 	frc::SmartDashboard::PutNumber("Odometry/Y", latestPose.Y().value());
+	frc::SmartDashboard::PutNumber("Odometry/Rotation", latestPose.Rotation().Degrees().value());
 
 	getFrontLeftModule().shuffleboardPeriodic();
 	getFrontRightModule().shuffleboardPeriodic();

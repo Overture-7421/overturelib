@@ -5,7 +5,7 @@
 #include "OvertureLib/Gamepad/Gamepad.h"
 
 Gamepad::Gamepad(int port, double stickDeadzone, double triggerDeadzone) : frc2::CommandXboxController(
-		port) {
+	port) {
 	this->stickDeadzone = stickDeadzone;
 	this->triggerDeadzone = triggerDeadzone;
 }
@@ -20,16 +20,16 @@ double Gamepad::getTwist() {
 ;
 
 frc::Rotation2d Gamepad::getLeftStickDirection() {
-	double x = Utils::ApplyAxisFilter(-GetLeftX(), stickDeadzone);
-	double y = Utils::ApplyAxisFilter(-GetLeftY(), stickDeadzone);
+	double x = Utils::ApplyAxisFilter(-GetLeftY(), stickDeadzone);
+	double y = Utils::ApplyAxisFilter(-GetLeftX(), stickDeadzone);
 
 	return frc::Rotation2d(x, y);
 }
 ;
 
 frc::Rotation2d Gamepad::getRightStickDirection() {
-	double x = Utils::ApplyAxisFilter(-GetRightX(), stickDeadzone);
-	double y = Utils::ApplyAxisFilter(-GetRightY(), stickDeadzone);
+	double x = Utils::ApplyAxisFilter(-GetRightY(), stickDeadzone);
+	double y = Utils::ApplyAxisFilter(-GetRightX(), stickDeadzone);
 
 	return frc::Rotation2d(x, y);
 }
@@ -123,16 +123,16 @@ frc2::Trigger Gamepad::rightXTrigger(double triggerTreshold) {
 
 frc2::Trigger Gamepad::rightStick(double triggerTreshold) {
 	return frc2::Trigger(
-			[this, triggerTreshold] {
-				return std::abs(GetRightX()) >= triggerTreshold
-						|| std::abs(GetRightY()) >= triggerTreshold;
-			});
+		[this, triggerTreshold] {
+		return std::abs(GetRightX()) >= triggerTreshold
+			|| std::abs(GetRightY()) >= triggerTreshold;
+	});
 }
 
 frc2::Trigger Gamepad::leftStick(double triggerTreshold) {
 	return frc2::Trigger(
-			[this, triggerTreshold] {
-				return std::abs(GetLeftX()) >= triggerTreshold
-						|| std::abs(GetLeftY()) >= triggerTreshold;
-			});
+		[this, triggerTreshold] {
+		return std::abs(GetLeftX()) >= triggerTreshold
+			|| std::abs(GetLeftY()) >= triggerTreshold;
+	});
 }
