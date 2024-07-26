@@ -15,12 +15,11 @@
 #include "OvertureLib/Sensors/OverCANCoder/OverCANCoder.h"
 #include "ModuleConfig.h"
 
-class SwerveModule: public frc2::SubsystemBase {
+class SwerveModule : public frc2::SubsystemBase {
 public:
 	SwerveModule(ModuleConfig config);
 
 	double getSpeed();
-	double setSpeed(double speed);
 	double getDistance();
 	double getAngle();
 	double getVoltage();
@@ -28,9 +27,7 @@ public:
 	frc::SwerveModuleState getState();
 	void setState(frc::SwerveModuleState state);
 	frc::SwerveModulePosition getPosition();
-
 	void setRawVoltageSpeed(units::volt_t volts);
-	void setVoltages();
 
 	void shuffleboardPeriodic();
 	void Periodic() override;

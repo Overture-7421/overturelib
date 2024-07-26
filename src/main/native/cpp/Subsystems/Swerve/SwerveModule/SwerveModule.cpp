@@ -16,13 +16,13 @@
  */
 SwerveModule::SwerveModule(ModuleConfig config) : m_name(config.moduleName) {
 	m_driveMotor =
-			std::make_unique < OverTalonFX
-					> (config.rotatorId, ControllerNeutralMode::Brake, false, config.canBus);
+		std::make_unique < OverTalonFX
+		>(config.rotatorId, ControllerNeutralMode::Brake, false, config.canBus);
 	m_turningMotor =
-			std::make_unique < OverTalonFX
-					> (config.wheelId, ControllerNeutralMode::Coast, true, config.canBus);
+		std::make_unique < OverTalonFX
+		>(config.wheelId, ControllerNeutralMode::Coast, true, config.canBus);
 	m_canCoder = std::make_unique < OverCANCoder
-			> (config.canCoderId, config.offset, config.canBus);
+	>(config.canCoderId, config.offset, config.canBus);
 	m_turningMotor->setContinuousWrap();
 	m_turningMotor->setFusedCANCoder(config.canCoderId);
 	m_turningMotor->setClosedLoopVoltageRamp(0.1);
@@ -42,8 +42,8 @@ SwerveModule::SwerveModule(ModuleConfig config) : m_name(config.moduleName) {
 
 	// Set FeedForward Values
 	m_feedForward = std::make_shared < frc::SimpleMotorFeedforward
-			< units::meters
-					>> (config.ks, config.kv / 1_mps, config.ka / 1_mps_sq);
+		< units::meters
+		>> (config.ks, config.kv / 1_mps, config.ka / 1_mps_sq);
 
 	// Set Gear Ratios
 	m_turningMotor->setRotorToSensorRatio(config.turnGearRatio);
@@ -60,15 +60,6 @@ SwerveModule::SwerveModule(ModuleConfig config) : m_name(config.moduleName) {
  */
 double SwerveModule::getSpeed() {
 	return m_driveMotor->getVelocity(m_wheelDiameter);
-}
-
-/**
- * @brief Set Module Speed
- *
- * @param speed - Speed of the wheel
- */
-double SwerveModule::setSpeed(double speed) {
-	return ((speed / (m_wheelDiameter * M_PI)));
 }
 
 /**
@@ -126,7 +117,7 @@ void SwerveModule::setState(frc::SwerveModuleState state) {
  * @return - Module position
  */
 frc::SwerveModulePosition SwerveModule::getPosition() {
-	return {units::meter_t {getDistance()}, units::degree_t {getAngle()}};
+	return { units::meter_t {getDistance()}, units::degree_t {getAngle()} };
 }
 
 /**
@@ -141,26 +132,19 @@ void SwerveModule::setRawVoltageSpeed(units::volt_t volts) {
 }
 
 /**
- * @brief Sets the voltage of the module
- */
-void SwerveModule::setVoltages() {
-	m_turningMotor->setPositionVoltage(m_state.angle.Degrees().value() / 360.0,
-			false);
-
-	m_driveMotor->setVoltage(m_feedForward->Calculate(m_state.speed), false);
-	//m_driveMotor->setVoltage(units::volt_t{ setSpeed(m_state.speed.value()) }, false);
-}
-
-/**
  * @brief Shuffleboard Periodic
  */
 void SwerveModule::shuffleboardPeriodic() {
 	frc::SmartDashboard::PutNumber(m_name + "/Speed", getSpeed());
 	frc::SmartDashboard::PutNumber(m_name + "/Target",
-			m_state.angle.Degrees().value());
+		m_state.angle.Degrees().value());
 	frc::SmartDashboard::PutNumber(m_name + "/Angle", getAngle());
 	frc::SmartDashboard::PutNumber(m_name + "/Distance", getDistance());
 }
 
 void SwerveModule::Periodic() {
+	m_turningMotor->setPositionVoltage(m_state.angle.Degrees().value() / 360.0,
+		false);
+
+	m_driveMotor->setVoltage(m_feedForward->Calculate(m_state.speed), false);
 }
