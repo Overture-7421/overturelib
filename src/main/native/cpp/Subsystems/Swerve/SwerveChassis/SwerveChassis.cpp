@@ -169,7 +169,6 @@ void SwerveChassis::shuffleboardPeriodic() {
 			desiredSpeeds.omega.value());
 
 	field2d.SetRobotPose(latestPose);
-	getPoseLog().Append(latestPose);
 	frc::SmartDashboard::PutNumber("Odometry/X", latestPose.X().value());
 	frc::SmartDashboard::PutNumber("Odometry/Y", latestPose.Y().value());
 }
@@ -206,7 +205,7 @@ void SwerveChassis::Periodic() {
 	getKinematics().DesaturateWheelSpeeds(&desiredStates, getMaxModuleSpeed());
 
 	updateOdometry();
-	shuffleboardPeriodic();
+	getPoseLog().Append(latestPose);
 
 	setModuleStates (desiredStates);
 }
