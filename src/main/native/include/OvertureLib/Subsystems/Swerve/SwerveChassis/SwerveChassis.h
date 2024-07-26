@@ -79,21 +79,21 @@ private:
 			},
 			[this](frc::sysid::SysIdRoutineLog* log) {
 				log->Motor("frontRight")
-				.voltage(units::volt_t {getFrontRightModule().getVoltage()})
-				.position(units::meter_t {getFrontRightModule().getDistance()})
-				.velocity(units::meters_per_second_t {getFrontRightModule().getSpeed()});
+				.voltage(getFrontRightModule().getVoltageDrive())
+				.position(getFrontRightModule().getPosition().distance)
+				.velocity(getFrontRightModule().getState().speed);
 				log->Motor("frontLeft")
-				.voltage(units::volt_t {getFrontLeftModule().getVoltage()})
-				.position(units::meter_t {getFrontLeftModule().getDistance()})
-				.velocity(units::meters_per_second_t {getFrontLeftModule().getSpeed()});
+				.voltage(getFrontLeftModule().getVoltageDrive())
+				.position(getFrontLeftModule().getPosition().distance)
+				.velocity(getFrontLeftModule().getState().speed);
 				log->Motor("backRight")
-				.voltage(units::volt_t {getBackRightModule().getVoltage()})
-				.position(units::meter_t {getBackRightModule().getDistance()})
-				.velocity(units::meters_per_second_t {getBackRightModule().getSpeed()});
+				.voltage(getBackRightModule().getVoltageDrive())
+				.position(getBackRightModule().getPosition().distance)
+				.velocity(getBackRightModule().getState().speed);
 				log->Motor("backLeft")
-				.voltage(units::volt_t {getBackLeftModule().getVoltage()})
-				.position(units::meter_t {getBackLeftModule().getDistance()})
-				.velocity(units::meters_per_second_t {getBackLeftModule().getSpeed()});
+				.voltage(getBackLeftModule().getVoltageDrive())
+				.position(getBackLeftModule().getPosition().distance)
+				.velocity(getBackLeftModule().getState().speed);
 			},
 			this}};
 };

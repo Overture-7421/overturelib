@@ -13,49 +13,39 @@
 
 #include "OvertureLib/MotorControllers/OverTalonFX/OverTalonFX.h"
 #include "OvertureLib/Sensors/OverCANCoder/OverCANCoder.h"
+#include "ModuleConfig.h"
 
-class SwerveModule: public frc2::SubsystemBase {
+class SwerveModule : public frc2::SubsystemBase {
 public:
-	SwerveModule(int rotatorID, int wheelID, int canCoderID,
-			units::turn_t offSet, std::string moduleName, std::string canBus);
-	void setRotatorPIDValues(double kP, double kI, double kD);
-	void setDrivePIDValues(double kP, double kI, double kD);
-	void setFFConstants(units::volt_t ks, units::volt_t kv, units::volt_t ka);
-	void setGearRatio(double _turn, double _wheel);
-	void setWheelDiameter(double _wheelDiameter);
+	SwerveModule(ModuleConfig config);
 
-	double getSpeed();
-	double setSpeed(double speed);
-	double getDistance();
-	double getAngle();
-	double getVoltage();
-
-	frc::SwerveModuleState getState();
+	const frc::SwerveModuleState& getState();
 	void setState(frc::SwerveModuleState state);
-	frc::SwerveModulePosition getPosition();
+	const frc::SwerveModulePosition& getPosition();
 
-	void setRawVoltageSpeed(units::volt_t volts);
-	void setVoltages();
+	void setVoltageDrive(units::volt_t volts);
+	units::volt_t getVoltageDrive();
 
+	void shuffleboardPeriodic();
 	void Periodic() override;
 
 private:
+	ModuleConfig config;
 	//Declaration of motor controllers
-	std::unique_ptr<OverTalonFX> m_driveMotor;
-	std::unique_ptr<OverTalonFX> m_turningMotor;
+	OverTalonFX driveMotor;
+	OverTalonFX turnMotor;
 
 	//Declaration of sensors
-	std::unique_ptr<OverCANCoder> m_canCoder;
+	OverCANCoder canCoder;
 
 	//FeedForward
-	std::shared_ptr<frc::SimpleMotorFeedforward<units::meters>> m_feedForward;
+	frc::SimpleMotorFeedforward<units::meters> feedForward;
 
 	//State
-	frc::SwerveModuleState m_state;
+	frc::SwerveModuleState targetState;
 
-	//Gear and Wheel
-	double m_wheelDiameter = 1;
+	frc::SwerveModuleState latestState;
+	frc::SwerveModulePosition latestPosition;
 
-	std::string m_name;
-	bool useRawVoltageSpeed = false;
+	bool useRawVoltageDrive = false;
 };
