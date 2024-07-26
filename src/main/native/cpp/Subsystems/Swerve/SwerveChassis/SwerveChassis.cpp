@@ -95,11 +95,6 @@ void SwerveChassis::setModuleStates(
 	getFrontRightModule().setState(desiredStates[1]);
 	getBackRightModule().setState(desiredStates[2]);
 	getBackLeftModule().setState(desiredStates[3]);
-
-	getFrontLeftModule().setVoltages();
-	getFrontRightModule().setVoltages();
-	getBackRightModule().setVoltages();
-	getBackLeftModule().setVoltages();
 }
 /**
  * @brief Runs the SysId Quasisstatic command
@@ -132,10 +127,10 @@ frc2::CommandPtr SwerveChassis::SysIdDinamic(frc2::sysid::Direction direction) {
  * @brief Sets the voltage for the SysId command
  */
 void SwerveChassis::sysIdVoltage(units::volt_t voltage) {
-	getFrontLeftModule().setRawVoltageSpeed(voltage);
-	getFrontRightModule().setRawVoltageSpeed(voltage);
-	getBackRightModule().setRawVoltageSpeed(voltage);
-	getBackLeftModule().setRawVoltageSpeed(voltage);
+	getFrontLeftModule().setVoltageDrive(voltage);
+	getFrontRightModule().setVoltageDrive(voltage);
+	getBackRightModule().setVoltageDrive(voltage);
+	getBackLeftModule().setVoltageDrive(voltage);
 }
 
 /**

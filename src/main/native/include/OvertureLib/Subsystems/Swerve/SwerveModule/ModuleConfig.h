@@ -7,24 +7,31 @@
 #include <string>
 
 struct ModuleConfig {
-	int rotatorId;
-	int wheelId;
-	int canCoderId;
-	units::turn_t offset;
-	std::string moduleName;
-	std::string canBus;
+	ModuleConfig(frc::SimpleMotorFeedforward<units::meters> FeedForward) : FeedForward(FeedForward){
 
-	double kP;
-	double kI;
-	double kD;
+	}
+	int DrivedId = -1;
+	int TurnId = -1;
+	int CanCoderId = -1;
 
-	units::volt_t ks;
-	units::volt_t kv;
-	units::volt_t ka;
+	ControllerNeutralMode DriveNeutralMode = ControllerNeutralMode::Brake;
+	ControllerNeutralMode TurnNeutralMode = ControllerNeutralMode::Coast;
+	
+	bool DriveInverted = false;
+	bool TurnInverted = true;
 
-	double turnGearRatio;
-	double wheelGearRatio;
+	units::turn_t Offset = 0_deg;
+	std::string ModuleName = "";
+	std::string CanBus = "";
 
-	double wheelDiameter;
+	double kP = 0;
+	double kI = 0;
+	double kD = 0;
 
+	frc::SimpleMotorFeedforward<units::meters> FeedForward {0_V, 0_V / 1_mps, 0_V / 1_mps_sq};
+
+	double TurnGearRatio = 1.0;
+	double DriveGearRatio = 1.0;
+
+	units::meter_t WheelDiameter = 1_m;
 };
