@@ -18,28 +18,13 @@ public:
 			const std::map<unsigned int, NTDutyCycleEncoderName> CHNToDutyCycleEncoderNameMap);
 	void Update();
 
-	static SimDutyCycleEncoderManager* GetInstance() {
-		// If there is no instance of class
-		// then we can create an instance.
-		if (instancePtr == NULL) {
-			// We can access private members 
-			// within the class.
-			instancePtr = new SimDutyCycleEncoderManager();
+	static SimDutyCycleEncoderManager& GetInstance();
 
-			// returning the instance pointer
-			return instancePtr;
-		} else {
-			// if instancePtr != NULL that means 
-			// the class already have an instance. 
-			// So, we are returning that instance 
-			// and not creating new one.
-			return instancePtr;
-		}
-	}
-	SimDutyCycleEncoderManager(const SimDutyCycleEncoderManager &obj) = delete;
-
+	SimDutyCycleEncoderManager(SimDutyCycleEncoderManager const&) = delete;
+	void operator=(SimDutyCycleEncoderManager const&) = delete;
 private:
 	SimDutyCycleEncoderManager();
+
 	void RegisterSimDutyCycleEncoder(OverDutyCycleEncoder *encoder);
 
 	struct DutyCycleEncoderNTPair {
@@ -53,6 +38,5 @@ private:
 	std::map<NTDutyCycleEncoderName, DutyCycleEncoderNTPair> registeredDutyCycleEncoders;
 	std::vector<OverDutyCycleEncoder*> dutyCycleEncodersToRegister;
 	std::string robotName;
-
-	static SimDutyCycleEncoderManager *instancePtr;
+	bool initialized = false;
 };

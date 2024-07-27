@@ -7,8 +7,6 @@
 #include <frc/RobotController.h>
 #include <iostream>
 
-SimPigeonManager *SimPigeonManager::instancePtr = NULL;
-
 SimPigeonManager::SimPigeonManager() {
 
 }
@@ -36,9 +34,14 @@ void SimPigeonManager::Init(std::string imuName) {
 	pigeonSimState = &pigeon->GetSimState();
 	std::cout << "SimPigeonManager Info: Initialized for Pigeon with ID: "
 			<< pigeon->GetDeviceID() << std::endl;
+	initialized = true;
 }
 
 void SimPigeonManager::Update() {
+	if (!initialized) {
+		return;
+	}
+
 	if (pigeon == NULL || pigeonSimState == NULL) {
 		return;
 	}
@@ -52,3 +55,7 @@ void SimPigeonManager::Update() {
 	ntInst.Flush();
 }
 
+SimPigeonManager& SimPigeonManager::GetInstance() {
+	static SimPigeonManager instance;
+	return instance;
+}

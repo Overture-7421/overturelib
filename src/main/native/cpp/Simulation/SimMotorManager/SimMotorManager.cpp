@@ -6,22 +6,30 @@
 #include <iostream>
 #include <frc/RobotController.h>
 
-SimMotorManager *SimMotorManager::instancePtr = NULL;
-
 SimMotorManager::SimMotorManager() {
+	std::cout << "Created new Sim Motor Manager..." << std::endl;
 }
 
 void SimMotorManager::Init(
 		const std::map<unsigned int, NTMotorName> CANIDToMotorNameMap) {
+	std::cout << "Initializing SimMotorManager..." << std::endl;
 	this->CANIDToMotorNameMap = CANIDToMotorNameMap;
+	std::cout << "Got " << this->CANIDToMotorNameMap.size()
+			<< " mapped motors..." << std::endl;
 
-	std::for_each(motorsToRegister.begin(), motorsToRegister.end(),
-			std::bind(&SimMotorManager::RegisterSimMotor, this,
-					std::placeholders::_1));
+	std::cout << "Got " << this->motorsToRegister.size()
+			<< " motors to register..." << std::endl;
+	for (auto motor : this->motorsToRegister) {
+		RegisterSimMotor(motor);
+	}
+
+	initialized = true;
 }
 
 void SimMotorManager::AddSimMotorCandidate(OverTalonFX *motor) {
-	motorsToRegister.emplace_back(motor);
+	std::cout << "Adding sim motor candidate with id: " << motor->GetDeviceID()
+			<< "..." << std::endl;
+	this->motorsToRegister.emplace_back(motor);
 }
 
 void SimMotorManager::RegisterSimMotor(OverTalonFX *motor) {
@@ -52,10 +60,13 @@ void SimMotorManager::RegisterSimMotor(OverTalonFX *motor) {
 	newMotorPair.motor = motor;
 	newMotorPair.ntable = ntable;
 
-	this->registeredMotors[motorName] = std::move(newMotorPair);
+	this->registeredMotors.emplace(motorName, std::move(newMotorPair));
 }
 
 void SimMotorManager::Update() {
+	if (!initialized) {
+		return;
+	}
 	for (auto motorIterator = this->registeredMotors.begin();
 			motorIterator != this->registeredMotors.end(); motorIterator++) {
 		MotorNTPair pair = motorIterator->second;
@@ -84,4 +95,9 @@ void SimMotorManager::Update() {
 	}
 
 	ntInst.Flush();
+}
+
+SimMotorManager& SimMotorManager::GetInstance() {
+	static SimMotorManager instance;
+	return instance;
 }

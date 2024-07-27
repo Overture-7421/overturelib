@@ -5,8 +5,6 @@
 #include "OvertureLib/Simulation/SimDutyCycleEncoderManager/SimDutyCycleEncoderManager.h"
 #include <iostream>
 
-SimDutyCycleEncoderManager *SimDutyCycleEncoderManager::instancePtr = NULL;
-
 SimDutyCycleEncoderManager::SimDutyCycleEncoderManager() {
 
 }
@@ -63,9 +61,13 @@ void SimDutyCycleEncoderManager::Init(
 			dutyCycleEncodersToRegister.end(),
 			std::bind(&SimDutyCycleEncoderManager::RegisterSimDutyCycleEncoder,
 					this, std::placeholders::_1));
+	initialized = true;
 }
 
 void SimDutyCycleEncoderManager::Update() {
+	if (!initialized) {
+		return;
+	}
 
 	for (auto encoderIterator = this->registeredDutyCycleEncoders.begin();
 			encoderIterator != this->registeredDutyCycleEncoders.end();
@@ -85,3 +87,7 @@ void SimDutyCycleEncoderManager::Update() {
 	ntInst.Flush();
 }
 
+SimDutyCycleEncoderManager& SimDutyCycleEncoderManager::GetInstance() {
+	static SimDutyCycleEncoderManager instance;
+	return instance;
+}

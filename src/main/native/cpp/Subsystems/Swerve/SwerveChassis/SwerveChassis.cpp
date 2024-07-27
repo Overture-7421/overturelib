@@ -22,7 +22,7 @@ void SwerveChassis::disableSpeedHelper() {
  *
  * @param headingOverride The heading override
  */
-void SwerveChassis::enableSpeedHelper(SpeedsHelper* speedsHelper) {
+void SwerveChassis::enableSpeedHelper(SpeedsHelper *speedsHelper) {
 	this->speedsHelper = speedsHelper;
 }
 
@@ -61,7 +61,7 @@ void SwerveChassis::resetOdometry(frc::Pose2d initPose) {
  * @brief Updates odometry using vision
  */
 void SwerveChassis::addVisionMeasurement(frc::Pose2d pose,
-	units::second_t timestamp) {
+		units::second_t timestamp) {
 	if (!acceptingVisionMeasurements) {
 		return;
 	}
@@ -69,7 +69,7 @@ void SwerveChassis::addVisionMeasurement(frc::Pose2d pose,
 }
 
 void SwerveChassis::setAcceptingVisionMeasurements(
-	bool acceptingVisionMeasurements) {
+		bool acceptingVisionMeasurements) {
 	this->acceptingVisionMeasurements = acceptingVisionMeasurements;
 }
 
@@ -80,7 +80,7 @@ void SwerveChassis::setAcceptingVisionMeasurements(
  */
 void SwerveChassis::resetHeading(double angle) {
 	frc::Pose2d actualOdometry = getEstimatedPose();
-	frc::Pose2d newOdometry{ actualOdometry.X(), actualOdometry.Y(),
+	frc::Pose2d newOdometry { actualOdometry.X(), actualOdometry.Y(),
 			units::degree_t(angle) };
 	resetOdometry(newOdometry);
 }
@@ -90,7 +90,7 @@ void SwerveChassis::setTargetSpeeds(frc::ChassisSpeeds speeds) {
 }
 
 void SwerveChassis::setModuleStates(
-	const wpi::array<frc::SwerveModuleState, 4>& desiredStates) {
+		const wpi::array<frc::SwerveModuleState, 4> &desiredStates) {
 	getFrontLeftModule().setState(desiredStates[0]);
 	getFrontRightModule().setState(desiredStates[1]);
 	getBackRightModule().setState(desiredStates[2]);
@@ -100,14 +100,14 @@ void SwerveChassis::setModuleStates(
  * @brief Runs the SysId Quasisstatic command
  */
 frc2::CommandPtr SwerveChassis::SysIdQuadstatic(
-	frc2::sysid::Direction direction) {
+		frc2::sysid::Direction direction) {
 	return frc2::cmd::Sequence(frc2::InstantCommand([this]() {
 		characterizing = true;
 		sysIdVoltage(0_V);
 	}).ToPtr(), frc2::cmd::Wait(0.5_s), m_sysIdRoutine.Quasistatic(direction)).FinallyDo(
-		[this] {
-		characterizing = false;
-	});
+			[this] {
+				characterizing = false;
+			});
 }
 
 /**
@@ -118,9 +118,9 @@ frc2::CommandPtr SwerveChassis::SysIdDinamic(frc2::sysid::Direction direction) {
 		characterizing = true;
 		sysIdVoltage(0_V);
 	}).ToPtr(), frc2::cmd::Wait(0.5_s), m_sysIdRoutine.Dynamic(direction)).FinallyDo(
-		[this] {
-		characterizing = false;
-	});
+			[this] {
+				characterizing = false;
+			});
 }
 
 /**
@@ -147,21 +147,21 @@ void SwerveChassis::updateOdometry() {
 
 void SwerveChassis::shuffleboardPeriodic() {
 	frc::SmartDashboard::PutNumber("Odometry/LinearX",
-		desiredSpeeds.vx.value());
+			desiredSpeeds.vx.value());
 	frc::SmartDashboard::PutNumber("Odometry/LinearY",
-		desiredSpeeds.vy.value());
+			desiredSpeeds.vy.value());
 	frc::SmartDashboard::PutNumber("Odometry/Angular",
-		desiredSpeeds.omega.value());
+			desiredSpeeds.omega.value());
 
 	frc::SmartDashboard::PutNumber("Odometry/AccelX", currentAccels.ax.value());
 	frc::SmartDashboard::PutNumber("Odometry/AccelY", currentAccels.ay.value());
 	frc::SmartDashboard::PutNumber("Odometry/AccelOmega",
-		currentAccels.omega.value());
+			currentAccels.omega.value());
 
 	frc::SmartDashboard::PutNumber("Odometry/SpeedX", desiredSpeeds.vx.value());
 	frc::SmartDashboard::PutNumber("Odometry/SpeedY", desiredSpeeds.vy.value());
 	frc::SmartDashboard::PutNumber("Odometry/SpeedOmega",
-		desiredSpeeds.omega.value());
+			desiredSpeeds.omega.value());
 
 	field2d.SetRobotPose(latestPose);
 	frc::SmartDashboard::PutNumber("Odometry/X", latestPose.X().value());
@@ -176,7 +176,7 @@ void SwerveChassis::shuffleboardPeriodic() {
 void SwerveChassis::Periodic() {
 	if (!configuredChassis) {
 		throw new std::runtime_error(
-			"Have not called SwerveBase::configureSwerveBase!!!");
+				"Have not called SwerveBase::configureSwerveBase!!!");
 	}
 
 	if (characterizing) {
@@ -201,11 +201,11 @@ void SwerveChassis::Periodic() {
 			desiredSpeeds.vx), getVyLimiter().Calculate(desiredSpeeds.vy),
 			getVwLimiter().Calculate(desiredSpeeds.omega) };
 	wpi::array < frc::SwerveModuleState, 4U > desiredStates =
-		getKinematics().ToSwerveModuleStates(targetSpeeds);
+			getKinematics().ToSwerveModuleStates(targetSpeeds);
 	getKinematics().DesaturateWheelSpeeds(&desiredStates, getMaxModuleSpeed());
 
 	updateOdometry();
 	getPoseLog().Append(latestPose);
 
-	setModuleStates(desiredStates);
+	setModuleStates (desiredStates);
 }

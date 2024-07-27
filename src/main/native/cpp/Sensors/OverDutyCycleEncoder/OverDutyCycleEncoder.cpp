@@ -11,9 +11,9 @@
 OverDutyCycleEncoder::OverDutyCycleEncoder(int channel) : frc::DutyCycleEncoder(
 		channel) {
 #ifndef __FRC_ROBORIO__
-	SimDutyCycleEncoderManager *simDutyCycleEncoderManager =
+	SimDutyCycleEncoderManager &simDutyCycleEncoderManager =
 			SimDutyCycleEncoderManager::GetInstance();
-	simDutyCycleEncoderManager->AddSimDutyCycleEncoderCandidate(this);
+	simDutyCycleEncoderManager.AddSimDutyCycleEncoderCandidate(this);
 #endif
 }
 ;

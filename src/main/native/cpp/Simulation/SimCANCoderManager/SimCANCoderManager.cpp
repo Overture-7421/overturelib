@@ -7,8 +7,6 @@
 #include <frc/RobotController.h>
 #include <frc/MathUtil.h>
 
-SimCANCoderManager *SimCANCoderManager::instancePtr = NULL;
-
 SimCANCoderManager::SimCANCoderManager() {
 
 }
@@ -56,9 +54,14 @@ void SimCANCoderManager::Init(
 	std::for_each(canCodersToRegister.begin(), canCodersToRegister.end(),
 			std::bind(&SimCANCoderManager::RegisterSimCANCoder, this,
 					std::placeholders::_1));
+	initialized = true;
 }
 
 void SimCANCoderManager::Update() {
+	if (!initialized) {
+		return;
+	}
+
 	for (auto canCoderIterator = this->registeredCANCoders.begin();
 			canCoderIterator != this->registeredCANCoders.end();
 			canCoderIterator++) {
@@ -96,3 +99,7 @@ void SimCANCoderManager::Update() {
 	ntInst.Flush();
 }
 
+SimCANCoderManager& SimCANCoderManager::GetInstance() {
+	static SimCANCoderManager instance;
+	return instance;
+}

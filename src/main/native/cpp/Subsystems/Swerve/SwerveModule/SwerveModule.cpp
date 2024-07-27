@@ -3,14 +3,13 @@
 // the WPILib BSD license file in the root directory of this project.
 
 #include "OvertureLib/Subsystems/Swerve/SwerveModule/SwerveModule.h"
+#include <iostream>
 
-SwerveModule::SwerveModule(ModuleConfig config) :
-	config(config),
-	driveMotor(config.DrivedId, config.DriveNeutralMode, config.DriveInverted, config.CanBus),
-	turnMotor(config.TurnId, config.TurnNeutralMode, config.TurnInverted, config.CanBus),
-	canCoder(config.CanCoderId, config.Offset, config.CanBus),
-	feedForward(config.FeedForward)
-{
+SwerveModule::SwerveModule(ModuleConfig config) : config(config), driveMotor(
+		config.DrivedId, config.DriveNeutralMode, config.DriveInverted,
+		config.CanBus), turnMotor(config.TurnId, config.TurnNeutralMode,
+		config.TurnInverted, config.CanBus), canCoder(config.CanCoderId,
+		config.Offset, config.CanBus), feedForward(config.FeedForward) {
 	turnMotor.setContinuousWrap();
 	turnMotor.setFusedCANCoder(config.CanCoderId);
 	turnMotor.setClosedLoopVoltageRamp(0.1);
@@ -48,8 +47,9 @@ const frc::SwerveModuleState& SwerveModule::getState() {
  * @param state - State of the module
  */
 void SwerveModule::setState(frc::SwerveModuleState state) {
-	targetState = frc::SwerveModuleState::Optimize(state, targetState.angle);
-	turnMotor.setPositionVoltage(targetState.angle.Degrees().value() / 360.0, false);
+	targetState = frc::SwerveModuleState::Optimize(state, getState().angle);
+	turnMotor.setPositionVoltage(targetState.angle.Degrees().value() / 360.0,
+			false);
 	driveMotor.setVoltage(feedForward.Calculate(targetState.speed), false);
 }
 
@@ -79,18 +79,24 @@ units::volt_t SwerveModule::getVoltageDrive() {
  * @brief Shuffleboard Periodic
  */
 void SwerveModule::shuffleboardPeriodic() {
-	frc::SmartDashboard::PutNumber(config.ModuleName + "/Speed", latestState.speed.value());
+	frc::SmartDashboard::PutNumber(config.ModuleName + "/Speed",
+			latestState.speed.value());
 	frc::SmartDashboard::PutNumber(config.ModuleName + "/Target",
 			targetState.angle.Degrees().value());
-	frc::SmartDashboard::PutNumber(config.ModuleName + "/Angle", latestState.angle.Degrees().value());
-	frc::SmartDashboard::PutNumber(config.ModuleName + "/Distance", latestPosition.distance.value());
+	frc::SmartDashboard::PutNumber(config.ModuleName + "/Angle",
+			latestState.angle.Degrees().value());
+	frc::SmartDashboard::PutNumber(config.ModuleName + "/Distance",
+			latestPosition.distance.value());
 }
 
 void SwerveModule::Periodic() {
-	 units::degree_t angle = units::degree_t(canCoder.getSensorAbsolutePosition() * 360.0);
-	latestState.speed = units::meters_per_second_t(driveMotor.getVelocity(config.WheelDiameter.value()));
+	units::degree_t angle = units::degree_t(
+			canCoder.getSensorAbsolutePosition() * 360.0);
+	latestState.speed = units::meters_per_second_t(
+			driveMotor.getVelocity(config.WheelDiameter.value()));
 	latestState.angle = angle;
-	
-	latestPosition.distance = units::meter_t {driveMotor.getDistance(config.WheelDiameter.value())};
+
+	latestPosition.distance = units::meter_t { driveMotor.getDistance(
+			config.WheelDiameter.value()) };
 	latestPosition.angle = angle;
 }

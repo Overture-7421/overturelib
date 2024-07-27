@@ -36,8 +36,8 @@ OverTalonFX::OverTalonFX(int id, ControllerNeutralMode neutralMode,
 	GetConfigurator().Apply(config);
 
 #ifndef __FRC_ROBORIO__
-	SimMotorManager *simMotorManager = SimMotorManager::GetInstance();
-	simMotorManager->AddSimMotorCandidate(this);
+	SimMotorManager &simMotorManager = SimMotorManager::GetInstance();
+	simMotorManager.AddSimMotorCandidate(this);
 #endif
 }
 

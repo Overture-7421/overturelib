@@ -27,8 +27,8 @@ OverCANCoder::OverCANCoder(int _id, units::turn_t offset, std::string _bus) : CA
 	GetConfigurator().Apply(canCoderConfiguration);
 
 #ifndef __FRC_ROBORIO__
-	SimCANCoderManager *simCANCoderManager = SimCANCoderManager::GetInstance();
-	simCANCoderManager->AddSimCANCoderCandidate(this);
+	SimCANCoderManager &simCANCoderManager = SimCANCoderManager::GetInstance();
+	simCANCoderManager.AddSimCANCoderCandidate(this);
 #endif
 }
 

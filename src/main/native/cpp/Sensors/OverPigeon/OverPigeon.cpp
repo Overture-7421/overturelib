@@ -11,8 +11,8 @@
 OverPigeon::OverPigeon(int deviceId, std::string canbus) : ctre::phoenix6::hardware::Pigeon2(
 		deviceId, canbus) {
 #ifndef __FRC_ROBORIO__
-	SimPigeonManager *simPigeonManager = SimPigeonManager::GetInstance();
-	simPigeonManager->SetSimPigeon(this);
+	SimPigeonManager &simPigeonManager = SimPigeonManager::GetInstance();
+	simPigeonManager.SetSimPigeon(this);
 #endif
 
 }
