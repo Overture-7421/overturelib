@@ -75,22 +75,8 @@ void SimCANCoderManager::Update() {
 		simState.SetSupplyVoltage(frc::RobotController::GetBatteryVoltage());
 
 		units::turn_t position = units::turn_t(
-				ntable->GetEntry("cancoder_position").GetDouble(0));
-		const auto absoluteSensorRangeConfig =
-				canCoder->getConfiguration().MagnetSensor.AbsoluteSensorRange;
-
-		if (absoluteSensorRangeConfig
-				== ctre::phoenix6::signals::AbsoluteSensorRangeValue::Signed_PlusMinusHalf) {
-			position = frc::InputModulus(position, units::turn_t(-0.5),
-					units::turn_t(0.5));
-		} else if (absoluteSensorRangeConfig
-				== ctre::phoenix6::signals::AbsoluteSensorRangeValue::Unsigned_0To1) {
-			position = frc::InputModulus(position, units::turn_t(0.0),
-					units::turn_t(1.0));
-		}
-
+				ntable->GetEntry("cancoder_position").GetDouble(0) + 0.25);
 		simState.SetRawPosition(position);
-
 		units::turns_per_second_t speed = units::turns_per_second_t(
 				ntable->GetEntry("cancoder_speed").GetDouble(0));
 		simState.SetVelocity(speed);

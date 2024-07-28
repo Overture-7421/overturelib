@@ -5,7 +5,7 @@
 #include "OvertureLib/Gamepad/Gamepad.h"
 
 Gamepad::Gamepad(int port, double stickDeadzone, double triggerDeadzone) : frc2::CommandXboxController(
-	port) {
+		port) {
 	this->stickDeadzone = stickDeadzone;
 	this->triggerDeadzone = triggerDeadzone;
 }
@@ -123,16 +123,16 @@ frc2::Trigger Gamepad::rightXTrigger(double triggerTreshold) {
 
 frc2::Trigger Gamepad::rightStick(double triggerTreshold) {
 	return frc2::Trigger(
-		[this, triggerTreshold] {
-		return std::abs(GetRightX()) >= triggerTreshold
-			|| std::abs(GetRightY()) >= triggerTreshold;
-	});
+			[this, triggerTreshold] {
+				return std::abs(GetRightX()) >= triggerTreshold
+						|| std::abs(GetRightY()) >= triggerTreshold;
+			});
 }
 
 frc2::Trigger Gamepad::leftStick(double triggerTreshold) {
 	return frc2::Trigger(
-		[this, triggerTreshold] {
-		return std::abs(GetLeftX()) >= triggerTreshold
-			|| std::abs(GetLeftY()) >= triggerTreshold;
-	});
+			[this, triggerTreshold] {
+				return std::abs(GetLeftX()) >= triggerTreshold
+						|| std::abs(GetLeftY()) >= triggerTreshold;
+			});
 }

@@ -15,7 +15,7 @@ public:
 	HeadingSpeedsHelper(
 			frc::ProfiledPIDController<units::radian> headingController,
 			SwerveChassis *chassis);
-	void setTargetAngle(units::radian_t targetAngle);
+	void setTargetAngle(frc::Rotation2d targetAngle);
 	void alterSpeed(frc::ChassisSpeeds &inputSpeed) override;
 
 private:
