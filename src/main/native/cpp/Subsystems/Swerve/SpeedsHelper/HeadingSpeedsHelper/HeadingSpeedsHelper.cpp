@@ -5,8 +5,8 @@
 #include "OvertureLib/Subsystems/Swerve/SpeedsHelper/HeadingSpeedsHelper/HeadingSpeedsHelper.h"
 
 HeadingSpeedsHelper::HeadingSpeedsHelper(
-		frc::ProfiledPIDController<units::radian> headingController,
-		SwerveChassis *chassis) : headingController(headingController) {
+	frc::ProfiledPIDController<units::radian> headingController,
+	SwerveChassis* chassis) : headingController(headingController) {
 	this->chassis = chassis;
 	this->headingController.EnableContinuousInput(-180_deg, 180_deg);
 	this->headingController.SetIZone(3);
