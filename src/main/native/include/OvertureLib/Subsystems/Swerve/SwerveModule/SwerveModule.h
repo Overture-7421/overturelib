@@ -15,7 +15,7 @@
 #include "OvertureLib/Sensors/OverCANCoder/OverCANCoder.h"
 #include "ModuleConfig.h"
 
-class SwerveModule : public frc2::SubsystemBase {
+class SwerveModule: public frc2::SubsystemBase {
 public:
 	SwerveModule(ModuleConfig config);
 

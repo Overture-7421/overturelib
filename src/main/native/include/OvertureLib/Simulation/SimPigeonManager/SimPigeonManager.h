@@ -13,34 +13,17 @@ public:
 	void Init(std::string imuName);
 	void Update();
 
-	static SimPigeonManager* GetInstance() {
-		// If there is no instance of class
-		// then we can create an instance.
-		if (instancePtr == NULL) {
-			// We can access private members 
-			// within the class.
-			instancePtr = new SimPigeonManager();
+	static SimPigeonManager& GetInstance();
 
-			// returning the instance pointer
-			return instancePtr;
-		} else {
-			// if instancePtr != NULL that means 
-			// the class already have an instance. 
-			// So, we are returning that instance 
-			// and not creating new one.
-			return instancePtr;
-		}
-	}
-	SimPigeonManager(const SimPigeonManager &obj) = delete;
-
+	SimPigeonManager(SimPigeonManager const&) = delete;
+	void operator=(SimPigeonManager const&) = delete;
 private:
 	SimPigeonManager();
+
 	OverPigeon *pigeon = NULL;
 	ctre::phoenix6::sim::Pigeon2SimState *pigeonSimState = NULL;
 
 	nt::NetworkTableInstance ntInst = nt::NetworkTableInstance::GetDefault();
 	nt::NetworkTableEntry rollEntry, pitchEntry, yawEntry;
-
-	static SimPigeonManager *instancePtr;
-
+	bool initialized = false;
 };

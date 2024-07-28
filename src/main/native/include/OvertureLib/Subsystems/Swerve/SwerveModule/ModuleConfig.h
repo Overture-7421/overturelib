@@ -7,7 +7,8 @@
 #include <string>
 
 struct ModuleConfig {
-	ModuleConfig(frc::SimpleMotorFeedforward<units::meters> FeedForward) : FeedForward(FeedForward){
+	ModuleConfig(frc::SimpleMotorFeedforward<units::meters> FeedForward) : FeedForward(
+			FeedForward) {
 
 	}
 	int DrivedId = -1;
@@ -16,7 +17,7 @@ struct ModuleConfig {
 
 	ControllerNeutralMode DriveNeutralMode = ControllerNeutralMode::Brake;
 	ControllerNeutralMode TurnNeutralMode = ControllerNeutralMode::Coast;
-	
+
 	bool DriveInverted = false;
 	bool TurnInverted = true;
 
@@ -28,7 +29,8 @@ struct ModuleConfig {
 	double kI = 0;
 	double kD = 0;
 
-	frc::SimpleMotorFeedforward<units::meters> FeedForward {0_V, 0_V / 1_mps, 0_V / 1_mps_sq};
+	frc::SimpleMotorFeedforward<units::meters> FeedForward { 0_V, 0_V / 1_mps,
+			0_V / 1_mps_sq };
 
 	double TurnGearRatio = 1.0;
 	double DriveGearRatio = 1.0;

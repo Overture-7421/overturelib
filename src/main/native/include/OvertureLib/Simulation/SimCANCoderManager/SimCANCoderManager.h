@@ -18,28 +18,13 @@ public:
 			const std::map<unsigned int, NTCANCoderName> CANIDToCANCoderNameMap);
 	void Update();
 
-	static SimCANCoderManager* GetInstance() {
-		// If there is no instance of class
-		// then we can create an instance.
-		if (instancePtr == NULL) {
-			// We can access private members 
-			// within the class.
-			instancePtr = new SimCANCoderManager();
+	static SimCANCoderManager& GetInstance();
 
-			// returning the instance pointer
-			return instancePtr;
-		} else {
-			// if instancePtr != NULL that means 
-			// the class already have an instance. 
-			// So, we are returning that instance 
-			// and not creating new one.
-			return instancePtr;
-		}
-	}
-	SimCANCoderManager(const SimCANCoderManager &obj) = delete;
-
+	SimCANCoderManager(SimCANCoderManager const&) = delete;
+	void operator=(SimCANCoderManager const&) = delete;
 private:
 	SimCANCoderManager();
+
 	void RegisterSimCANCoder(OverCANCoder *canCoder);
 
 	struct CANCoderNTPair {
@@ -53,6 +38,5 @@ private:
 	std::map<NTCANCoderName, CANCoderNTPair> registeredCANCoders;
 	std::vector<OverCANCoder*> canCodersToRegister;
 	std::string robotName;
-
-	static SimCANCoderManager *instancePtr;
+	bool initialized = false;
 };
