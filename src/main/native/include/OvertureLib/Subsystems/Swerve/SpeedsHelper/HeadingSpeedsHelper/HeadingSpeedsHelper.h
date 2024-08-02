@@ -10,16 +10,17 @@
 #include <OvertureLib/Subsystems/Swerve/SwerveChassis/SwerveChassis.h>
 
 // Class for controlling the rotation of the robot
-class HeadingSpeedsHelper: public SpeedsHelper {
+class HeadingSpeedsHelper : public SpeedsHelper {
 public:
 	HeadingSpeedsHelper(
-			frc::ProfiledPIDController<units::radian> headingController,
-			SwerveChassis *chassis);
+		frc::ProfiledPIDController<units::radian> headingController,
+		SwerveChassis* chassis);
 	void setTargetAngle(frc::Rotation2d targetAngle);
-	void alterSpeed(frc::ChassisSpeeds &inputSpeed) override;
+	void alterSpeed(frc::ChassisSpeeds& inputSpeed) override;
+	void resetController();
 
 private:
 	frc::ProfiledPIDController<units::radian> headingController;
-	SwerveChassis *chassis = nullptr;
+	SwerveChassis* chassis = nullptr;
 	units::radian_t targetAngle;
 };
