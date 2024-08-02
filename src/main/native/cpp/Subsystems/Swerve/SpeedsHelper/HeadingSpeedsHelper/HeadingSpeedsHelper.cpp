@@ -17,9 +17,9 @@ void HeadingSpeedsHelper::setTargetAngle(frc::Rotation2d targetAngle) {
 	this->targetAngle = targetAngle.Radians();
 }
 
-void HeadingSpeedsHelper::alterSpeed(frc::ChassisSpeeds &inputSpeed) {
+void HeadingSpeedsHelper::alterSpeed(frc::ChassisSpeeds& inputSpeed) {
 	double out = headingController.Calculate(
-			chassis->getEstimatedPose().Rotation().Radians(), targetAngle);
+		chassis->getEstimatedPose().Rotation().Radians(), targetAngle);
 
 	if (headingController.AtSetpoint()) {
 		out = 0;
