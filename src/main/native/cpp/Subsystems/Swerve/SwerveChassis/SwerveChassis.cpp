@@ -23,6 +23,7 @@ void SwerveChassis::disableSpeedHelper() {
  * @param headingOverride The heading override
  */
 void SwerveChassis::enableSpeedHelper(SpeedsHelper *speedsHelper) {
+	speedsHelper->initialize();
 	this->speedsHelper = speedsHelper;
 }
 
