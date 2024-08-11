@@ -8,7 +8,7 @@
 
 struct ModuleConfig {
 	ModuleConfig(frc::SimpleMotorFeedforward<units::meters> FeedForward) : FeedForward(
-			FeedForward) {
+		FeedForward) {
 
 	}
 	int DrivedId = -1;
@@ -29,11 +29,19 @@ struct ModuleConfig {
 	double kI = 0;
 	double kD = 0;
 
-	frc::SimpleMotorFeedforward<units::meters> FeedForward { 0_V, 0_V / 1_mps,
+	frc::SimpleMotorFeedforward<units::meters> FeedForward{ 0_V, 0_V / 1_mps,
 			0_V / 1_mps_sq };
 
 	double TurnGearRatio = 1.0;
 	double DriveGearRatio = 1.0;
 
 	units::meter_t WheelDiameter = 1_m;
+
+	double driveCurrentLimit = 0;
+	double driveTriggerThreshold = 0;
+	double driveTriggerThresholdTime = 0;
+
+	double turnCurrentLimit = 0;
+	double turnTriggerThreshold = 0;
+	double turnTriggerThresholdTime = 0;
 };
