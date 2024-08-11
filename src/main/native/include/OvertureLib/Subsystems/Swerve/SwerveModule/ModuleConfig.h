@@ -37,11 +37,11 @@ struct ModuleConfig {
 
 	units::meter_t WheelDiameter = 1_m;
 
-	double driveCurrentLimit = 0;
-	double driveTriggerThreshold = 0;
-	double driveTriggerThresholdTime = 0;
+	double DriveCurrentLimit = 0;
+	double DriveTriggerThreshold = 0;
+	double DriveTriggerThresholdTime = 0;
 
-	double turnCurrentLimit = 0;
-	double turnTriggerThreshold = 0;
-	double turnTriggerThresholdTime = 0;
+	double TurnCurrentLimit = 0;
+	double TurnTriggerThreshold = 0;
+	double TurnTriggerThresholdTime = 0;
 };

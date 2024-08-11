@@ -13,14 +13,14 @@ SwerveModule::SwerveModule(ModuleConfig config) : config(config), driveMotor(
 	turnMotor.setContinuousWrap();
 	turnMotor.setFusedCANCoder(config.CanCoderId);
 	turnMotor.setClosedLoopVoltageRamp(0.1);
-	turnMotor.setSupplyCurrentLimit(true, config.turnCurrentLimit,
-		config.turnTriggerThreshold, config.turnTriggerThresholdTime);
+	turnMotor.setSupplyCurrentLimit(true, config.TurnCurrentLimit,
+		config.TurnTriggerThreshold, config.TurnTriggerThresholdTime);
 	turnMotor.setPositionVoltage(0, false);
 
 	driveMotor.zeroPosition();
 	driveMotor.setClosedLoopVoltageRamp(0.1);
-	driveMotor.setSupplyCurrentLimit(true, config.driveCurrentLimit,
-		config.driveTriggerThreshold, config.driveTriggerThresholdTime);
+	driveMotor.setSupplyCurrentLimit(true, config.DriveCurrentLimit,
+		config.DriveTriggerThreshold, config.DriveTriggerThresholdTime);
 
 	turnMotor.setPositionUpdateFrequency(200_Hz);
 	canCoder.GetPosition().SetUpdateFrequency(200_Hz);
