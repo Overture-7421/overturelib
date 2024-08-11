@@ -28,8 +28,10 @@ public:
 	void setRotorToSensorRatio(double gearRatio);
 	void setRemoteCANCoder(int id);
 	void setFusedCANCoder(int id);
+	void setOpenLoopVoltageRamp(double ramp);
 	void setClosedLoopVoltageRamp(double ramp);
 	void setClosedLoopTorqueRamp(double ramp);
+	void setStatorCurrentLimit(bool enable, double currentLimit);
 	void setSupplyCurrentLimit(bool enable, double currentLimit,
 			double triggerThresholdCurrent, double triggerThresholdTime);
 	void setTorqueCurrentLimit(double peakForward, double peakBackward,

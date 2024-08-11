@@ -101,6 +101,11 @@ void OverTalonFX::setFusedCANCoder(int id) {
 	GetConfigurator().Apply(config);
 }
 
+void OverTalonFX::setOpenLoopVoltageRamp(double ramp) {
+	config.OpenLoopRamps.VoltageOpenLoopRampPeriod = ramp;
+	GetConfigurator().Apply(config);
+}
+
 /**
  * @brief Sets the closed loop voltage ramp rate of the TalonFX
  *
@@ -118,6 +123,18 @@ void OverTalonFX::setClosedLoopVoltageRamp(double ramp) {
  */
 void OverTalonFX::setClosedLoopTorqueRamp(double ramp) {
 	config.ClosedLoopRamps.TorqueClosedLoopRampPeriod = ramp;
+	GetConfigurator().Apply(config);
+}
+
+/**
+ * @brief Sets the stator current limit of the TalonFX
+ * 
+ * @param enable Whether or not the stator current limit is enabled
+ * @param currentLimit The stator current limit of the TalonFX
+ */
+void OverTalonFX::setStatorCurrentLimit(bool enable, double currentLimit) {
+	config.CurrentLimits.StatorCurrentLimitEnable = enable;
+	config.CurrentLimits.StatorCurrentLimit = currentLimit;
 	GetConfigurator().Apply(config);
 }
 

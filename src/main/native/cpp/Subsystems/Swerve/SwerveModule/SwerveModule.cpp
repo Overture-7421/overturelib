@@ -12,13 +12,15 @@ SwerveModule::SwerveModule(ModuleConfig config) : config(config), driveMotor(
 		config.Offset, config.CanBus), feedForward(config.FeedForward) {
 	turnMotor.setContinuousWrap();
 	turnMotor.setFusedCANCoder(config.CanCoderId);
-	turnMotor.setClosedLoopVoltageRamp(0.1);
+	turnMotor.setClosedLoopVoltageRamp(config.TurnRampRate);
+	turnMotor.setStatorCurrentLimit(true, config.TurnStatorCurrentLimit);
 	turnMotor.setSupplyCurrentLimit(true, config.TurnCurrentLimit,
 			config.TurnTriggerThreshold, config.TurnTriggerThresholdTime);
 	turnMotor.setPositionVoltage(0, false);
 
 	driveMotor.zeroPosition();
-	driveMotor.setClosedLoopVoltageRamp(0.1);
+	driveMotor.setOpenLoopVoltageRamp(config.DriveRampRate);
+	driveMotor.setStatorCurrentLimit(true, config.DriveStatorCurrentLimit);
 	driveMotor.setSupplyCurrentLimit(true, config.DriveCurrentLimit,
 			config.DriveTriggerThreshold, config.DriveTriggerThresholdTime);
 
