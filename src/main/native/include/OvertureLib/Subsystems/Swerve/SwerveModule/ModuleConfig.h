@@ -36,4 +36,12 @@ struct ModuleConfig {
 	double DriveGearRatio = 1.0;
 
 	units::meter_t WheelDiameter = 1_m;
+
+	double DriveCurrentLimit = 0;
+	double DriveTriggerThreshold = 0;
+	double DriveTriggerThresholdTime = 0;
+
+	double TurnCurrentLimit = 0;
+	double TurnTriggerThreshold = 0;
+	double TurnTriggerThresholdTime = 0;
 };
