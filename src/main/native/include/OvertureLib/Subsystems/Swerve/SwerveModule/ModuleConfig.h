@@ -20,6 +20,8 @@ struct ModuleConfig {
 
 	bool DriveInverted = false;
 	bool TurnInverted = true;
+	SensorDirectionValue EncoderDirection =
+			SensorDirectionValue::CounterClockwise_Positive;
 
 	units::turn_t Offset = 0_deg;
 	std::string ModuleName = "";
