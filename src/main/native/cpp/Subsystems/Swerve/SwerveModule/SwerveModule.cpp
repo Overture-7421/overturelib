@@ -94,8 +94,7 @@ void SwerveModule::shuffleboardPeriodic() {
 }
 
 void SwerveModule::Periodic() {
-	units::degree_t angle = units::degree_t(
-			canCoder.GetAbsolutePosition().GetValue());
+	units::degree_t angle = canCoder.GetAbsolutePosition().GetValue();
 	latestState.speed = units::meters_per_second_t(
 			driveMotor.GetVelocity().GetValueAsDouble()
 					* config.WheelDiameter.value() * M_PI);
