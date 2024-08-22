@@ -37,14 +37,7 @@ public:
 	void setTorqueCurrentLimit(double peakForward, double peakBackward,
 			double deadband);
 	void setFollow(int masterID, bool inverted);
-	void zeroPosition();
 	void setSensorPosition(double position);
-
-	double getDistance(double wheelDiameter, double gearRatio);
-	double getDistance(double wheelDiameter);
-	double getVelocity(double wheelDiameter, double gearRatio);
-	double getVelocity(double wheelDiameter);
-	double getPosition();
 	const TalonFXConfiguration& getConfig();
 
 	void setVoltage(units::volt_t voltage, bool enableFOC);
