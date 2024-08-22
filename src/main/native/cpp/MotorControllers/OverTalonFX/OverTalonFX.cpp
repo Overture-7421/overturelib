@@ -101,6 +101,11 @@ void OverTalonFX::setFusedCANCoder(int id) {
 	GetConfigurator().Apply(config);
 }
 
+/**
+ * @brief Sets the open loop voltage ramp rate of the TalonFX
+ *
+ * @param ramp The open loop voltage ramp rate of the TalonFX
+ */
 void OverTalonFX::setOpenLoopVoltageRamp(double ramp) {
 	config.OpenLoopRamps.VoltageOpenLoopRampPeriod = ramp;
 	GetConfigurator().Apply(config);
@@ -128,7 +133,7 @@ void OverTalonFX::setClosedLoopTorqueRamp(double ramp) {
 
 /**
  * @brief Sets the stator current limit of the TalonFX
- * 
+ *
  * @param enable Whether or not the stator current limit is enabled
  * @param currentLimit The stator current limit of the TalonFX
  */
@@ -181,74 +186,10 @@ void OverTalonFX::setFollow(int masterID, bool inverted) {
 }
 
 /**
- * @brief Sets the TalonFX position to zero
- */
-void OverTalonFX::zeroPosition() {
-	SetPosition(0_tr);
-}
-
-/**
- * @brief Sets the TalonFX position
+ * @brief Gets the TalonFX configuration
  *
- * @param position The position to set the TalonFX to
+ * @return The TalonFX configuration
  */
-void OverTalonFX::setSensorPosition(double position) {
-	SetPosition(units::turn_t { position });
-}
-
-/**
- * @brief Gets the TalonFX position in meters
- *
- * @param wheelDiameter The diameter of the wheel
- * @param gearRatio     The gear ratio of the TalonFX
- * @return The TalonFX position in meters
- */
-double OverTalonFX::getDistance(double wheelDiameter, double gearRatio) {
-	double sensorPosition = GetRotorPosition().GetValue().value();
-	return (sensorPosition * wheelDiameter * M_PI) / gearRatio;
-}
-
-/**
- * @brief Gets the TalonFX position in meters
- *
- * @param wheelDiameter The diameter of the wheel
- * @return The TalonFX position in meters
- */
-double OverTalonFX::getDistance(double wheelDiameter) {
-	double sensorPosition = GetPosition().GetValue().value();
-	return (sensorPosition * wheelDiameter * M_PI);
-}
-
-/**
- * @brief Gets the TalonFX velocity in meters per second
- *
- * @param wheelDiameter The diameter of the wheel
- * @param gearRatio     The gear ratio of the TalonFX
- */
-double OverTalonFX::getVelocity(double _wheelDiameter, double gearRatio) {
-	double sensorVelocity = GetRotorVelocity().GetValue().value();
-	return (sensorVelocity * _wheelDiameter * M_PI) / gearRatio;
-}
-
-/**
- * @brief Gets the TalonFX velocity in meters per second
- *
- * @param wheelDiameter The diameter of the wheel
- */
-double OverTalonFX::getVelocity(double _wheelDiameter) {
-	double sensorVelocity = GetVelocity().GetValue().value();
-	return (sensorVelocity * _wheelDiameter * M_PI);
-}
-
-/**
- * @brief Gets the TalonFX absolute position
- *
- * @return The TalonFX absolute position
- */
-double OverTalonFX::getPosition() {
-	return GetPosition().GetValue().value();
-}
-
 const TalonFXConfiguration& OverTalonFX::getConfig() {
 	return config;
 }
@@ -368,6 +309,11 @@ void OverTalonFX::configureMotionMagic(double cruiseVelocity,
 	GetConfigurator().Apply(config);
 }
 
+/**
+ * @brief Configures the TalonFX software limit switch
+ *
+ * @param configs The software limit switch configurations
+ */
 void OverTalonFX::configureSoftwareLimitSwitch(
 		ctre::phoenix6::configs::SoftwareLimitSwitchConfigs configs) {
 	config.SoftwareLimitSwitch = configs;
@@ -382,11 +328,21 @@ void OverTalonFX::setContinuousWrap() {
 	GetConfigurator().Apply(config);
 }
 
+/**
+ * @brief Sets the TalonFX position update frequency
+ *
+ * @param frequencyHz The frequency to set the TalonFX to
+ */
 void OverTalonFX::setPositionUpdateFrequency(
 		units::frequency::hertz_t frequencyHz) {
 	GetPosition().SetUpdateFrequency(frequencyHz);
 }
 
+/**
+ * @brief Sets the TalonFX velocity update frequency
+ *
+ * @param frequencyHz The frequency to set the TalonFX to
+ */
 void OverTalonFX::setVelocityUpdateFrequency(
 		units::frequency::hertz_t frequencyHz) {
 	GetVelocity().SetUpdateFrequency(frequencyHz);

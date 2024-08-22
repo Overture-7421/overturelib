@@ -19,7 +19,7 @@ SwerveModule::SwerveModule(ModuleConfig config) : config(config), driveMotor(
 			config.TurnTriggerThreshold, config.TurnTriggerThresholdTime);
 	turnMotor.setPositionVoltage(0, false);
 
-	driveMotor.zeroPosition();
+	driveMotor.SetPosition(0_tr);
 	driveMotor.setOpenLoopVoltageRamp(config.DriveRampRate);
 	driveMotor.setStatorCurrentLimit(true, config.DriveStatorCurrentLimit);
 	driveMotor.setSupplyCurrentLimit(true, config.DriveCurrentLimit,
@@ -98,10 +98,12 @@ void SwerveModule::Periodic() {
 	units::degree_t angle = units::degree_t(
 			canCoder.getSensorAbsolutePosition() * 360.0);
 	latestState.speed = units::meters_per_second_t(
-			driveMotor.getVelocity(config.WheelDiameter.value()));
+			driveMotor.GetVelocity().GetValueAsDouble()
+					* config.WheelDiameter.value() * M_PI);
 	latestState.angle = angle;
 
-	latestPosition.distance = units::meter_t { driveMotor.getDistance(
-			config.WheelDiameter.value()) };
+	latestPosition.distance = units::meter_t {
+			driveMotor.GetPosition().GetValueAsDouble()
+					* config.WheelDiameter.value() * M_PI };
 	latestPosition.angle = angle;
 }
