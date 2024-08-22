@@ -284,13 +284,8 @@ void OverTalonFX::setVelocityTorqueCurrentFOC(
  * @param kS The S value of the TalonFX
  * @param kV The V value of the TalonFX
  */
-void OverTalonFX::setPIDValues(double kP, double kI, double kD, double kS,
-		double kV) {
-	config.Slot0.kP = kP;
-	config.Slot0.kI = kI;
-	config.Slot0.kD = kD;
-	config.Slot0.kS = kS;
-	config.Slot0.kV = kV;
+void OverTalonFX::setPIDConfig(SlotConfigs slotConfigs) {
+	config.Slot0.From(slotConfigs);
 
 	GetConfigurator().Apply(config);
 }
