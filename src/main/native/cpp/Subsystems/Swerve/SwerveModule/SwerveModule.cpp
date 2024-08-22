@@ -30,7 +30,7 @@ SwerveModule::SwerveModule(ModuleConfig config) : config(config), driveMotor(
 	driveMotor.setVelocityUpdateFrequency(200_Hz);
 
 	// Set PID Values
-	turnMotor.setPIDValues(config.kP, config.kI, config.kD, 0, 0);
+	turnMotor.setPIDConfig(config.TurnPIDConfigs);
 
 	// Set Gear Ratios
 	turnMotor.setRotorToSensorRatio(config.TurnGearRatio);

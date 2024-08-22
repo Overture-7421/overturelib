@@ -26,9 +26,7 @@ struct ModuleConfig {
 	std::string ModuleName = "";
 	std::string CanBus = "";
 
-	double kP = 0;
-	double kI = 0;
-	double kD = 0;
+	SlotConfigs TurnPIDConfigs;
 
 	frc::SimpleMotorFeedforward<units::meters> FeedForward { 0_V, 0_V / 1_mps,
 			0_V / 1_mps_sq };
