@@ -241,8 +241,7 @@ void OverTalonFX::setDutyCycle(units::scalar_t dutyCycle, bool enableFOC) {
  * @param position  The position to set the TalonFX to
  * @param enableFOC Whether or not to enable FOC
  */
-void OverTalonFX::setPositionVoltage(units::turn_t position,
-		units::volt_t feedForward, bool enableFOC) {
+void OverTalonFX::setPositionVoltage(units::turn_t position, bool enableFOC) {
 	PositionVoltage positionVoltage = PositionVoltage { 0_tr }.WithSlot(0);
 	positionVoltage.EnableFOC = enableFOC;
 	SetControl(positionVoltage.WithPosition(position));

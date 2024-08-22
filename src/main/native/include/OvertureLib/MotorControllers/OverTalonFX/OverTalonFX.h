@@ -44,8 +44,7 @@ public:
 	void setVelocityVoltage(units::turns_per_second_t velocity,
 			units::volt_t feedForward, bool enableFOC);
 	void setDutyCycle(units::scalar_t dutyCycle, bool enableFOC);
-	void setPositionVoltage(units::turn_t position, units::volt_t feedForward,
-			bool enableFOC);
+	void setPositionVoltage(units::turn_t position, bool enableFOC);
 	void setMotionMagicPosition(units::turn_t position,
 			units::volt_t feedForward, bool enableFOC);
 	void setVelocityTorqueCurrentFOC(units::turns_per_second_t velocity);

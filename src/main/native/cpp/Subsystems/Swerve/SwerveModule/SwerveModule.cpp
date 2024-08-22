@@ -17,7 +17,7 @@ SwerveModule::SwerveModule(ModuleConfig config) : config(config), driveMotor(
 	turnMotor.setStatorCurrentLimit(true, config.TurnStatorCurrentLimit);
 	turnMotor.setSupplyCurrentLimit(true, config.TurnCurrentLimit,
 			config.TurnTriggerThreshold, config.TurnTriggerThresholdTime);
-	turnMotor.setPositionVoltage(0_tr, 0_V, false);
+	turnMotor.setPositionVoltage(0_tr, false);
 
 	driveMotor.SetPosition(0_tr);
 	driveMotor.setOpenLoopVoltageRamp(config.DriveRampRate);
@@ -53,7 +53,7 @@ const frc::SwerveModuleState& SwerveModule::getState() {
  */
 void SwerveModule::setState(frc::SwerveModuleState state) {
 	targetState = frc::SwerveModuleState::Optimize(state, getState().angle);
-	turnMotor.setPositionVoltage(targetState.angle.Degrees(), 0_V, false);
+	turnMotor.setPositionVoltage(targetState.angle.Degrees(), false);
 	driveMotor.setVoltage(feedForward.Calculate(targetState.speed), false);
 }
 
