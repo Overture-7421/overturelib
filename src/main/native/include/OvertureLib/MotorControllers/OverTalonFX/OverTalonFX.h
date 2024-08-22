@@ -49,7 +49,7 @@ public:
 			units::volt_t feedForward, bool enableFOC);
 	void setVelocityTorqueCurrentFOC(units::turns_per_second_t velocity);
 
-	void setPIDValues(double kP, double kI, double kD, double kS, double kV);
+	void setPIDConfig(SlotConfigs slotConfigs);
 	void configureMotionMagic(units::turns_per_second_t cruiseVelocity,
 			units::turns_per_second_squared_t acceleration,
 			units::turns_per_second_cubed_t jerk);
