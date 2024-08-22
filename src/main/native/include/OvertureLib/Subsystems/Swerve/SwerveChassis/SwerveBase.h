@@ -4,6 +4,8 @@
 #include <OvertureLib/Subsystems/Swerve/SwerveModule/SwerveModule.h>
 #include <OvertureLib/Math/ChassisAccels.h>
 #include <frc/kinematics/SwerveDriveKinematics.h>
+#include <frc/DriverStation.h>
+#include <frc/estimator/SwerveDrivePoseEstimator.h>
 #include <wpi/DataLog.h>
 #include <units/length.h>
 

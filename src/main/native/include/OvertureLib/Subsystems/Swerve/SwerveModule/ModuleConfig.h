@@ -20,6 +20,7 @@ struct ModuleConfig {
 
 	bool DriveInverted = false;
 	bool TurnInverted = true;
+	bool EncoderInverted = false;
 
 	units::turn_t Offset = 0_deg;
 	std::string ModuleName = "";
