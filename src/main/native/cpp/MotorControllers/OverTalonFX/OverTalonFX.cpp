@@ -186,15 +186,6 @@ void OverTalonFX::setFollow(int masterID, bool inverted) {
 }
 
 /**
- * @brief Sets the TalonFX position
- *
- * @param position The position to set the TalonFX to
- */
-void OverTalonFX::setSensorPosition(double position) {
-	SetPosition(units::turn_t { position });
-}
-
-/**
  * @brief Gets the TalonFX configuration
  *
  * @return The TalonFX configuration
