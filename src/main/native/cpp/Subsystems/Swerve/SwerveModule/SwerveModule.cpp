@@ -9,7 +9,7 @@ SwerveModule::SwerveModule(ModuleConfig config) : config(config), driveMotor(
 		config.DrivedId, config.DriveNeutralMode, config.DriveInverted,
 		config.CanBus), turnMotor(config.TurnId, config.TurnNeutralMode,
 		config.TurnInverted, config.CanBus), canCoder(config.CanCoderId,
-		config.Offset, config.EncoderDirection, config.CanBus), feedForward(
+		config.Offset, config.EncoderInverted, config.CanBus), feedForward(
 		config.FeedForward) {
 	turnMotor.setContinuousWrap();
 	turnMotor.setFusedCANCoder(config.CanCoderId);
