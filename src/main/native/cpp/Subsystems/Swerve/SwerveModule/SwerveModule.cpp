@@ -17,7 +17,7 @@ SwerveModule::SwerveModule(ModuleConfig config) : config(config), driveMotor(
 	turnMotor.setStatorCurrentLimit(true, config.TurnStatorCurrentLimit);
 	turnMotor.setSupplyCurrentLimit(true, config.TurnCurrentLimit,
 			config.TurnTriggerThreshold, config.TurnTriggerThresholdTime);
-	turnMotor.setPositionVoltage(0, false);
+	turnMotor.setPositionVoltage(0_tr, 0_V, false);
 
 	driveMotor.zeroPosition();
 	driveMotor.setOpenLoopVoltageRamp(config.DriveRampRate);
@@ -53,8 +53,7 @@ const frc::SwerveModuleState& SwerveModule::getState() {
  */
 void SwerveModule::setState(frc::SwerveModuleState state) {
 	targetState = frc::SwerveModuleState::Optimize(state, getState().angle);
-	turnMotor.setPositionVoltage(targetState.angle.Degrees().value() / 360.0,
-			false);
+	turnMotor.setPositionVoltage(targetState.angle.Degrees(), 0_V, false);
 	driveMotor.setVoltage(feedForward.Calculate(targetState.speed), false);
 }
 
@@ -96,7 +95,7 @@ void SwerveModule::shuffleboardPeriodic() {
 
 void SwerveModule::Periodic() {
 	units::degree_t angle = units::degree_t(
-			canCoder.getSensorAbsolutePosition() * 360.0);
+			canCoder.GetAbsolutePosition().GetValue());
 	latestState.speed = units::meters_per_second_t(
 			driveMotor.getVelocity(config.WheelDiameter.value()));
 	latestState.angle = angle;

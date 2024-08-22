@@ -128,7 +128,7 @@ void OverTalonFX::setClosedLoopTorqueRamp(double ramp) {
 
 /**
  * @brief Sets the stator current limit of the TalonFX
- * 
+ *
  * @param enable Whether or not the stator current limit is enabled
  * @param currentLimit The stator current limit of the TalonFX
  */
@@ -271,13 +271,12 @@ void OverTalonFX::setVoltage(units::volt_t voltage, bool enableFOC) {
  * @param velocity  The velocity to set the TalonFX to
  * @param enableFOC Whether or not to enable FOC
  */
-void OverTalonFX::setVelocityVoltage(double velocity, double feedForward,
-		bool enableFOC) {
+void OverTalonFX::setVelocityVoltage(units::turns_per_second_t velocity,
+		units::volt_t feedForward, bool enableFOC) {
 	VelocityVoltage velocityOut { 0_tps };
 	velocityOut.EnableFOC = enableFOC;
-	velocityOut.FeedForward = units::volt_t(feedForward);
-	SetControl(
-			velocityOut.WithVelocity(units::turns_per_second_t { velocity }));
+	velocityOut.FeedForward = feedForward;
+	SetControl(velocityOut.WithVelocity(velocity));
 }
 
 /**
@@ -298,10 +297,11 @@ void OverTalonFX::setDutyCycle(double dutyCycle, bool enableFOC) {
  * @param position  The position to set the TalonFX to
  * @param enableFOC Whether or not to enable FOC
  */
-void OverTalonFX::setPositionVoltage(double position, bool enableFOC) {
+void OverTalonFX::setPositionVoltage(units::turn_t position,
+		units::volt_t feedForward, bool enableFOC) {
 	PositionVoltage positionVoltage = PositionVoltage { 0_tr }.WithSlot(0);
 	positionVoltage.EnableFOC = enableFOC;
-	SetControl(positionVoltage.WithPosition(units::turn_t { position }));
+	SetControl(positionVoltage.WithPosition(position));
 }
 
 /**
@@ -311,13 +311,13 @@ void OverTalonFX::setPositionVoltage(double position, bool enableFOC) {
  * @param feedForward The feed forward to set the TalonFX to
  * @param enableFOC   Whether or not to enable FOC
  */
-void OverTalonFX::setMotionMagicPosition(double position, double feedForward,
-		bool enableFOC) {
+void OverTalonFX::setMotionMagicPosition(units::turn_t position,
+		units::volt_t feedForward, bool enableFOC) {
 	MotionMagicVoltage motionMagicVoltage =
 			MotionMagicVoltage { 0_tr }.WithSlot(0);
-	motionMagicVoltage.FeedForward = units::volt_t { feedForward };
+	motionMagicVoltage.FeedForward = feedForward;
 	motionMagicVoltage.EnableFOC = enableFOC;
-	SetControl(motionMagicVoltage.WithPosition(units::turn_t { position }));
+	SetControl(motionMagicVoltage.WithPosition(position));
 }
 
 /**
@@ -325,11 +325,11 @@ void OverTalonFX::setMotionMagicPosition(double position, double feedForward,
  *
  * @param velocity The velocity to set the TalonFX to
  */
-void OverTalonFX::setVelocityTorqueCurrentFOC(double velocity) {
+void OverTalonFX::setVelocityTorqueCurrentFOC(
+		units::turns_per_second_t velocity) {
 	VelocityTorqueCurrentFOC velocityTorqueCurrentFOC =
 			VelocityTorqueCurrentFOC { 0_tps }.WithSlot(0);
-	SetControl(velocityTorqueCurrentFOC.WithVelocity(units::turns_per_second_t {
-			velocity }));
+	SetControl(velocityTorqueCurrentFOC.WithVelocity(velocity));
 }
 
 /**
