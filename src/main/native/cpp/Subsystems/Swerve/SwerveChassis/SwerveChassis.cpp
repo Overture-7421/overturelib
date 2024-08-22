@@ -36,6 +36,11 @@ frc::ChassisSpeeds SwerveChassis::getCurrentSpeeds() {
 	return currentSpeeds;
 }
 
+/**
+ * @brief Returns the robot accelerations
+ *
+ * @return ChassisAccels object
+ */
 ChassisAccels SwerveChassis::getCurrentAccels() {
 	return currentAccels;
 }
@@ -79,10 +84,9 @@ void SwerveChassis::setAcceptingVisionMeasurements(
  *
  * @param angle Desired angle
  */
-void SwerveChassis::resetHeading(double angle) {
+void SwerveChassis::resetHeading(units::degree_t angle) {
 	frc::Pose2d actualOdometry = getEstimatedPose();
-	frc::Pose2d newOdometry { actualOdometry.X(), actualOdometry.Y(),
-			units::degree_t(angle) };
+	frc::Pose2d newOdometry { actualOdometry.X(), actualOdometry.Y(), angle };
 	resetOdometry(newOdometry);
 }
 

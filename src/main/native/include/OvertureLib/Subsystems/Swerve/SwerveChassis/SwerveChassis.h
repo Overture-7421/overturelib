@@ -45,7 +45,7 @@ public:
 	void addVisionMeasurement(frc::Pose2d pose, units::second_t Latency);
 	void setAcceptingVisionMeasurements(bool acceptingVisionMeasurements);
 
-	void resetHeading(double angle = 0);
+	void resetHeading(units::degree_t angle = 0_deg);
 
 	frc2::CommandPtr SysIdQuadstatic(frc2::sysid::Direction direction);
 	frc2::CommandPtr SysIdDinamic(frc2::sysid::Direction direction);

@@ -6,7 +6,7 @@
 
 class OverContainer {
 public:
-	OverContainer();
+	OverContainer() = default;
 
 	virtual void ConfigDriverBindings() = 0;
 	virtual void ConfigOperatorBindings() = 0;

@@ -104,30 +104,30 @@ void OverTalonFX::setFusedCANCoder(int id) {
 /**
  * @brief Sets the open loop voltage ramp rate of the TalonFX
  *
- * @param ramp The open loop voltage ramp rate of the TalonFX
+ * @param ramp The ramp rate in seconds
  */
-void OverTalonFX::setOpenLoopVoltageRamp(double ramp) {
-	config.OpenLoopRamps.VoltageOpenLoopRampPeriod = ramp;
+void OverTalonFX::setOpenLoopVoltageRamp(units::second_t ramp) {
+	config.OpenLoopRamps.VoltageOpenLoopRampPeriod = ramp.value();
 	GetConfigurator().Apply(config);
 }
 
 /**
  * @brief Sets the closed loop voltage ramp rate of the TalonFX
  *
- * @param ramp The closed loop voltage ramp rate of the TalonFX
+ * @param ramp The ramp rate in seconds
  */
-void OverTalonFX::setClosedLoopVoltageRamp(double ramp) {
-	config.ClosedLoopRamps.VoltageClosedLoopRampPeriod = ramp;
+void OverTalonFX::setClosedLoopVoltageRamp(units::second_t ramp) {
+	config.ClosedLoopRamps.VoltageClosedLoopRampPeriod = ramp.value();
 	GetConfigurator().Apply(config);
 }
 
 /**
  * @brief Sets the closed loop torque ramp rate of the TalonFX
  *
- * @param ramp The closed loop torque ramp rate of the TalonFX
+ * @param ramp The ramp rate in seconds
  */
-void OverTalonFX::setClosedLoopTorqueRamp(double ramp) {
-	config.ClosedLoopRamps.TorqueClosedLoopRampPeriod = ramp;
+void OverTalonFX::setClosedLoopTorqueRamp(units::second_t ramp) {
+	config.ClosedLoopRamps.TorqueClosedLoopRampPeriod = ramp.value();
 	GetConfigurator().Apply(config);
 }
 
@@ -137,9 +137,10 @@ void OverTalonFX::setClosedLoopTorqueRamp(double ramp) {
  * @param enable Whether or not the stator current limit is enabled
  * @param currentLimit The stator current limit of the TalonFX
  */
-void OverTalonFX::setStatorCurrentLimit(bool enable, double currentLimit) {
+void OverTalonFX::setStatorCurrentLimit(bool enable,
+		units::ampere_t currentLimit) {
 	config.CurrentLimits.StatorCurrentLimitEnable = enable;
-	config.CurrentLimits.StatorCurrentLimit = currentLimit;
+	config.CurrentLimits.StatorCurrentLimit = currentLimit.value();
 	GetConfigurator().Apply(config);
 }
 
@@ -147,16 +148,18 @@ void OverTalonFX::setStatorCurrentLimit(bool enable, double currentLimit) {
  * @brief Sets the supply current limit of the TalonFX
  *
  * @param enable                  Whether or not the supply current limit is enabled
- * @param currentLimit            The supply current limit of the TalonFX
- * @param triggerThresholdCurrent The trigger threshold current of the TalonFX
- * @param triggerThresholdTime    The trigger threshold time of the TalonFX
+ * @param currentLimit            The supply current limit in Amps
+ * @param triggerThresholdCurrent The trigger threshold in Amps
+ * @param triggerThresholdTime    The trigger threshold time in seconds
  */
-void OverTalonFX::setSupplyCurrentLimit(bool enable, double currentLimit,
-		double triggerThresholdCurrent, double triggerThresholdTime) {
+void OverTalonFX::setSupplyCurrentLimit(bool enable,
+		units::ampere_t currentLimit, units::ampere_t triggerThresholdCurrent,
+		units::second_t triggerThresholdTime) {
 	config.CurrentLimits.SupplyCurrentLimitEnable = enable;
-	config.CurrentLimits.SupplyCurrentLimit = currentLimit;
-	config.CurrentLimits.SupplyCurrentThreshold = triggerThresholdCurrent;
-	config.CurrentLimits.SupplyTimeThreshold = triggerThresholdTime;
+	config.CurrentLimits.SupplyCurrentLimit = currentLimit.value();
+	config.CurrentLimits.SupplyCurrentThreshold =
+			triggerThresholdCurrent.value();
+	config.CurrentLimits.SupplyTimeThreshold = triggerThresholdTime.value();
 	GetConfigurator().Apply(config);
 }
 
@@ -167,11 +170,11 @@ void OverTalonFX::setSupplyCurrentLimit(bool enable, double currentLimit,
  * @param peakReverseVoltage The peak reverse voltage of the TalonFX
  * @param deadband           The deadband of the TalonFX
  */
-void OverTalonFX::setTorqueCurrentLimit(double peakForward, double peakBackward,
-		double deadband) {
-	config.TorqueCurrent.PeakForwardTorqueCurrent = peakForward;
-	config.TorqueCurrent.PeakReverseTorqueCurrent = peakBackward;
-	config.TorqueCurrent.TorqueNeutralDeadband = deadband;
+void OverTalonFX::setTorqueCurrentLimit(units::ampere_t peakForward,
+		units::ampere_t peakBackward, units::ampere_t deadband) {
+	config.TorqueCurrent.PeakForwardTorqueCurrent = peakForward.value();
+	config.TorqueCurrent.PeakReverseTorqueCurrent = peakBackward.value();
+	config.TorqueCurrent.TorqueNeutralDeadband = deadband.value();
 	GetConfigurator().Apply(config);
 }
 
@@ -212,22 +215,21 @@ void OverTalonFX::setVoltage(units::volt_t voltage, bool enableFOC) {
  * @param velocity  The velocity to set the TalonFX to
  * @param enableFOC Whether or not to enable FOC
  */
-void OverTalonFX::setVelocityVoltage(double velocity, double feedForward,
-		bool enableFOC) {
+void OverTalonFX::setVelocityVoltage(units::turns_per_second_t velocity,
+		units::volt_t feedForward, bool enableFOC) {
 	VelocityVoltage velocityOut { 0_tps };
 	velocityOut.EnableFOC = enableFOC;
-	velocityOut.FeedForward = units::volt_t(feedForward);
-	SetControl(
-			velocityOut.WithVelocity(units::turns_per_second_t { velocity }));
+	velocityOut.FeedForward = feedForward;
+	SetControl(velocityOut.WithVelocity(velocity));
 }
 
 /**
  * @brief Sets the TalonFX Duty Cycle
  *
- * @param dutyCycle The duty cycle to set the TalonFX to
+ * @param dutyCycle The duty cycle from -1 to 1
  * @param enableFOC Whether or not to enable FOC
  */
-void OverTalonFX::setDutyCycle(double dutyCycle, bool enableFOC) {
+void OverTalonFX::setDutyCycle(units::scalar_t dutyCycle, bool enableFOC) {
 	DutyCycleOut dutyCycleOut { 0 };
 	dutyCycleOut.EnableFOC = enableFOC;
 	SetControl(dutyCycleOut.WithOutput(dutyCycle));
@@ -239,10 +241,10 @@ void OverTalonFX::setDutyCycle(double dutyCycle, bool enableFOC) {
  * @param position  The position to set the TalonFX to
  * @param enableFOC Whether or not to enable FOC
  */
-void OverTalonFX::setPositionVoltage(double position, bool enableFOC) {
+void OverTalonFX::setPositionVoltage(units::turn_t position, bool enableFOC) {
 	PositionVoltage positionVoltage = PositionVoltage { 0_tr }.WithSlot(0);
 	positionVoltage.EnableFOC = enableFOC;
-	SetControl(positionVoltage.WithPosition(units::turn_t { position }));
+	SetControl(positionVoltage.WithPosition(position));
 }
 
 /**
@@ -252,13 +254,13 @@ void OverTalonFX::setPositionVoltage(double position, bool enableFOC) {
  * @param feedForward The feed forward to set the TalonFX to
  * @param enableFOC   Whether or not to enable FOC
  */
-void OverTalonFX::setMotionMagicPosition(double position, double feedForward,
-		bool enableFOC) {
+void OverTalonFX::setMotionMagicPosition(units::turn_t position,
+		units::volt_t feedForward, bool enableFOC) {
 	MotionMagicVoltage motionMagicVoltage =
 			MotionMagicVoltage { 0_tr }.WithSlot(0);
-	motionMagicVoltage.FeedForward = units::volt_t { feedForward };
+	motionMagicVoltage.FeedForward = feedForward;
 	motionMagicVoltage.EnableFOC = enableFOC;
-	SetControl(motionMagicVoltage.WithPosition(units::turn_t { position }));
+	SetControl(motionMagicVoltage.WithPosition(position));
 }
 
 /**
@@ -266,11 +268,11 @@ void OverTalonFX::setMotionMagicPosition(double position, double feedForward,
  *
  * @param velocity The velocity to set the TalonFX to
  */
-void OverTalonFX::setVelocityTorqueCurrentFOC(double velocity) {
+void OverTalonFX::setVelocityTorqueCurrentFOC(
+		units::turns_per_second_t velocity) {
 	VelocityTorqueCurrentFOC velocityTorqueCurrentFOC =
 			VelocityTorqueCurrentFOC { 0_tps }.WithSlot(0);
-	SetControl(velocityTorqueCurrentFOC.WithVelocity(units::turns_per_second_t {
-			velocity }));
+	SetControl(velocityTorqueCurrentFOC.WithVelocity(velocity));
 }
 
 /**
@@ -300,11 +302,12 @@ void OverTalonFX::setPIDValues(double kP, double kI, double kD, double kS,
  * @param acceleration   The acceleration of the TalonFX
  * @param jerk           The jerk of the TalonFX
  */
-void OverTalonFX::configureMotionMagic(double cruiseVelocity,
-		double acceleration, double jerk) {
-	config.MotionMagic.MotionMagicCruiseVelocity = cruiseVelocity;
-	config.MotionMagic.MotionMagicAcceleration = acceleration;
-	config.MotionMagic.MotionMagicJerk = jerk;
+void OverTalonFX::configureMotionMagic(units::turns_per_second_t cruiseVelocity,
+		units::turns_per_second_squared_t acceleration,
+		units::turns_per_second_cubed_t jerk) {
+	config.MotionMagic.MotionMagicCruiseVelocity = cruiseVelocity.value();
+	config.MotionMagic.MotionMagicAcceleration = acceleration.value();
+	config.MotionMagic.MotionMagicJerk = jerk.value();
 
 	GetConfigurator().Apply(config);
 }

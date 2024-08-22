@@ -37,15 +37,6 @@ OverCANCoder::OverCANCoder(int id, units::turn_t offset, bool inverted,
 #endif
 }
 
-/**
- * @brief Gets the CANCoder's absolute position
- *
- * @return CANCoder's absolute position
- */
-double OverCANCoder::getSensorAbsolutePosition() {
-	return GetAbsolutePosition().GetValue().value();
-}
-
 const CANcoderConfiguration& OverCANCoder::getConfiguration() {
 	return canCoderConfiguration;
 }
