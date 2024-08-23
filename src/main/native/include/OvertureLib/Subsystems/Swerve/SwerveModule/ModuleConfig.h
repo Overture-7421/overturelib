@@ -50,7 +50,7 @@ struct ModuleConfig {
 	std::string ModuleName = "";
 	std::string CanBus = "";
 
-	units::meter_t WheelDiameter = 1_m;
+	units::meter_t WheelDiameter = 0.1016_m;
 	double TurnGearRatio = 1.0;
 	double DriveGearRatio = 1.0;
 
