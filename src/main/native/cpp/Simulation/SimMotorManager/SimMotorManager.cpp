@@ -78,7 +78,7 @@ void SimMotorManager::Update() {
 
 		simState.SetSupplyVoltage(frc::RobotController::GetBatteryVoltage());
 
-		bool inverted = motor->getConfig().MotorOutput.Inverted.value;
+		bool inverted = motor->getCTREConfig().MotorOutput.Inverted.value;
 
 		ntable->GetEntry("software_inverted").SetBoolean(inverted);
 
