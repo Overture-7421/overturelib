@@ -8,13 +8,15 @@
 #include <ctre/phoenix6/configs/Configs.hpp>
 #include <ctre/phoenix6/signals/SpnEnums.hpp>
 
+#include <OvertureLib/Sensors/OverCANCoder/Config.h>
+
 using namespace ctre::phoenix6::hardware;
 using namespace ctre::phoenix6::configs;
 using namespace ctre::phoenix6::signals;
 
 class OverCANCoder: public CANcoder {
 public:
-	OverCANCoder(int id, units::turn_t offset, bool inverted, std::string bus);
+	OverCANCoder(CanCoderConfig config, std::string bus);
 	const CANcoderConfiguration& getConfiguration();
 
 private:

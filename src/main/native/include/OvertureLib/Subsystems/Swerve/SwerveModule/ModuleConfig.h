@@ -5,46 +5,55 @@
 #pragma once
 
 #include <string>
+#include <OvertureLib/MotorControllers/OverTalonFX/Config.h>
+#include <OvertureLib/Sensors/OverCANCoder/Config.h>
+
+static OverTalonFXConfig DriveInit() {
+	OverTalonFXConfig config;
+
+	config.NeutralMode = ControllerNeutralMode::Brake;
+
+	config.CurrentLimit = 90_A;
+	config.StatorCurrentLimit = 110_A;
+	config.TriggerThreshold = 0_A;
+	config.TriggerThresholdTime = 0.5_s;
+	config.ClosedLoopRampRate = 0_s;
+	config.OpenLoopRampRate = 0.25_s;
+	return config;
+}
+
+static OverTalonFXConfig TurnInit() {
+	OverTalonFXConfig config;
+
+	config.NeutralMode = ControllerNeutralMode::Coast;
+
+	config.CurrentLimit = 60_A;
+	config.StatorCurrentLimit = 80_A;
+	config.TriggerThreshold = 0_A;
+	config.TriggerThresholdTime = 0.2_s;
+	config.ClosedLoopRampRate = 0_s;
+	config.OpenLoopRampRate = 0_s;
+	return config;
+}
 
 struct ModuleConfig {
 	ModuleConfig(frc::SimpleMotorFeedforward<units::meters> FeedForward) : FeedForward(
 			FeedForward) {
-
 	}
-	int DrivedId = -1;
-	int TurnId = -1;
-	int CanCoderId = -1;
 
-	ControllerNeutralMode DriveNeutralMode = ControllerNeutralMode::Brake;
-	ControllerNeutralMode TurnNeutralMode = ControllerNeutralMode::Coast;
+	OverTalonFXConfig DriveMotorConfig = DriveInit();
 
-	bool DriveInverted = false;
-	bool TurnInverted = true;
-	bool EncoderInverted = false;
+	OverTalonFXConfig TurnMotorConfig = TurnInit();
 
-	units::turn_t Offset = 0_deg;
+	CanCoderConfig EncoderConfig;
+
 	std::string ModuleName = "";
 	std::string CanBus = "";
 
-	SlotConfigs TurnPIDConfigs;
-
-	frc::SimpleMotorFeedforward<units::meters> FeedForward { 0_V, 0_V / 1_mps,
-			0_V / 1_mps_sq };
-
+	units::meter_t WheelDiameter = 0.1016_m;
 	double TurnGearRatio = 1.0;
 	double DriveGearRatio = 1.0;
 
-	units::meter_t WheelDiameter = 1_m;
-
-	units::ampere_t DriveCurrentLimit = 90_A;
-	units::ampere_t DriveStatorCurrentLimit = 110_A;
-	units::ampere_t DriveTriggerThreshold = 0_A;
-	units::second_t DriveTriggerThresholdTime = 0.5_s;
-	units::second_t DriveRampRate = 0.25_s;
-
-	units::ampere_t TurnCurrentLimit = 60_A;
-	units::ampere_t TurnStatorCurrentLimit = 80_A;
-	units::ampere_t TurnTriggerThreshold = 0_A;
-	units::second_t TurnTriggerThresholdTime = 0.2_s;
-	units::second_t TurnRampRate = 0.0_s;
+	frc::SimpleMotorFeedforward<units::meters> FeedForward { 0_V, 0_V / 1_mps,
+			0_V / 1_mps_sq };
 };

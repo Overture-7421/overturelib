@@ -6,35 +6,23 @@
 #include <iostream>
 
 SwerveModule::SwerveModule(ModuleConfig config) : config(config), driveMotor(
-		config.DrivedId, config.DriveNeutralMode, config.DriveInverted,
-		config.CanBus), turnMotor(config.TurnId, config.TurnNeutralMode,
-		config.TurnInverted, config.CanBus), canCoder(config.CanCoderId,
-		config.Offset, config.EncoderInverted, config.CanBus), feedForward(
-		config.FeedForward) {
+		config.DriveMotorConfig, config.CanBus), turnMotor(
+		config.TurnMotorConfig, config.CanBus), canCoder(config.EncoderConfig,
+		config.CanBus), feedForward(config.FeedForward) {
 	turnMotor.setContinuousWrap();
-	turnMotor.setFusedCANCoder(config.CanCoderId);
-	turnMotor.setClosedLoopVoltageRamp(config.TurnRampRate);
-	turnMotor.setStatorCurrentLimit(true, config.TurnStatorCurrentLimit);
-	turnMotor.setSupplyCurrentLimit(true, config.TurnCurrentLimit,
-			config.TurnTriggerThreshold, config.TurnTriggerThresholdTime);
-	turnMotor.setPositionVoltage(0_tr, false);
+	turnMotor.setFusedCANCoder(config.EncoderConfig.CanCoderId);
+	turnMotor.setPositionVoltage(0_tr);
 
 	driveMotor.SetPosition(0_tr);
-	driveMotor.setOpenLoopVoltageRamp(config.DriveRampRate);
-	driveMotor.setStatorCurrentLimit(true, config.DriveStatorCurrentLimit);
-	driveMotor.setSupplyCurrentLimit(true, config.DriveCurrentLimit,
-			config.DriveTriggerThreshold, config.DriveTriggerThresholdTime);
 
 	turnMotor.setPositionUpdateFrequency(200_Hz);
 	canCoder.GetPosition().SetUpdateFrequency(200_Hz);
 	driveMotor.setVelocityUpdateFrequency(200_Hz);
 
-	// Set PID Values
-	turnMotor.setPIDConfig(config.TurnPIDConfigs);
-
 	// Set Gear Ratios
 	turnMotor.setRotorToSensorRatio(config.TurnGearRatio);
-	driveMotor.setSensorToMechanism(config.DriveGearRatio);
+	driveMotor.setSensorToMechanism(
+			config.DriveGearRatio * config.WheelDiameter.value() * M_PI);
 }
 
 /**
@@ -53,8 +41,8 @@ const frc::SwerveModuleState& SwerveModule::getState() {
  */
 void SwerveModule::setState(frc::SwerveModuleState state) {
 	targetState = frc::SwerveModuleState::Optimize(state, getState().angle);
-	turnMotor.setPositionVoltage(targetState.angle.Degrees(), false);
-	driveMotor.setVoltage(feedForward.Calculate(targetState.speed), false);
+	turnMotor.setPositionVoltage(targetState.angle.Degrees());
+	driveMotor.setVoltage(feedForward.Calculate(targetState.speed));
 }
 
 /**
@@ -72,7 +60,7 @@ const frc::SwerveModulePosition& SwerveModule::getPosition() {
  * @param volts - Voltage
  */
 void SwerveModule::setVoltageDrive(units::volt_t volts) {
-	driveMotor.setVoltage(volts, false);
+	driveMotor.setVoltage(volts);
 }
 
 units::volt_t SwerveModule::getVoltageDrive() {
@@ -96,12 +84,10 @@ void SwerveModule::shuffleboardPeriodic() {
 void SwerveModule::Periodic() {
 	units::degree_t angle = canCoder.GetAbsolutePosition().GetValue();
 	latestState.speed = units::meters_per_second_t(
-			driveMotor.GetVelocity().GetValueAsDouble()
-					* config.WheelDiameter.value() * M_PI);
+			driveMotor.GetVelocity().GetValueAsDouble());
 	latestState.angle = angle;
 
 	latestPosition.distance = units::meter_t {
-			driveMotor.GetPosition().GetValueAsDouble()
-					* config.WheelDiameter.value() * M_PI };
+			driveMotor.GetPosition().GetValueAsDouble() };
 	latestPosition.angle = angle;
 }
