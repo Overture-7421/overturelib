@@ -32,13 +32,6 @@ public:
 			units::ampere_t peakBackward, units::ampere_t deadband);
 	void setFollow(int masterID, bool inverted);
 	const TalonFXConfiguration& getCTREConfig();
-
-	void setVoltage(units::volt_t voltage);
-	void setVelocityVoltage(units::turns_per_second_t velocity);
-	void setDutyCycle(units::scalar_t dutyCycle);
-	void setPositionVoltage(units::turn_t position);
-	void setMotionMagicPosition(units::turn_t position);
-	void setVelocityTorqueCurrentFOC(units::turns_per_second_t velocity);
 	void configureMotionMagic(units::turns_per_second_t cruiseVelocity,
 			units::turns_per_second_squared_t acceleration,
 			units::turns_per_second_cubed_t jerk);
