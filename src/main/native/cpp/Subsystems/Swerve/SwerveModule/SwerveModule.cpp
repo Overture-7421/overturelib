@@ -45,7 +45,7 @@ void SwerveModule::setState(frc::SwerveModuleState state) {
 	targetState = frc::SwerveModuleState::Optimize(state, getState().angle);
 	turnMotor.SetControl(
 			turnVoltage.WithPosition(targetState.angle.Degrees()).WithEnableFOC(
-					config.TurnMotorConfig.useFOC));
+					config.TurnMotorConfig.useFOC).WithSlot(0));
 	driveMotor.SetControl(
 			driveVoltage.WithOutput(feedForward.Calculate(targetState.speed)).WithEnableFOC(
 					config.DriveMotorConfig.useFOC));
