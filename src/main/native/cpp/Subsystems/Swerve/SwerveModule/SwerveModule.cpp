@@ -11,7 +11,9 @@ SwerveModule::SwerveModule(ModuleConfig config) : config(config), driveMotor(
 		config.CanBus), feedForward(config.FeedForward) {
 	turnMotor.setContinuousWrap();
 	turnMotor.setFusedCANCoder(config.EncoderConfig.CanCoderId);
-	turnMotor.setPositionVoltage(0_tr);
+	turnMotor.SetControl(
+			turnVoltage.WithPosition(0_tr).WithEnableFOC(
+					config.TurnMotorConfig.useFOC));
 
 	driveMotor.SetPosition(0_tr);
 
@@ -41,8 +43,12 @@ const frc::SwerveModuleState& SwerveModule::getState() {
  */
 void SwerveModule::setState(frc::SwerveModuleState state) {
 	targetState = frc::SwerveModuleState::Optimize(state, getState().angle);
-	turnMotor.setPositionVoltage(targetState.angle.Degrees());
-	driveMotor.setVoltage(feedForward.Calculate(targetState.speed));
+	turnMotor.SetControl(
+			turnVoltage.WithPosition(targetState.angle.Degrees()).WithEnableFOC(
+					config.TurnMotorConfig.useFOC).WithSlot(0));
+	driveMotor.SetControl(
+			driveVoltage.WithOutput(feedForward.Calculate(targetState.speed)).WithEnableFOC(
+					config.DriveMotorConfig.useFOC));
 }
 
 /**
@@ -60,7 +66,9 @@ const frc::SwerveModulePosition& SwerveModule::getPosition() {
  * @param volts - Voltage
  */
 void SwerveModule::setVoltageDrive(units::volt_t volts) {
-	driveMotor.setVoltage(volts);
+	driveMotor.SetControl(
+			driveVoltage.WithOutput(volts).WithEnableFOC(
+					config.DriveMotorConfig.useFOC));
 }
 
 units::volt_t SwerveModule::getVoltageDrive() {
