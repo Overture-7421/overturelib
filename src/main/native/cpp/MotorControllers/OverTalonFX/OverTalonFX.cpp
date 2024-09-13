@@ -168,63 +168,6 @@ const TalonFXConfiguration& OverTalonFX::getCTREConfig() {
 }
 
 /**
- * @brief Sets the TalonFX voltage
- *
- * @param voltage   The voltage to set the TalonFX to
- */
-void OverTalonFX::setVoltage(units::volt_t voltage) {
-	SetControl(VoltageOut { voltage }.WithEnableFOC(overConfig.useFOC));
-}
-
-/**
- * @brief Sets the TalonFX Velocity using Voltage
- *
- * @param velocity  The velocity to set the TalonFX to
- */
-void OverTalonFX::setVelocityVoltage(units::turns_per_second_t velocity) {
-	SetControl(VelocityVoltage { velocity }.WithEnableFOC(overConfig.useFOC));
-}
-
-/**
- * @brief Sets the TalonFX Duty Cycle
- *
- * @param dutyCycle The duty cycle from -1 to 1
- */
-void OverTalonFX::setDutyCycle(units::scalar_t dutyCycle) {
-	SetControl(DutyCycleOut { dutyCycle }.WithEnableFOC(overConfig.useFOC));
-}
-
-/**
- * @brief Sets the TalonFX Position using Voltage
- *
- * @param position  The position to set the TalonFX to
- */
-void OverTalonFX::setPositionVoltage(units::turn_t position) {
-	SetControl(PositionVoltage { position }.WithEnableFOC(overConfig.useFOC));
-}
-
-/**
- * @brief Sets the TalonFX Motion Magic Position using Voltage
- *
- * @param position    The position to set the TalonFX to
- * @param feedForward The feed forward to set the TalonFX to
- */
-void OverTalonFX::setMotionMagicPosition(units::turn_t position) {
-	SetControl(
-			MotionMagicVoltage { position }.WithEnableFOC(overConfig.useFOC));
-}
-
-/**
- * @brief Sets the TalonFX Velocity using Torque FOC
- *
- * @param velocity The velocity to set the TalonFX to
- */
-void OverTalonFX::setVelocityTorqueCurrentFOC(
-		units::turns_per_second_t velocity) {
-	SetControl(VelocityTorqueCurrentFOC { velocity });
-}
-
-/**
  * @brief Sets the TalonFX Motion Magic values
  *
  * @param cruiseVelocity The cruise velocity of the TalonFX
