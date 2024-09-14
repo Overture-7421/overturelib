@@ -4,6 +4,7 @@
 
 #pragma once
 #include <map>
+#include <algorithm>
 #include <wpi/interpolating_map.h>
 
 template<typename Key, typename Value>
