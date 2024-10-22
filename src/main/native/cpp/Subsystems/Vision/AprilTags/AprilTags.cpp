@@ -20,17 +20,15 @@ AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
 ;
 
 //Check if distance between robot and tag is less than a certain value ;)
-bool AprilTags::checkTagDistance(const photon::PhotonPipelineResult &result,
-		size_t numberOfTags, units::meter_t distance) {
-	if (numberOfTags >= 4) {
+bool AprilTags::checkTagDistance(const photon::PhotonPipelineResult &result) {
+	if (result.GetTargets().size() > config.tagValidDistances.size()) {
 		return true;
 	}
 
-	if (result.GetTargets().size() == numberOfTags) {
-		if (result.GetBestTarget().GetBestCameraToTarget().Translation().Distance(
-				{ 0_m, 0_m, 0_m }) < distance) {
-			return true;
-		}
+	if (result.GetBestTarget().GetBestCameraToTarget().Translation().Distance( {
+			0_m, 0_m, 0_m })
+			< config.tagValidDistances.at(result.GetTargets().size())) {
+		return true;
 	}
 
 	return false;
@@ -39,7 +37,8 @@ bool AprilTags::checkTagDistance(const photon::PhotonPipelineResult &result,
 void AprilTags::addMeasurementToChassis(
 		const photon::PhotonPipelineResult &result) {
 
-	std::optional < photon::EstimatedRobotPose > poseResult = update(result);
+	std::optional < photon::EstimatedRobotPose > poseResult =
+			poseEstimator->Update(result);
 
 	if (poseResult.has_value()) {
 		frc::Pose2d poseTo2d = poseResult.value().estimatedPose.ToPose2d();
@@ -56,24 +55,21 @@ void AprilTags::updateOdometry() {
 	}
 	photon::PhotonPipelineResult pipelineResult = result.value();
 
-	if (checkTagDistance(pipelineResult, 1, config.singleTagValidDistance)
-			|| checkTagDistance(pipelineResult, 2,
-					config.doubleTagValidDistance)
-			|| checkTagDistance(pipelineResult, 3,
-					config.tripleTagValidDistance)) {
+	if (checkTagDistance(pipelineResult)) {
 		addMeasurementToChassis(pipelineResult);
 	}
 }
 
-//Get EstimatedRobotPose from PhotonVision
-std::optional<photon::EstimatedRobotPose> AprilTags::update(
-		const photon::PhotonPipelineResult &result) {
-	return poseEstimator->Update(result);
-}
-
 //Get PhotonPipeResult from PhotonVision
 std::optional<photon::PhotonPipelineResult> AprilTags::getCameraResult() {
-	return camera->GetLatestResult();
+	std::vector < photon::PhotonPipelineResult > results =
+			camera->GetAllUnreadResults();
+
+	if (results.empty()) {
+		return std::nullopt;
+	}
+
+	return results[0];
 }
 
 void AprilTags::Periodic() {

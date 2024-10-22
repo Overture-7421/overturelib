@@ -71,7 +71,7 @@ private:
 	bool acceptingVisionMeasurements = false;
 
 	bool characterizing = false;frc2::sysid::SysIdRoutine m_sysIdRoutine {
-		frc2::sysid::Config {std::nullopt, std::nullopt, std::nullopt, std::nullopt},
+		frc2::sysid::Config {std::nullopt, std::nullopt, std::nullopt, nullptr},
 		frc2::sysid::Mechanism {
 			[this](units::volt_t driveVoltage) {
 				sysIdVoltage(driveVoltage);

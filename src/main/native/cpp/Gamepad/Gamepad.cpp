@@ -67,31 +67,7 @@ frc2::Trigger Gamepad::bothTriggers() {
 	return LeftTrigger(triggerDeadzone) && RightTrigger(triggerDeadzone);
 }
 
-frc2::Trigger Gamepad::upDpad() {
-	return frc2::Trigger([this] {
-		return GetPOV() == 0;
-	});
-}
-
-frc2::Trigger Gamepad::downDpad() {
-	return frc2::Trigger([this] {
-		return GetPOV() == 180;
-	});
-}
-
-frc2::Trigger Gamepad::leftDpad() {
-	return frc2::Trigger([this] {
-		return GetPOV() == 270;
-	});
-}
-
-frc2::Trigger Gamepad::rightDpad() {
-	return frc2::Trigger([this] {
-		return GetPOV() == 90;
-	});
-}
-
-frc2::CommandPtr Gamepad::rumbleCommand(double intensity) {
+frc2::CommandPtr Gamepad::getRumbleCommand(double intensity) {
 	return frc2::cmd::RunOnce([this, intensity] {
 		SetRumble(frc::GenericHID::RumbleType::kBothRumble, intensity);
 	});

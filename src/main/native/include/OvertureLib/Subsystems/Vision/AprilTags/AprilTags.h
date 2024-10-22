@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <map>
 #include <photon/PhotonCamera.h>
 #include <photon/PhotonPoseEstimator.h>
 #include <frc2/command/SubsystemBase.h>
@@ -20,19 +21,16 @@ public:
 	struct Config {
 		std::string cameraName;
 		frc::Transform3d cameraToRobot;
-		units::meter_t singleTagValidDistance = 3.5_m;
-		units::meter_t doubleTagValidDistance = 6.0_m;
-		units::meter_t tripleTagValidDistance = 8.0_m;
+
+		std::map<int, units::meter_t> tagValidDistances = { { 1, 3.5_m }, { 2,
+				6.0_m }, { 3, 8.0_m } };
 	};
 
 	AprilTags(frc::AprilTagFieldLayout *tagLayout, SwerveChassis *chassis,
 			Config config);
-	bool checkTagDistance(const photon::PhotonPipelineResult &result,
-			size_t numberOfTags, units::meter_t distance);
+	bool checkTagDistance(const photon::PhotonPipelineResult &result);
 	void addMeasurementToChassis(const photon::PhotonPipelineResult &result);
 	void updateOdometry();
-	std::optional<photon::EstimatedRobotPose> update(
-			const photon::PhotonPipelineResult &result);
 	std::optional<photon::PhotonPipelineResult> getCameraResult();
 	void Periodic() override;
 

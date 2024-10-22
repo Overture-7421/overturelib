@@ -32,11 +32,7 @@ public:
 	frc2::Trigger rightXTrigger(double triggerTreshold);
 	frc2::Trigger rightStick(double triggerTreshold);
 	frc2::Trigger leftStick(double triggerTreshold);
-	frc2::CommandPtr rumbleCommand(double intensity);
-	frc2::Trigger upDpad();
-	frc2::Trigger downDpad();
-	frc2::Trigger leftDpad();
-	frc2::Trigger rightDpad();
+	frc2::CommandPtr getRumbleCommand(double intensity);
 
 private:
 	frc::Rotation2d storedLeftStickDirection;

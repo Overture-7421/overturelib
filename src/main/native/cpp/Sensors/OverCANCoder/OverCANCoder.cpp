@@ -22,7 +22,7 @@ OverCANCoder::OverCANCoder(CanCoderConfig config, std::string bus) : CANcoder(
 
 	canCoderConfiguration.MagnetSensor.AbsoluteSensorRange =
 			AbsoluteSensorRangeValue::Signed_PlusMinusHalf;
-	canCoderConfiguration.MagnetSensor.MagnetOffset = config.Offset.value();
+	canCoderConfiguration.MagnetSensor.MagnetOffset = config.Offset;
 
 	if (config.EncoderInverted) {
 		canCoderConfiguration.MagnetSensor.SensorDirection =
