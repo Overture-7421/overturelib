@@ -10,17 +10,15 @@
 #include <units/length.h>
 
 #include <pathplanner/lib/auto/AutoBuilder.h>
-#include <pathplanner/lib/util/HolonomicPathFollowerConfig.h>
-#include <pathplanner/lib/util/PIDConstants.h>
-#include <pathplanner/lib/util/ReplanningConfig.h>
+#include <pathplanner/lib/config/RobotConfig.h>
 #include <pathplanner/lib/controllers/PPHolonomicDriveController.h>
 using namespace pathplanner;
 
 // spotless:off
 class SwerveBase {
 public:
-	SwerveBase(frc2::Subsystem *driveSubsystem) : driveSubsystem(driveSubsystem) {
-		
+	SwerveBase(frc2::Subsystem* driveSubsystem) : driveSubsystem(driveSubsystem) {
+
 	}
 
 	virtual const frc::Pose2d& getEstimatedPose() = 0;
@@ -36,40 +34,34 @@ public:
 
 protected:
 	void configureSwerveBase() {
-			configuredChassis = true;
-			AutoBuilder::configureHolonomic(
-			[this]() {
-				return getEstimatedPose();
-			},
-			[this](frc::Pose2d pose) {
-				resetOdometry(pose);
-			},
-			[this]() {
-				return getCurrentSpeeds();
-			},
-			[this](frc::ChassisSpeeds speeds) {
-				setTargetSpeeds(speeds);
-			},
-			HolonomicPathFollowerConfig(
+
+		pathplanner::RobotConfig robotConfig = RobotConfig::fromGUISettings();
+
+		configuredChassis = true;
+		AutoBuilder::configure(
+			[this]() {return getEstimatedPose();},
+			[this](frc::Pose2d pose) {resetOdometry(pose);},
+			[this]() {return getCurrentSpeeds();},
+			[this](frc::ChassisSpeeds speeds) {setTargetSpeeds(speeds);},
+			std::make_shared<PPHolonomicDriveController>(
 				PIDConstants(6.5, 0.0, 0.0),
-				PIDConstants(6.5, 0.0, 0.0), 
-				getMaxModuleSpeed(),
-				getDriveBaseRadius(), 
-				ReplanningConfig()
+				PIDConstants(6.5, 0.0, 0.0)
 			),
+			robotConfig,
 			[]() {
-				auto alliance = frc::DriverStation::GetAlliance();
-				if (alliance) {
-					return alliance.value() == frc::DriverStation::Alliance::kRed;
-				}
-				return false;
-			}, 
+			auto alliance = frc::DriverStation::GetAlliance();
+			if (alliance) {
+				return alliance.value() == frc::DriverStation::Alliance::kRed;
+			}
+			return false;
+		},
 			driveSubsystem
 		);
+
 		odometry = std::make_unique<frc::SwerveDrivePoseEstimator<4>>(getKinematics(), frc::Rotation2d{}, modulesPositions, frc::Pose2d{});
 	}
-	
- 	virtual SwerveModule& getFrontLeftModule() = 0;
+
+	virtual SwerveModule& getFrontLeftModule() = 0;
 	virtual SwerveModule& getFrontRightModule() = 0;
 	virtual SwerveModule& getBackLeftModule() = 0;
 	virtual SwerveModule& getBackRightModule() = 0;
@@ -85,14 +77,14 @@ protected:
 	bool configuredChassis = false;
 
 	std::unique_ptr<frc::SwerveDrivePoseEstimator<4>> odometry;
-	wpi::array<frc::SwerveModulePosition, 4U> modulesPositions {
+	wpi::array<frc::SwerveModulePosition, 4U> modulesPositions{
 			frc::SwerveModulePosition(), frc::SwerveModulePosition(),
 			frc::SwerveModulePosition(), frc::SwerveModulePosition() };
-	wpi::array<frc::SwerveModuleState, 4U> modulesStates {
+	wpi::array<frc::SwerveModuleState, 4U> modulesStates{
 			frc::SwerveModuleState(), frc::SwerveModuleState(),
 			frc::SwerveModuleState(), frc::SwerveModuleState() };
 
-	private:
-	frc2::Subsystem *driveSubsystem;
+private:
+	frc2::Subsystem* driveSubsystem;
 };
 // spotless:on

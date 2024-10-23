@@ -1,10 +1,10 @@
 plugins {
     id 'cpp'
     id 'java'
-    id 'google-test'
+    // id 'google-test'
     id 'com.diffplug.spotless' version '6.11.0'
     id 'edu.wpi.first.wpilib.repositories.WPILibRepositoriesPlugin' version '2020.2'
-    id 'edu.wpi.first.NativeUtils' version '2024.7.2'
+    id 'edu.wpi.first.NativeUtils' version '2025.3.0'
     id 'edu.wpi.first.GradleJni' version '1.1.0'
     id 'edu.wpi.first.GradleVsCode' version '2.1.0'
 }
@@ -13,8 +13,11 @@ repositories {
     mavenCentral()
 }
 
-wpilibRepositories.addAllReleaseRepositories(project)
-wpilibRepositories.addAllDevelopmentRepositories(project)
+if (project.hasProperty('releaseMode')) {
+    wpilibRepositories.addAllReleaseRepositories(project)
+} else {
+    wpilibRepositories.addAllDevelopmentRepositories(project)
+}
 
 // Apply C++ configuration
 apply from: 'config.gradle'
@@ -47,33 +50,35 @@ model {
                 cppCompiler.define('_USE_MATH_DEFINES')
             }
 
-            nativeUtils.useRequiredLibrary(it, 'wpilib_shared')
-            nativeUtils.useRequiredLibrary(it, "apriltag_shared")
-            nativeUtils.useRequiredLibrary(it, "opencv_shared")
-        }
-
-    }
-    testSuites {
-        OvertureLibTest {
-            sources.cpp {
-                source {
-                    srcDir 'src/test/native/cpp'
-                    include '**/*.cpp'
-                }
-            }
-
-            binaries.all {
-                cppCompiler.define('_USE_MATH_DEFINES')
-            }
-
             nativeUtils.useRequiredLibrary(it, "cscore_shared")
             nativeUtils.useRequiredLibrary(it, "cameraserver_shared")
-            nativeUtils.useRequiredLibrary(it, "wpilib_executable_shared")
-            nativeUtils.useRequiredLibrary(it, "googletest_static")
+            nativeUtils.useRequiredLibrary(it, "wpilib_shared")
             nativeUtils.useRequiredLibrary(it, "apriltag_shared")
             nativeUtils.useRequiredLibrary(it, "opencv_shared")
         }
+
     }
+    // testSuites {
+    // OvertureLibTest {
+    //     sources.cpp {
+    //         source {
+    //             srcDir 'src/test/native/cpp'
+    //             include '**/*.cpp'
+    //         }
+    //     }
+
+    //     binaries.all {
+    //         cppCompiler.define('_USE_MATH_DEFINES')
+    //     }
+
+    //     nativeUtils.useRequiredLibrary(it, "cscore_shared")
+    //     nativeUtils.useRequiredLibrary(it, "cameraserver_shared")
+    //     nativeUtils.useRequiredLibrary(it, "wpilib_executable_shared")
+    //     nativeUtils.useRequiredLibrary(it, "googletest_static")
+    //     nativeUtils.useRequiredLibrary(it, "apriltag_shared")
+    //     nativeUtils.useRequiredLibrary(it, "opencv_shared")
+    // }
+    // }
 }
 
 spotless {
@@ -109,5 +114,5 @@ spotless {
 apply from: 'publish.gradle'
 
 wrapper {
-    gradleVersion '8.5'
+    gradleVersion '8.10.2'
 }

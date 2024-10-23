@@ -22,8 +22,8 @@ OverTalonFX::OverTalonFX(OverTalonFXConfig overConfig, std::string bus) : TalonF
 	// Configuracion en modo neutral
 	setNeutralMode(overConfig.NeutralMode);
 
-	ctreConfig.Voltage.PeakForwardVoltage = 12;
-	ctreConfig.Voltage.PeakReverseVoltage = -12;
+	ctreConfig.Voltage.PeakForwardVoltage = 12_V;
+	ctreConfig.Voltage.PeakReverseVoltage = -12_V;
 
 	// Configuracion modo inverso
 	if (overConfig.Inverted) {
@@ -34,22 +34,19 @@ OverTalonFX::OverTalonFX(OverTalonFXConfig overConfig, std::string bus) : TalonF
 
 	// Configuracion de rampas
 	ctreConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod =
-			overConfig.OpenLoopRampRate.value();
+			overConfig.OpenLoopRampRate;
 	ctreConfig.ClosedLoopRamps.VoltageClosedLoopRampPeriod =
-			overConfig.ClosedLoopRampRate.value();
+			overConfig.ClosedLoopRampRate;
 
 	// Configuracion de corriente
 	ctreConfig.CurrentLimits.StatorCurrentLimitEnable = true;
-	ctreConfig.CurrentLimits.StatorCurrentLimit =
-			overConfig.StatorCurrentLimit.value();
+	ctreConfig.CurrentLimits.StatorCurrentLimit = overConfig.StatorCurrentLimit;
 
 	ctreConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-	ctreConfig.CurrentLimits.SupplyCurrentLimit =
-			overConfig.CurrentLimit.value();
-	ctreConfig.CurrentLimits.SupplyCurrentThreshold =
-			overConfig.TriggerThreshold.value();
-	ctreConfig.CurrentLimits.SupplyTimeThreshold =
-			overConfig.TriggerThresholdTime.value();
+	ctreConfig.CurrentLimits.SupplyCurrentLowerLimit = overConfig.CurrentLimit;
+	ctreConfig.CurrentLimits.SupplyCurrentLimit = overConfig.TriggerThreshold;
+	ctreConfig.CurrentLimits.SupplyCurrentLowerTime =
+			overConfig.TriggerThresholdTime;
 
 	// Configuracion de PID
 	ctreConfig.Slot0.From(overConfig.PIDConfigs);
@@ -129,7 +126,7 @@ void OverTalonFX::setFusedCANCoder(int id) {
  * @param ramp The ramp rate in seconds
  */
 void OverTalonFX::setClosedLoopTorqueRamp(units::second_t ramp) {
-	ctreConfig.ClosedLoopRamps.TorqueClosedLoopRampPeriod = ramp.value();
+	ctreConfig.ClosedLoopRamps.TorqueClosedLoopRampPeriod = ramp;
 	GetConfigurator().Apply(ctreConfig);
 }
 
@@ -142,9 +139,9 @@ void OverTalonFX::setClosedLoopTorqueRamp(units::second_t ramp) {
  */
 void OverTalonFX::setTorqueCurrentLimit(units::ampere_t peakForward,
 		units::ampere_t peakBackward, units::ampere_t deadband) {
-	ctreConfig.TorqueCurrent.PeakForwardTorqueCurrent = peakForward.value();
-	ctreConfig.TorqueCurrent.PeakReverseTorqueCurrent = peakBackward.value();
-	ctreConfig.TorqueCurrent.TorqueNeutralDeadband = deadband.value();
+	ctreConfig.TorqueCurrent.PeakForwardTorqueCurrent = peakForward;
+	ctreConfig.TorqueCurrent.PeakReverseTorqueCurrent = peakBackward;
+	ctreConfig.TorqueCurrent.TorqueNeutralDeadband = deadband;
 	GetConfigurator().Apply(ctreConfig);
 }
 
@@ -177,9 +174,9 @@ const TalonFXConfiguration& OverTalonFX::getCTREConfig() {
 void OverTalonFX::configureMotionMagic(units::turns_per_second_t cruiseVelocity,
 		units::turns_per_second_squared_t acceleration,
 		units::turns_per_second_cubed_t jerk) {
-	ctreConfig.MotionMagic.MotionMagicCruiseVelocity = cruiseVelocity.value();
-	ctreConfig.MotionMagic.MotionMagicAcceleration = acceleration.value();
-	ctreConfig.MotionMagic.MotionMagicJerk = jerk.value();
+	ctreConfig.MotionMagic.MotionMagicCruiseVelocity = cruiseVelocity;
+	ctreConfig.MotionMagic.MotionMagicAcceleration = acceleration;
+	ctreConfig.MotionMagic.MotionMagicJerk = jerk;
 
 	GetConfigurator().Apply(ctreConfig);
 }

@@ -42,7 +42,9 @@ const frc::SwerveModuleState& SwerveModule::getState() {
  * @param state - State of the module
  */
 void SwerveModule::setState(frc::SwerveModuleState state) {
-	targetState = frc::SwerveModuleState::Optimize(state, getState().angle);
+	state.Optimize(latestState.angle);
+	targetState = state;
+
 	turnMotor.SetControl(
 			turnVoltage.WithPosition(targetState.angle.Degrees()).WithEnableFOC(
 					config.TurnMotorConfig.useFOC).WithSlot(0));
