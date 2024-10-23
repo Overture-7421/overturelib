@@ -35,7 +35,7 @@ public:
 protected:
 	void configureSwerveBase() {
 
-		robotConfig = RobotConfig::fromGUISettings();
+		pathplanner::RobotConfig robotConfig = RobotConfig::fromGUISettings();
 
 		configuredChassis = true;
 		AutoBuilder::configure(
@@ -47,7 +47,7 @@ protected:
 				PIDConstants(6.5, 0.0, 0.0),
 				PIDConstants(6.5, 0.0, 0.0)
 			),
-			robotConfig.value(),
+			robotConfig,
 			[]() {
 			auto alliance = frc::DriverStation::GetAlliance();
 			if (alliance) {
@@ -86,6 +86,5 @@ protected:
 
 private:
 	frc2::Subsystem* driveSubsystem;
-	std::optional<pathplanner::RobotConfig> robotConfig;
 };
 // spotless:on
