@@ -16,8 +16,11 @@ AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
 	poseEstimator =
 			std::make_unique < photon::PhotonPoseEstimator
 					> (*this->tagLayout, photon::PoseStrategy::MULTI_TAG_PNP_ON_COPROCESSOR, this->config.cameraToRobot);
+
+	poseLog = wpi::log::StructLogEntry < frc::Pose2d
+			> (log, "/swerve/pose/" + config.cameraName);
+
 }
-;
 
 //Check if distance between robot and tag is less than a certain value ;)
 bool AprilTags::checkTagDistance(const photon::PhotonPipelineResult &result) {

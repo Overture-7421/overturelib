@@ -212,7 +212,7 @@ void SwerveChassis::Periodic() {
 	getKinematics().DesaturateWheelSpeeds(&desiredStates, getMaxModuleSpeed());
 
 	updateOdometry();
-	getPoseLog().Append(latestPose);
+	poseLog.Append(latestPose);
 
 	setModuleStates (desiredStates);
 }
