@@ -43,6 +43,5 @@ private:
 	SwerveChassis *chassis;
 	Config config;
 	wpi::log::DataLog &log = frc::DataLogManager::GetLog();
-	wpi::log::StructLogEntry<frc::Pose2d> poseLog = wpi::log::StructLogEntry
-			< frc::Pose2d > (log, "/vision/pose");
+	wpi::log::StructLogEntry<frc::Pose2d> poseLog;
 };

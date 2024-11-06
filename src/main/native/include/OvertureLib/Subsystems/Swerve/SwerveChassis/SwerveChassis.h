@@ -70,6 +70,10 @@ private:
 	std::optional<SpeedsHelper*> speedsHelper;
 	bool acceptingVisionMeasurements = false;
 
+	wpi::log::DataLog &log = frc::DataLogManager::GetLog();
+	wpi::log::StructLogEntry<frc::Pose2d> poseLog = wpi::log::StructLogEntry
+			< frc::Pose2d > (log, "/swerve/pose");
+
 	bool characterizing = false;frc2::sysid::SysIdRoutine m_sysIdRoutine {
 		frc2::sysid::Config {std::nullopt, std::nullopt, std::nullopt, nullptr},
 		frc2::sysid::Mechanism {

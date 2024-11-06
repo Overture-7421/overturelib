@@ -72,8 +72,6 @@ protected:
 
 	virtual frc::SwerveDriveKinematics<4>& getKinematics() = 0;
 
-	virtual wpi::log::StructLogEntry<frc::Pose2d>& getPoseLog() = 0;
-	virtual wpi::log::StructLogEntry<frc::Pose2d>& getVisionPoseLog() = 0;
 	bool configuredChassis = false;
 
 	std::unique_ptr<frc::SwerveDrivePoseEstimator<4>> odometry;
