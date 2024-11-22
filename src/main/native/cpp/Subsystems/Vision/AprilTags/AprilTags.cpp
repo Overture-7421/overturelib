@@ -5,30 +5,30 @@
 #include "OvertureLib/Subsystems/Vision/AprilTags/AprilTags.h"
 #include <iostream>
 
-AprilTags::AprilTags(frc::AprilTagFieldLayout* tagLayout,
-	SwerveChassis* chassis, Config config) {
+AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
+		SwerveChassis *chassis, Config config) {
 	this->config = config;
 	this->tagLayout = tagLayout;
 	this->chassis = chassis;
 
 	camera = std::make_unique < photon::PhotonCamera
-	>(this->config.cameraName);
+			> (this->config.cameraName);
 	poseEstimator =
-		std::make_unique < photon::PhotonPoseEstimator
-		>(*this->tagLayout, photon::PoseStrategy::MULTI_TAG_PNP_ON_COPROCESSOR, this->config.cameraToRobot);
+			std::make_unique < photon::PhotonPoseEstimator
+					> (*this->tagLayout, photon::PoseStrategy::MULTI_TAG_PNP_ON_COPROCESSOR, this->config.cameraToRobot);
 
 	poseLog = wpi::log::StructLogEntry < frc::Pose2d
-	>(log, "/swerve/pose/" + config.cameraName);
+			> (log, "/swerve/pose/" + config.cameraName);
 
 }
 
 //Check if distance between robot and tag is less than a certain value ;)
-bool AprilTags::checkTagDistance(const photon::PhotonPipelineResult& result) {
+bool AprilTags::checkTagDistance(const photon::PhotonPipelineResult &result) {
 	if (result.GetTargets().size() > config.tagValidDistances.size()) {
 		return true;
 	}
 
-	if (result.GetBestTarget().GetBestCameraToTarget().Translation().Distance({
+	if (result.GetBestTarget().GetBestCameraToTarget().Translation().Distance( {
 			0_m, 0_m, 0_m })
 			< config.tagValidDistances.at(result.GetTargets().size())) {
 		return true;
@@ -38,14 +38,15 @@ bool AprilTags::checkTagDistance(const photon::PhotonPipelineResult& result) {
 }
 
 void AprilTags::addMeasurementToChassis(
-	const photon::PhotonPipelineResult& result) {
+		const photon::PhotonPipelineResult &result) {
 
 	std::optional < photon::EstimatedRobotPose > poseResult =
-		poseEstimator->Update(result);
+			poseEstimator->Update(result);
 
 	if (poseResult.has_value()) {
 		frc::Pose2d poseTo2d = poseResult.value().estimatedPose.ToPose2d();
-		chassis->addVisionMeasurement(poseTo2d, frc::Timer::GetFPGATimestamp() - poseResult.value().timestamp);
+		chassis->addVisionMeasurement(poseTo2d,
+				frc::Timer::GetFPGATimestamp() - poseResult.value().timestamp);
 		poseLog.Append(poseTo2d);
 	}
 }
@@ -66,7 +67,7 @@ void AprilTags::updateOdometry() {
 //Get PhotonPipeResult from PhotonVision
 std::optional<photon::PhotonPipelineResult> AprilTags::getCameraResult() {
 	std::vector < photon::PhotonPipelineResult > results =
-		camera->GetAllUnreadResults();
+			camera->GetAllUnreadResults();
 
 	if (results.empty()) {
 		return std::nullopt;
