@@ -2,102 +2,90 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-#include "OvertureLib/Gamepad/Gamepad.h"
+#include "OvertureLib/Gamepads/OverXboxController/OverXboxController.h"
 
-Gamepad::Gamepad(int port, double stickDeadzone, double triggerDeadzone) : frc2::CommandXboxController(
-		port) {
+OverXboxController::OverXboxController(int port, double stickDeadzone,
+		double triggerDeadzone) : frc2::CommandXboxController(port) {
 	this->stickDeadzone = stickDeadzone;
 	this->triggerDeadzone = triggerDeadzone;
 }
-;
 
-double Gamepad::getTwist() {
+double OverXboxController::getTwist() {
 	double right = GetRightTriggerAxis();
 	double left = GetLeftTriggerAxis();
 	double value = right - left;
 	return value;
 }
-;
 
-frc::Rotation2d Gamepad::getLeftStickDirection() {
+frc::Rotation2d OverXboxController::getLeftStickDirection() {
 	double x = Utils::ApplyAxisFilter(-GetLeftY(), stickDeadzone);
 	double y = Utils::ApplyAxisFilter(-GetLeftX(), stickDeadzone);
 
 	return frc::Rotation2d(x, y);
 }
-;
 
-frc::Rotation2d Gamepad::getRightStickDirection() {
+frc::Rotation2d OverXboxController::getRightStickDirection() {
 	double x = Utils::ApplyAxisFilter(-GetRightY(), stickDeadzone);
 	double y = Utils::ApplyAxisFilter(-GetRightX(), stickDeadzone);
 
 	return frc::Rotation2d(x, y);
 }
-;
 
-frc2::Trigger Gamepad::noBumpers() {
-	return !RightBumper() && !LeftBumper();
-}
-
-frc2::Trigger Gamepad::leftBumperOnly() {
+frc2::Trigger OverXboxController::leftBumperOnly() {
 	return LeftBumper() && !RightBumper();
 }
 
-frc2::Trigger Gamepad::rightBumperOnly() {
+frc2::Trigger OverXboxController::rightBumperOnly() {
 	return RightBumper() && !LeftBumper();
 }
 
-frc2::Trigger Gamepad::bothBumpers() {
+frc2::Trigger OverXboxController::bothBumpers() {
 	return RightBumper() && LeftBumper();
 }
 
-frc2::Trigger Gamepad::noTriggers() {
-	return !LeftTrigger(triggerDeadzone) && !RightTrigger(triggerDeadzone);
-}
-
-frc2::Trigger Gamepad::leftTriggerOnly() {
+frc2::Trigger OverXboxController::leftTriggerOnly() {
 	return LeftTrigger(triggerDeadzone) && !RightTrigger(triggerDeadzone);
 }
 
-frc2::Trigger Gamepad::rightTriggerOnly() {
+frc2::Trigger OverXboxController::rightTriggerOnly() {
 	return RightTrigger(triggerDeadzone) && !LeftTrigger(triggerDeadzone);
 }
 
-frc2::Trigger Gamepad::bothTriggers() {
+frc2::Trigger OverXboxController::bothTriggers() {
 	return LeftTrigger(triggerDeadzone) && RightTrigger(triggerDeadzone);
 }
 
-frc2::CommandPtr Gamepad::getRumbleCommand(double intensity) {
+frc2::CommandPtr OverXboxController::getRumbleCommand(double intensity) {
 	return frc2::cmd::RunOnce([this, intensity] {
 		SetRumble(frc::GenericHID::RumbleType::kBothRumble, intensity);
 	});
 }
 
-frc2::Trigger Gamepad::leftYTrigger(double triggerTreshold) {
+frc2::Trigger OverXboxController::leftYTrigger(double triggerTreshold) {
 	return frc2::Trigger([this, triggerTreshold] {
 		return std::abs(GetLeftY()) >= triggerTreshold;
 	});
 }
 
-frc2::Trigger Gamepad::leftXTrigger(double triggerTreshold) {
+frc2::Trigger OverXboxController::leftXTrigger(double triggerTreshold) {
 	return frc2::Trigger([this, triggerTreshold] {
 		return std::abs(GetLeftX()) >= triggerTreshold;
 	});
 }
 
-frc2::Trigger Gamepad::rightYTrigger(double triggerTreshold) {
+frc2::Trigger OverXboxController::rightYTrigger(double triggerTreshold) {
 	return frc2::Trigger([this, triggerTreshold] {
 		return std::abs(GetRightY()) >= triggerTreshold;
 	});
 }
 
-frc2::Trigger Gamepad::rightXTrigger(double triggerTreshold) {
+frc2::Trigger OverXboxController::rightXTrigger(double triggerTreshold) {
 	return frc2::Trigger([this, triggerTreshold] {
 		return std::abs(GetRightX()) >= triggerTreshold;
 	});
 }
 
-frc2::Trigger Gamepad::rightStick(double triggerTreshold) {
+frc2::Trigger OverXboxController::rightStick(double triggerTreshold) {
 	return frc2::Trigger(
 			[this, triggerTreshold] {
 				return std::abs(GetRightX()) >= triggerTreshold
@@ -105,7 +93,7 @@ frc2::Trigger Gamepad::rightStick(double triggerTreshold) {
 			});
 }
 
-frc2::Trigger Gamepad::leftStick(double triggerTreshold) {
+frc2::Trigger OverXboxController::leftStick(double triggerTreshold) {
 	return frc2::Trigger(
 			[this, triggerTreshold] {
 				return std::abs(GetLeftX()) >= triggerTreshold
