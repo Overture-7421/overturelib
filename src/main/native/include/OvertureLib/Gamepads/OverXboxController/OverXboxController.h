@@ -11,18 +11,16 @@
 
 #pragma once
 
-class Gamepad: public frc2::CommandXboxController {
+class OverXboxController: public frc2::CommandXboxController {
 public:
-	Gamepad(int port, double stickDeadzone, double triggerDeadzone);
+	OverXboxController(int port, double stickDeadzone, double triggerDeadzone);
 
 	double getTwist();
 	frc::Rotation2d getLeftStickDirection();
 	frc::Rotation2d getRightStickDirection();
-	frc2::Trigger noBumpers();
 	frc2::Trigger leftBumperOnly();
 	frc2::Trigger rightBumperOnly();
 	frc2::Trigger bothBumpers();
-	frc2::Trigger noTriggers();
 	frc2::Trigger leftTriggerOnly();
 	frc2::Trigger rightTriggerOnly();
 	frc2::Trigger bothTriggers();
