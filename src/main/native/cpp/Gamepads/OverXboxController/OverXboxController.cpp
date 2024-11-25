@@ -11,9 +11,10 @@ OverXboxController::OverXboxController(int port, double stickDeadzone,
 }
 
 double OverXboxController::getTwist() {
+	// Takes into account counter-clockwise twist as positive and clockwise twist as negative
 	double right = GetRightTriggerAxis();
 	double left = GetLeftTriggerAxis();
-	double value = right - left;
+	double value = left - right;
 	return value;
 }
 
