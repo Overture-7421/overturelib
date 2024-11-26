@@ -4,6 +4,6 @@
 
 struct CanCoderConfig {
 	int CanCoderId = -1;
-	bool EncoderInverted = false;
+	SensorDirectionValue SensorDirection = SensorDirectionValue::CounterClockwise_Positive;
 	units::turn_t Offset = 0_deg;
 };
