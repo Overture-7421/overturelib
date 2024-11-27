@@ -5,7 +5,7 @@
 #include "OvertureLib/Subsystems/Swerve/SwerveModule/SwerveModule.h"
 #include <iostream>
 
-SwerveModule::SwerveModule(ModuleConfig config) : config(config), driveMotor(
+SwerveModule::SwerveModule(SwerveModuleConfig config) : config(config), driveMotor(
 		config.DriveMotorConfig, config.CanBus), turnMotor(
 		config.TurnMotorConfig, config.CanBus), canCoder(config.EncoderConfig,
 		config.CanBus), feedForward(config.FeedForward) {

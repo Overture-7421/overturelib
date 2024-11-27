@@ -17,7 +17,7 @@
 
 class SwerveModule: public frc2::SubsystemBase {
 public:
-	SwerveModule(ModuleConfig config);
+	SwerveModule(SwerveModuleConfig config);
 
 	const frc::SwerveModuleState& getState();
 	void setState(frc::SwerveModuleState state);
@@ -30,7 +30,7 @@ public:
 	void Periodic() override;
 
 private:
-	ModuleConfig config;
+	SwerveModuleConfig config;
 	//Declaration of motor controllers
 	OverTalonFX driveMotor;
 	OverTalonFX turnMotor;
