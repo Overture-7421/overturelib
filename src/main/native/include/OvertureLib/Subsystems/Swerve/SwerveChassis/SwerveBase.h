@@ -6,7 +6,6 @@
 #include <frc/kinematics/SwerveDriveKinematics.h>
 #include <frc/DriverStation.h>
 #include <frc/estimator/SwerveDrivePoseEstimator.h>
-#include <wpi/DataLog.h>
 #include <units/length.h>
 
 #include <pathplanner/lib/auto/AutoBuilder.h>

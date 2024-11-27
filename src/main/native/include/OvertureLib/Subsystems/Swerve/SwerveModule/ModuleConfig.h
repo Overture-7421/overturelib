@@ -36,8 +36,8 @@ static OverTalonFXConfig TurnInit() {
 	return config;
 }
 
-struct ModuleConfig {
-	ModuleConfig(frc::SimpleMotorFeedforward<units::meters> FeedForward) : FeedForward(
+struct SwerveModuleConfig {
+	SwerveModuleConfig(frc::SimpleMotorFeedforward<units::meters> FeedForward) : FeedForward(
 			FeedForward) {
 	}
 
