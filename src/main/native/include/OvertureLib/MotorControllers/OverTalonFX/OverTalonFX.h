@@ -22,7 +22,6 @@ class OverTalonFX: public TalonFX {
 public:
 	OverTalonFX(OverTalonFXConfig overConfig, std::string bus);
 
-	void setNeutralMode(ControllerNeutralMode neutralMode);
 	void setSensorToMechanism(double gearRatio);
 	void setRotorToSensorRatio(double gearRatio);
 	void setRemoteCANCoder(int id);

@@ -14,7 +14,7 @@ static OverTalonFXConfig DriveInit() {
 	config.NeutralMode = ControllerNeutralMode::Brake;
 
 	config.CurrentLimit = 90_A;
-	config.StatorCurrentLimit = 110_A;
+	config.StatorCurrentLimit = 120_A;
 	config.TriggerThreshold = 0_A;
 	config.TriggerThresholdTime = 0.5_s;
 	config.ClosedLoopRampRate = 0_s;
