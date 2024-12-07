@@ -107,6 +107,12 @@ jobs:
         with:
           name: ${{ matrix.artifact-name }}
           path: build/allOutputs
+    
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OvertureLib.json
+          path: build/repos/
 
   combine:
     name: Combine
@@ -136,12 +142,6 @@ jobs:
         with:
           name: OvertureLib-${{ github.event.inputs.version }}
           path: ~/releases/
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: OvertureLib.json
-          path: build/repos/
 
   upload:
     name: Upload to GitHub
