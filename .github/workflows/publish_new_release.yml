@@ -5,7 +5,7 @@ on:
     inputs:
       version:
         type: string
-        description: The full version string, i.e. 2024.0.0-alpha-1 or 2024.1.1
+        description: The full version string, i.e. 2024.0.0-beta-1 or 2024.1.1
         required: true
       prerelease:
         type: boolean
@@ -137,6 +137,12 @@ jobs:
           name: OvertureLib-${{ github.event.inputs.version }}
           path: ~/releases/
 
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OvertureLib.json
+          path: build/repos/
+
   upload:
     name: Upload to GitHub
     needs: [combine]
@@ -160,15 +166,19 @@ jobs:
       - name: Copy artifacts
         run: cp -r ~/releases/maven/development/com overture-7421.github.io/overturelib/repo/
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: OvertureLib.json
+          path: /
       - name: Update json
         if : ${{ github.event.inputs.prerelease == 'false' }}
         run: |
-          cp -r ~/releases/maven/development/com/overture/lib/OvertureLib.json overture-7421.github.io/overturelib/repo/com/overture/OvertureLib.json
+          cp -r /OvertureLib.json overture-7421.github.io/overturelib/OvertureLib.json
 
       - name: Update json beta
         if : ${{ github.event.inputs.prerelease == 'true' }}
         run: |
-          cp -r ~/releases/maven/development/com/overture/lib/OvertureLib.json overture-7421.github.io/overturelib/repo/com/overture/OvertureLib-beta.json
+          cp -r /OvertureLib.json overture-7421.github.io/overturelib/OvertureLib-beta.json
 
       - name: Commit
         run: |
