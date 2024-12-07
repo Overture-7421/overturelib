@@ -81,7 +81,7 @@ jobs:
         run: git fetch --prune --unshallow
       - uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: 'zulu'
           java-version: 17
           architecture: ${{ matrix.architecture }}
 
@@ -125,7 +125,7 @@ jobs:
         run: rsync -a --delete combiner/products/build/allOutputs/*/* combiner/products/build/allOutputs/
       - uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: 'zulu'
           java-version: 17
 
       - name: Combine
@@ -161,8 +161,14 @@ jobs:
         run: cp -r ~/releases/maven/development/com overture-7421.github.io/overturelib/repo/
 
       - name: Update json
+        if : ${{ github.event.inputs.prerelease == 'false' }}
         run: |
-          sed -i 's/"version"\: \"[0-9]*\.[0-9]*\.[0-9]*\"/"version": "${{ github.event.inputs.version }}"/g' overture-7421.github.io/overturelib/OvertureLib.json
+          cp -r ~/releases/maven/development/com/overture/lib/OvertureLib.json overture-7421.github.io/overturelib/repo/com/overture/OvertureLib.json
+
+      - name: Update json beta
+        if : ${{ github.event.inputs.prerelease == 'true' }}
+        run: |
+          cp -r ~/releases/maven/development/com/overture/lib/OvertureLib.json overture-7421.github.io/overturelib/repo/com/overture/OvertureLib-beta.json
 
       - name: Commit
         run: |
@@ -188,7 +194,7 @@ jobs:
           name: OvertureLib-${{ github.event.inputs.version }}
 
       - name: Zip artifacts
-        run: zip -r OvertureLib-${{ github.event.inputs.version }}.zip maven/development/com/overture/lib/OvertureLib-cpp
+        run: zip -r OvertureLib-${{ github.event.inputs.version }}.zip maven/development/com/overture/lib
         
       - name: Create Release
         if: github.event.inputs.prerelease == 'false'
