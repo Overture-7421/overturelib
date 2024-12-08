@@ -27,7 +27,7 @@ jobs:
             artifact-name: Linux
             build-options: ""
     name: "Build - ${{ matrix.artifact-name }}"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     container: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v4
@@ -81,7 +81,7 @@ jobs:
         run: git fetch --prune --unshallow
       - uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: 17
           architecture: ${{ matrix.architecture }}
 
@@ -117,7 +117,7 @@ jobs:
   combine:
     name: Combine
     needs: [build-docker, build-host]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -131,7 +131,7 @@ jobs:
         run: rsync -a --delete combiner/products/build/allOutputs/*/* combiner/products/build/allOutputs/
       - uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: 17
 
       - name: Combine
@@ -146,7 +146,7 @@ jobs:
   upload:
     name: Upload to GitHub
     needs: [combine]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Clone Pages
         run: |
@@ -196,7 +196,7 @@ jobs:
   publish-relase:
     name: Publish Release
     needs: [upload]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
