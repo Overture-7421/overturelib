@@ -1,5 +1,5 @@
 {
-    "fileName": "OvertureLib.json",
+    "fileName": "${fileName}",
     "name": "OvertureLib",
     "version": "${version}",
     "frcYear": "2025",
@@ -7,7 +7,7 @@
     "mavenUrls": [
         "https://overture-7421.github.io/overturelib/repo"
     ],
-    "jsonUrl": "https://overture-7421.github.io/overturelib/OvertureLib.json",
+    "jsonUrl": "https://overture-7421.github.io/overturelib/${fileName}",
     "javaDependencies": [
 		{
             "groupId": "${groupId}",

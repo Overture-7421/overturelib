@@ -1,11 +1,14 @@
 import org.apache.tools.ant.filters.FixCrLfFilter
 import org.apache.tools.ant.filters.ReplaceTokens
 
+
 apply plugin: 'maven-publish'
 
 ext.licenseFile = files("$rootDir/LICENSE.txt")
 
 def templateVendorFile = "OvertureLib.json"
+
+def outputVendorFile = "OutputFile.json"
 
 def pubVersion = '0.0.0'
 
@@ -125,9 +128,11 @@ task vendordepJson() {
     copy {
         from templateVendorFile
         into "$buildDir/repos/"
-        expand(version: pubVersion,
+        expand(fileName: outputVendorFile,
+		version: pubVersion,
         groupId: artifactGroupId,
         artifactId: baseArtifactId)
+		rename 'OvertureLib.json', outputVendorFile
     }
 }
 
