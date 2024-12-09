@@ -189,17 +189,17 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: OvertureLib.json
-          path: ~/repo/
+          path: ~/
 
       - name: Update json
         if : ${{ github.event.inputs.prerelease == 'false' }}
         run: |
-          cp -r ~/repo/ overture-7421.github.io/overturelib/
+          cp -r ~/ overture-7421.github.io/overturelib/
 
       - name: Update json beta
         if : ${{ github.event.inputs.prerelease == 'true' }}
         run: |
-          cp -r ~/repo/ overture-7421.github.io/overturelib/
+          cp -r ~/ overture-7421.github.io/overturelib/
 
       - name: Commit
         run: |
