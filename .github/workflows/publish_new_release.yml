@@ -151,6 +151,9 @@ jobs:
         run: sed -i "s/OutputFile.json/OvertureLib.json/g" publish.gradle
         working-directory: ./
 
+      - name: Create Output File
+        run: ./gradlew vendordepJson
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
