@@ -151,6 +151,9 @@ jobs:
         run: sed -i "s/OutputFile.json/OvertureLib.json/g" publish.gradle
         working-directory: ./
 
+      - name: Set version
+        run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
+
       - name: Create Output File
         run: ./gradlew vendordepJson
 
@@ -186,16 +189,17 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: OvertureLib.json
-          path: /
+          path: ~/repo/
+
       - name: Update json
         if : ${{ github.event.inputs.prerelease == 'false' }}
         run: |
-          cp -r /OvertureLib.json overture-7421.github.io/overturelib/OvertureLib.json
+          cp -r ~/repo/OvertureLib.json overture-7421.github.io/overturelib/OvertureLib.json
 
       - name: Update json beta
         if : ${{ github.event.inputs.prerelease == 'true' }}
         run: |
-          cp -r /OvertureLib.json overture-7421.github.io/overturelib/OvertureLib-beta.json
+          cp -r ~/repo/OvertureLib.json overture-7421.github.io/overturelib/OvertureLib-beta.json
 
       - name: Commit
         run: |
