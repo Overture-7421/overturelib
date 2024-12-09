@@ -140,7 +140,7 @@ task vendordepJsonZip(type: Zip) {
     destinationDirectory = outputsFolder
     archiveBaseName = "vendordepJson"
 
-    from("$buildDir/repos/$templateVendorFile") {
+    from("$buildDir/repos/$outputVendorFile") {
         into '/'
     }
     dependsOn vendordepJson
