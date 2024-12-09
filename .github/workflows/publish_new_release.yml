@@ -194,12 +194,12 @@ jobs:
       - name: Update json
         if : ${{ github.event.inputs.prerelease == 'false' }}
         run: |
-          cp -r ~/repo/OvertureLib.json overture-7421.github.io/overturelib/OvertureLib.json
+          cp -r ~/repo/ overture-7421.github.io/overturelib/OvertureLib.json
 
       - name: Update json beta
         if : ${{ github.event.inputs.prerelease == 'true' }}
         run: |
-          cp -r ~/repo/OvertureLib.json overture-7421.github.io/overturelib/OvertureLib-beta.json
+          cp -r ~/repo/ overture-7421.github.io/overturelib/OvertureLib-beta.json
 
       - name: Commit
         run: |
