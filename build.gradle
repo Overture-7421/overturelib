@@ -152,6 +152,17 @@ spotless {
         indentWithSpaces(4)
         endWithNewline()
     }
+    java {
+        target fileTree('.') {
+            include '**/*.java'
+            exclude '**/build/**', '**/build-*/**'
+        }
+        toggleOffOn()
+        googleJavaFormat()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }
 
 apply from: 'publish.gradle'

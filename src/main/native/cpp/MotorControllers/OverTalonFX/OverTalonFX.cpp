@@ -109,8 +109,8 @@ void OverTalonFX::setClosedLoopTorqueRamp(units::second_t ramp) {
 /**
  * @brief Sets the torque current limit of the TalonFX
  *
- * @param peakForwardVoltage The peak forward voltage of the TalonFX
- * @param peakReverseVoltage The peak reverse voltage of the TalonFX
+ * @param peakForwardVoltage The peak forward current of the TalonFX
+ * @param peakReverseVoltage The peak reverse current of the TalonFX
  * @param deadband           The deadband of the TalonFX
  */
 void OverTalonFX::setTorqueCurrentLimit(units::ampere_t peakForward,
