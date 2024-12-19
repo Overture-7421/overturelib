@@ -1,6 +1,14 @@
+import org.apache.tools.ant.filters.FixCrLfFilter
+import org.apache.tools.ant.filters.ReplaceTokens
+
+
 apply plugin: 'maven-publish'
 
 ext.licenseFile = files("$rootDir/LICENSE.txt")
+
+def templateVendorFile = "OvertureLib.json"
+
+def outputVendorFile = "OutputFile.json"
 
 def pubVersion = '0.0.0'
 
@@ -80,6 +88,81 @@ addTaskToCopyAllOutputs(cppHeadersZip)
 build.dependsOn cppSourceZip
 addTaskToCopyAllOutputs(cppSourceZip)
 
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+task outputJar(type: Jar, dependsOn: classes) {
+    archiveBaseName = javaBaseName
+    destinationDirectory = outputsFolder
+    from sourceSets.main.output
+}
+
+task outputSourcesJar(type: Jar, dependsOn: classes) {
+    archiveBaseName = javaBaseName
+    destinationDirectory = outputsFolder
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task outputJavadocJar(type: Jar, dependsOn: javadoc) {
+    archiveBaseName = javaBaseName
+    destinationDirectory = outputsFolder
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+// Apply template variables from the vendordep file.
+// Replaces ${VARIABLE} with VARIABLE: value in expand()
+task vendordepJson() {
+    description = 'Builds the vendordep json file.'
+    group = 'Build'
+    outputs.file("$buildDir/repos/$templateVendorFile")
+
+    copy {
+        from templateVendorFile
+        into "$buildDir/repos/"
+        expand(fileName: outputVendorFile,
+		version: pubVersion,
+        groupId: artifactGroupId,
+        artifactId: baseArtifactId)
+		rename 'OvertureLib.json', outputVendorFile
+    }
+}
+
+task vendordepJsonZip(type: Zip) {
+    destinationDirectory = outputsFolder
+    archiveBaseName = "vendordepJson"
+
+    from("$buildDir/repos/$outputVendorFile") {
+        into '/'
+    }
+    dependsOn vendordepJson
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+    archives outputJar
+    archives outputSourcesJar
+    archives outputJavadocJar
+}
+
+addTaskToCopyAllOutputs(outputSourcesJar)
+addTaskToCopyAllOutputs(outputJavadocJar)
+addTaskToCopyAllOutputs(outputJar)
+addTaskToCopyAllOutputs(vendordepJsonZip)
+
+build.dependsOn outputSourcesJar
+build.dependsOn outputJavadocJar
+build.dependsOn outputJar
+build.dependsOn vendordepJsonZip
 
 libraryBuild.dependsOn build
 
@@ -113,6 +196,24 @@ model {
                 artifact cppSourceZip
 
                 artifactId = "${baseArtifactId}-cpp"
+                groupId artifactGroupId
+                version pubVersion
+            }
+
+            java(MavenPublication) {
+                artifact jar
+                artifact sourcesJar
+                artifact javadocJar
+
+                artifactId = "${baseArtifactId}-java"
+                groupId artifactGroupId
+                version pubVersion
+            }
+
+            vendordep(MavenPublication) {
+                artifact vendordepJsonZip
+
+                artifactId = "${baseArtifactId}-vendordep"
                 groupId artifactGroupId
                 version pubVersion
             }

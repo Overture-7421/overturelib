@@ -5,7 +5,7 @@ on:
     inputs:
       version:
         type: string
-        description: The full version string, i.e. 2024.0.0-alpha-1 or 2024.1.1
+        description: The full version string, i.e. 2024.0.0-beta-1 or 2024.1.1
         required: true
       prerelease:
         type: boolean
@@ -27,7 +27,7 @@ jobs:
             artifact-name: Linux
             build-options: ""
     name: "Build - ${{ matrix.artifact-name }}"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     container: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v4
@@ -111,7 +111,7 @@ jobs:
   combine:
     name: Combine
     needs: [build-docker, build-host]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -137,10 +137,36 @@ jobs:
           name: OvertureLib-${{ github.event.inputs.version }}
           path: ~/releases/
 
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set Filename
+        if : ${{ github.event.inputs.prerelease == 'true' }}
+        run: sed -i "s/OutputFile.json/OvertureLib-Beta.json/g" publish.gradle
+        working-directory: ./
+
+      - name: Set Filename
+        if : ${{ github.event.inputs.prerelease == 'false' }}
+        run: sed -i "s/OutputFile.json/OvertureLib.json/g" publish.gradle
+        working-directory: ./
+
+      - name: Set version
+        run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
+
+      - name: Create Output File
+        run: ./gradlew vendordepJson
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OvertureLib.json
+          path: build/repos/
+
   upload:
     name: Upload to GitHub
     needs: [combine]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Clone Pages
         run: |
@@ -160,9 +186,20 @@ jobs:
       - name: Copy artifacts
         run: cp -r ~/releases/maven/development/com overture-7421.github.io/overturelib/repo/
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: OvertureLib.json
+          path: ~/overturelib
+
       - name: Update json
+        if : ${{ github.event.inputs.prerelease == 'false' }}
         run: |
-          sed -i 's/"version"\: \"[0-9]*\.[0-9]*\.[0-9]*\"/"version": "${{ github.event.inputs.version }}"/g' overture-7421.github.io/overturelib/OvertureLib.json
+          cp -r ~/overturelib overture-7421.github.io/
+
+      - name: Update json beta
+        if : ${{ github.event.inputs.prerelease == 'true' }}
+        run: |
+          cp -r ~/overturelib overture-7421.github.io/
 
       - name: Commit
         run: |
@@ -180,7 +217,7 @@ jobs:
   publish-relase:
     name: Publish Release
     needs: [upload]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -188,7 +225,7 @@ jobs:
           name: OvertureLib-${{ github.event.inputs.version }}
 
       - name: Zip artifacts
-        run: zip -r OvertureLib-${{ github.event.inputs.version }}.zip maven/development/com/overture/lib/OvertureLib-cpp
+        run: zip -r OvertureLib-${{ github.event.inputs.version }}.zip maven/development/com/overture/lib
         
       - name: Create Release
         if: github.event.inputs.prerelease == 'false'

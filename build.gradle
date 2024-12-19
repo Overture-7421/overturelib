@@ -3,11 +3,14 @@ plugins {
     id 'java'
     // id 'google-test'
     id 'com.diffplug.spotless' version '6.11.0'
-    id 'edu.wpi.first.wpilib.repositories.WPILibRepositoriesPlugin' version '2020.2'
-    id 'edu.wpi.first.NativeUtils' version '2025.3.0'
+    id 'edu.wpi.first.wpilib.repositories.WPILibRepositoriesPlugin' version '2025.0'
+    id 'edu.wpi.first.NativeUtils' version '2025.9.0'
     id 'edu.wpi.first.GradleJni' version '1.1.0'
     id 'edu.wpi.first.GradleVsCode' version '2.1.0'
 }
+
+// WPILib Version
+ext.wpilibVersion = "2025.+"
 
 repositories {
     mavenCentral()
@@ -19,6 +22,12 @@ if (project.hasProperty('releaseMode')) {
     wpilibRepositories.addAllDevelopmentRepositories(project)
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+var javaVersion = "17"
+
 // Apply C++ configuration
 apply from: 'config.gradle'
 
@@ -27,6 +36,40 @@ nativeUtils {
     exportsConfigs {
         // Main library is just default empty. This will export everything
         OvertureLib {
+        }
+    }
+}
+
+// Apply Java configuration
+dependencies {
+    implementation "edu.wpi.first.cscore:cscore-java:$wpilibVersion"
+    implementation "edu.wpi.first.cameraserver:cameraserver-java:$wpilibVersion"
+    implementation "edu.wpi.first.ntcore:ntcore-java:$wpilibVersion"
+    implementation "edu.wpi.first.wpilibj:wpilibj-java:$wpilibVersion"
+    implementation "edu.wpi.first.wpiutil:wpiutil-java:$wpilibVersion"
+    implementation "edu.wpi.first.wpimath:wpimath-java:$wpilibVersion"
+    implementation "edu.wpi.first.wpiunits:wpiunits-java:$wpilibVersion"
+    implementation "edu.wpi.first.hal:hal-java:$wpilibVersion"
+    implementation "org.ejml:ejml-simple:0.43.1"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:2.15.2"
+    implementation "com.fasterxml.jackson.core:jackson-core:2.15.2"
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.15.2"
+    implementation 'edu.wpi.first.thirdparty.frc2024.opencv:opencv-java:4.8.0-4'
+    implementation "com.ctre.phoenix6:wpiapi-java:25.0.0-beta-3"
+}
+
+// Setup Javadocs to link back to WPILib docs
+javadoc {
+    options {
+        links "https://docs.oracle.com/en/java/javase/$javaVersion/docs/api/", 'https://github.wpilib.org/allwpilib/docs/release/java/'
+    }
+}
+
+// Set up exports properly
+nativeUtils {
+    exportsConfigs {
+        // Main library is just default empty. This will export everything
+        Vendor {
         }
     }
 }
@@ -109,10 +152,21 @@ spotless {
         indentWithSpaces(4)
         endWithNewline()
     }
+    java {
+        target fileTree('.') {
+            include '**/*.java'
+            exclude '**/build/**', '**/build-*/**'
+        }
+        toggleOffOn()
+        googleJavaFormat()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }
 
 apply from: 'publish.gradle'
 
 wrapper {
-    gradleVersion '8.10.2'
+    gradleVersion '8.11'
 }
