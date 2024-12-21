@@ -33,8 +33,6 @@ public:
 	frc2::CommandPtr getRumbleCommand(double intensity);
 
 private:
-	frc::Rotation2d storedLeftStickDirection;
-	frc::Rotation2d storedRightStickDirection;
 	double stickDeadzone;
 	double triggerDeadzone;
 };

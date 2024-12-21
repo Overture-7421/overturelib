@@ -47,7 +47,7 @@ public class OverTalonFXConfig {
   public Time OpenLoopRampRate;
 
   /** Constructor for OverTalonFXConfig */
-  OverTalonFXConfig() {
+  public OverTalonFXConfig() {
     MotorId = -1;
     NeutralMode = NeutralModeValue.Brake;
     Inverted = InvertedValue.CounterClockwise_Positive;
@@ -67,8 +67,9 @@ public class OverTalonFXConfig {
    * Sets the motor id
    *
    * @param MotorId The motor id
+   * @return OverTalonFXConfig
    */
-  OverTalonFXConfig withMotorId(int MotorId) {
+  public OverTalonFXConfig withMotorId(int MotorId) {
     this.MotorId = MotorId;
     return this;
   }
@@ -77,8 +78,9 @@ public class OverTalonFXConfig {
    * Sets the neutral mode
    *
    * @param NeutralMode The neutral mode
+   * @return OverTalonFXConfig
    */
-  OverTalonFXConfig withNeutralMode(NeutralModeValue NeutralMode) {
+  public OverTalonFXConfig withNeutralMode(NeutralModeValue NeutralMode) {
     this.NeutralMode = NeutralMode;
     return this;
   }
@@ -87,8 +89,9 @@ public class OverTalonFXConfig {
    * Sets the inverted mode
    *
    * @param Inverted The inverted mode
+   * @return OverTalonFXConfig
    */
-  OverTalonFXConfig withInverted(InvertedValue Inverted) {
+  public OverTalonFXConfig withInverted(InvertedValue Inverted) {
     this.Inverted = Inverted;
     return this;
   }
@@ -97,8 +100,9 @@ public class OverTalonFXConfig {
    * Sets the use FOC mode
    *
    * @param useFOC The use FOC mode
+   * @return OverTalonFXConfig
    */
-  OverTalonFXConfig withUseFOC(boolean useFOC) {
+  public OverTalonFXConfig withUseFOC(boolean useFOC) {
     this.useFOC = useFOC;
     return this;
   }
@@ -107,8 +111,9 @@ public class OverTalonFXConfig {
    * Sets the PID configs
    *
    * @param PIDConfigs The PID configs
+   * @return OverTalonFXConfig
    */
-  OverTalonFXConfig withPIDConfigs(SlotConfigs PIDConfigs) {
+  public OverTalonFXConfig withPIDConfigs(SlotConfigs PIDConfigs) {
     this.PIDConfigs = PIDConfigs;
     return this;
   }
@@ -117,8 +122,9 @@ public class OverTalonFXConfig {
    * Sets the current limit
    *
    * @param CurrentLimit The current limit in amps
+   * @return OverTalonFXConfig
    */
-  OverTalonFXConfig withCurrentLimit(double CurrentLimit) {
+  public OverTalonFXConfig withCurrentLimit(double CurrentLimit) {
     this.CurrentLimit = Amps.of(CurrentLimit);
     return this;
   }
@@ -127,8 +133,9 @@ public class OverTalonFXConfig {
    * Sets the stator current limit
    *
    * @param StatorCurrentLimit The stator current limit in amps
+   * @return OverTalonFXConfig
    */
-  OverTalonFXConfig withStatorCurrentLimit(double StatorCurrentLimit) {
+  public OverTalonFXConfig withStatorCurrentLimit(double StatorCurrentLimit) {
     this.StatorCurrentLimit = Amps.of(StatorCurrentLimit);
     return this;
   }
@@ -137,8 +144,9 @@ public class OverTalonFXConfig {
    * Sets the trigger threshold
    *
    * @param TriggerThreshold The trigger threshold in amps
+   * @return OverTalonFXConfig
    */
-  OverTalonFXConfig withTriggerThreshold(double TriggerThreshold) {
+  public OverTalonFXConfig withTriggerThreshold(double TriggerThreshold) {
     this.TriggerThreshold = Amps.of(TriggerThreshold);
     return this;
   }
@@ -147,8 +155,9 @@ public class OverTalonFXConfig {
    * Sets the trigger threshold time
    *
    * @param TriggerThresholdTime The trigger threshold time in seconds
+   * @return OverTalonFXConfig
    */
-  OverTalonFXConfig withTriggerThresholdTime(double TriggerThresholdTime) {
+  public OverTalonFXConfig withTriggerThresholdTime(double TriggerThresholdTime) {
     this.TriggerThresholdTime = Seconds.of(TriggerThresholdTime);
     return this;
   }
@@ -157,8 +166,9 @@ public class OverTalonFXConfig {
    * Sets the closed loop ramp rate
    *
    * @param ClosedLoopRampRate The closed loop ramp rate in seconds
+   * @return OverTalonFXConfig
    */
-  OverTalonFXConfig withClosedLoopRampRate(double ClosedLoopRampRate) {
+  public OverTalonFXConfig withClosedLoopRampRate(double ClosedLoopRampRate) {
     this.ClosedLoopRampRate = Seconds.of(ClosedLoopRampRate);
     return this;
   }
@@ -167,8 +177,9 @@ public class OverTalonFXConfig {
    * Sets the open loop ramp rate
    *
    * @param OpenLoopRampRate The open loop ramp rate in seconds
+   * @return OverTalonFXConfig
    */
-  OverTalonFXConfig withOpenLoopRampRate(double OpenLoopRampRate) {
+  public OverTalonFXConfig withOpenLoopRampRate(double OpenLoopRampRate) {
     this.OpenLoopRampRate = Seconds.of(OpenLoopRampRate);
     return this;
   }

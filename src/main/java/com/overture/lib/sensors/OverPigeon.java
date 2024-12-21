@@ -22,7 +22,5 @@ public class OverPigeon extends Pigeon2 {
    */
   public OverPigeon(int deviceNumber) {
     super(deviceNumber);
-
-	// TODO: Implement Simulation for OverPigeon
   }
 }

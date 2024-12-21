@@ -129,10 +129,10 @@ task vendordepJson() {
         from templateVendorFile
         into "$buildDir/repos/"
         expand(fileName: outputVendorFile,
-		version: pubVersion,
+        version: pubVersion,
         groupId: artifactGroupId,
         artifactId: baseArtifactId)
-		rename 'OvertureLib.json', outputVendorFile
+        rename 'OvertureLib.json', outputVendorFile
     }
 }
 

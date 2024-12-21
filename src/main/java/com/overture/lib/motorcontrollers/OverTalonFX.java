@@ -51,9 +51,6 @@ public class OverTalonFX extends TalonFX {
     this.ctreConfig.Slot0.from(overConfig.PIDConfigs);
 
     this.getConfigurator().apply(this.ctreConfig);
-
-	// TODO: Implement Simulation for OverTalonFX
-
   }
 
   /**

@@ -26,8 +26,6 @@ public class OverCANCoder extends CANcoder {
         .withAbsoluteSensorDiscontinuityPoint(0.5);
 
     this.getConfigurator().apply(this.ctreConfig);
-
-	// TODO: Implement Simulation for OverCANCoder
   }
 
   /**
