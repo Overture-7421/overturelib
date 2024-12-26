@@ -51,6 +51,7 @@ public:
 	frc2::CommandPtr SysIdDinamic(frc2::sysid::Direction direction);
 	void sysIdVoltage(units::volt_t voltage);
 
+	void simMode();
 	void shuffleboardPeriodic();
 	void Periodic() override;
 

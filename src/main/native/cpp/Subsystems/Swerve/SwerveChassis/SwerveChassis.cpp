@@ -150,14 +150,14 @@ void SwerveChassis::updateOdometry() {
 	lastSpeeds = currentSpeeds;
 }
 
-void SwerveChassis::shuffleboardPeriodic() {
-	frc::SmartDashboard::PutNumber("Odometry/LinearX",
-			desiredSpeeds.vx.value());
-	frc::SmartDashboard::PutNumber("Odometry/LinearY",
-			desiredSpeeds.vy.value());
-	frc::SmartDashboard::PutNumber("Odometry/Angular",
-			desiredSpeeds.omega.value());
+void SwerveChassis::simMode() {
+	getFrontLeftModule().simMode();
+	getFrontRightModule().simMode();
+	getBackRightModule().simMode();
+	getBackLeftModule().simMode();
+}
 
+void SwerveChassis::shuffleboardPeriodic() {
 	frc::SmartDashboard::PutNumber("Odometry/AccelX", currentAccels.ax.value());
 	frc::SmartDashboard::PutNumber("Odometry/AccelY", currentAccels.ay.value());
 	frc::SmartDashboard::PutNumber("Odometry/AccelOmega",

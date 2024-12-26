@@ -21,7 +21,7 @@ using namespace ctre::phoenix6::controls;
 class OverTalonFX: public TalonFX {
 public:
 	OverTalonFX(OverTalonFXConfig overConfig, std::string bus);
-	
+
 	void setSensorToMechanism(double gearRatio);
 	void setRotorToSensorRatio(double gearRatio);
 	void setRemoteCANCoder(int id);

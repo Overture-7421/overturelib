@@ -43,7 +43,7 @@ OverTalonFX::OverTalonFX(OverTalonFXConfig overConfig, std::string bus) : TalonF
 			overConfig.TriggerThresholdTime);
 
 	// Configuracion de PID
-	ctreConfig.Slot0.From(overConfig.PIDConfigs);
+	ctreConfig.WithSlot0(overConfig.PIDConfigs);
 
 	// Aplicar la configuracion
 	GetConfigurator().Apply(ctreConfig);
