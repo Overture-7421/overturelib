@@ -4,12 +4,8 @@
 
 #pragma once
 
+#include <vector>
 #include <frc/geometry/Pose2d.h>
-#include <frc/geometry/Translation2d.h>
-#include <frc/kinematics/SwerveDriveKinematics.h>
-#include <frc/kinematics/ChassisSpeeds.h>
-#include <frc/kinematics/SwerveDriveOdometry.h>
-#include <frc/kinematics/SwerveModulePosition.h>
 #include <frc/DriverStation.h>
 #include <frc/smartdashboard/Field2d.h>
 #include <frc/controller/ProfiledPIDController.h>
@@ -19,11 +15,11 @@
 #include <frc/DataLogManager.h>
 #include <fmt/format.h>
 #include <frc2/command/SubsystemBase.h>
+#include <pathplanner/lib/util/swerve/SwerveSetpoint.h>
+#include <pathplanner/lib/util/swerve/SwerveSetpointGenerator.h>
 
 #include <OvertureLib/Sensors/OverPigeon/OverPigeon.h>
-#include <OvertureLib/Subsystems/Swerve/SwerveModule/SwerveModule.h>
 #include <OvertureLib/Subsystems/Swerve/SwerveChassis/SwerveBase.h>
-#include <OvertureLib/Math/ChassisAccels.h>
 #include <OvertureLib/Subsystems/Swerve/SpeedsHelper/SpeedsHelper.h>
 #include <OvertureLib/Robots/OverRobot/RobotConstants.h>
 
@@ -57,9 +53,11 @@ public:
 
 private:
 	void setModuleStates(
-			const wpi::array<frc::SwerveModuleState, 4> &desiredStates);
+			const std::vector<frc::SwerveModuleState> &desiredStates);
 	void updateOdometry();
 
+	pathplanner::SwerveSetpointGenerator m_setpointGenerator;
+	pathplanner::SwerveSetpoint previousSetpoint;
 	frc::Pose2d latestPose;
 
 	frc::ChassisSpeeds desiredSpeeds;
