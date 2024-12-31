@@ -21,7 +21,7 @@ public class OverCANCoderConfig {
   public Angle Offset;
 
   /** Constructor for OverCANCoderConfig */
-  OverCANCoderConfig() {
+  public OverCANCoderConfig() {
     CanCoderId = -1;
     SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
     Offset = Rotations.zero();
@@ -31,8 +31,9 @@ public class OverCANCoderConfig {
    * Sets the CanCoder id
    *
    * @param CanCoderId The CanCoder id
+   * @return The OverCANCoderConfig object
    */
-  OverCANCoderConfig withCanCoderId(int CanCoderId) {
+  public OverCANCoderConfig withCanCoderId(int CanCoderId) {
     this.CanCoderId = CanCoderId;
     return this;
   }
@@ -41,8 +42,9 @@ public class OverCANCoderConfig {
    * Sets the sensor direction
    *
    * @param SensorDirection The sensor direction
+   * @return The OverCANCoderConfig object
    */
-  OverCANCoderConfig withSensorDirection(SensorDirectionValue SensorDirection) {
+  public OverCANCoderConfig withSensorDirection(SensorDirectionValue SensorDirection) {
     this.SensorDirection = SensorDirection;
     return this;
   }
@@ -51,8 +53,9 @@ public class OverCANCoderConfig {
    * Sets the offset
    *
    * @param Offset The offset
+   * @return The OverCANCoderConfig object
    */
-  OverCANCoderConfig withOffset(Angle Offset) {
+  public OverCANCoderConfig withOffset(Angle Offset) {
     this.Offset = Offset;
     return this;
   }

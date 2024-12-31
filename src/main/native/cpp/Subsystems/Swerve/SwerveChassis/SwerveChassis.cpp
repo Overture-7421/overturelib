@@ -8,6 +8,18 @@
  */
 SwerveChassis::SwerveChassis() : SwerveBase(this) {
 	frc::SmartDashboard::PutData("Chassis/Odometry", &field2d);
+
+	auto config = pathplanner::RobotConfig::fromGUISettings();
+
+	m_setpointGenerator = SwerveSetpointGenerator(config, 12.5_tps);
+
+	frc::ChassisSpeeds speeds = getCurrentSpeeds();
+	std::vector < frc::SwerveModuleState > currentStates(4);
+	for (int i = 0; i < 4; i++) {
+		currentStates[i] = frc::SwerveModuleState();
+	}
+	previousSetpoint = SwerveSetpoint(speeds, currentStates,
+			pathplanner::DriveFeedforwards::zeros(config.numModules));
 }
 
 /**
@@ -95,7 +107,7 @@ void SwerveChassis::setTargetSpeeds(frc::ChassisSpeeds speeds) {
 }
 
 void SwerveChassis::setModuleStates(
-		const wpi::array<frc::SwerveModuleState, 4> &desiredStates) {
+		const std::vector<frc::SwerveModuleState> &desiredStates) {
 	getFrontLeftModule().setState(desiredStates[0]);
 	getFrontRightModule().setState(desiredStates[1]);
 	getBackRightModule().setState(desiredStates[2]);
@@ -150,14 +162,14 @@ void SwerveChassis::updateOdometry() {
 	lastSpeeds = currentSpeeds;
 }
 
-void SwerveChassis::shuffleboardPeriodic() {
-	frc::SmartDashboard::PutNumber("Odometry/LinearX",
-			desiredSpeeds.vx.value());
-	frc::SmartDashboard::PutNumber("Odometry/LinearY",
-			desiredSpeeds.vy.value());
-	frc::SmartDashboard::PutNumber("Odometry/Angular",
-			desiredSpeeds.omega.value());
+void SwerveChassis::simMode() {
+	getFrontLeftModule().simMode();
+	getFrontRightModule().simMode();
+	getBackRightModule().simMode();
+	getBackLeftModule().simMode();
+}
 
+void SwerveChassis::shuffleboardPeriodic() {
 	frc::SmartDashboard::PutNumber("Odometry/AccelX", currentAccels.ax.value());
 	frc::SmartDashboard::PutNumber("Odometry/AccelY", currentAccels.ay.value());
 	frc::SmartDashboard::PutNumber("Odometry/AccelOmega",
@@ -204,15 +216,15 @@ void SwerveChassis::Periodic() {
 	modulesStates[2] = getBackLeftModule().getState();
 	modulesStates[3] = getBackRightModule().getState();
 
-	frc::ChassisSpeeds targetSpeeds = { getVxLimiter().Calculate(
-			desiredSpeeds.vx), getVyLimiter().Calculate(desiredSpeeds.vy),
-			getVwLimiter().Calculate(desiredSpeeds.omega) };
-	wpi::array < frc::SwerveModuleState, 4U > desiredStates =
-			getKinematics().ToSwerveModuleStates(targetSpeeds);
-	getKinematics().DesaturateWheelSpeeds(&desiredStates, getMaxModuleSpeed());
+	// frc::ChassisSpeeds targetSpeeds = { getVxLimiter().Calculate(
+	// 		desiredSpeeds.vx), getVyLimiter().Calculate(desiredSpeeds.vy),
+	// 		getVwLimiter().Calculate(desiredSpeeds.omega) };
+
+	pathplanner::SwerveSetpoint setpoint = m_setpointGenerator.generateSetpoint(
+			previousSetpoint, desiredSpeeds, 0.02_s);
 
 	updateOdometry();
 	poseLog.Append(latestPose);
 
-	setModuleStates (desiredStates);
+	setModuleStates(setpoint.moduleStates);
 }

@@ -28,7 +28,6 @@ LedsManager::LedsManager(int pwmPort, int ledLength,
 	ledStrip.SetData(ledBuffer);
 	ledStrip.Start();
 }
-;
 
 std::span<frc::AddressableLED::LEDData> LedsManager::getLedStrip(
 		LedStripName name) {

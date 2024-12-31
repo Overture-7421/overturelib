@@ -12,7 +12,8 @@ struct OverTalonFXConfig {
 	bool Inverted = false;
 	bool useFOC = false;
 
-	ctre::phoenix6::configs::SlotConfigs PIDConfigs;
+	ctre::phoenix6::configs::Slot0Configs PIDConfigs =
+			ctre::phoenix6::configs::Slot0Configs();
 
 	units::ampere_t CurrentLimit = 0_A;
 	units::ampere_t StatorCurrentLimit = 0_A;
