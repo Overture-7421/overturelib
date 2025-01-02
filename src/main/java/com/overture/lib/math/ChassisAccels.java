@@ -58,14 +58,24 @@ public class ChassisAccels {
    * @param ay The LinearAcceleration in the y direction.
    * @param omega The AngularAcceleration.
    */
-  ChassisAccels(LinearAcceleration ax, LinearAcceleration ay, AngularAcceleration omega) {
+  public ChassisAccels(LinearAcceleration ax, LinearAcceleration ay, AngularAcceleration omega) {
     this.ax = ax;
     this.ay = ay;
     this.omega = omega;
   }
 
+  /**
+   * Constructor for ChassisAccels, initializes the ChassisAccels with the given ChassisSpeeds.
+   *
+   * @param currentSpeeds The current ChassisSpeeds of the robot.
+   * @param lastSpeeds The last ChassisSpeeds of the robot.
+   */
+  public ChassisAccels(ChassisSpeeds currentSpeeds, ChassisSpeeds lastSpeeds) {
+    this(currentSpeeds, lastSpeeds, Seconds.of(0.02));
+  }
+
   /** Constructor for ChassisAccels, initializes the ChassisAccels with zeros. */
-  ChassisAccels() {
+  public ChassisAccels() {
     ax = MetersPerSecondPerSecond.zero();
     ay = MetersPerSecondPerSecond.zero();
     omega = RadiansPerSecondPerSecond.zero();

@@ -170,6 +170,13 @@ void SwerveChassis::simMode() {
 }
 
 void SwerveChassis::shuffleboardPeriodic() {
+	frc::SmartDashboard::PutNumber("Odometry/LinearX",
+			desiredSpeeds.vx.value());
+	frc::SmartDashboard::PutNumber("Odometry/LinearY",
+			desiredSpeeds.vy.value());
+	frc::SmartDashboard::PutNumber("Odometry/Angular",
+			desiredSpeeds.omega.value());
+
 	frc::SmartDashboard::PutNumber("Odometry/AccelX", currentAccels.ax.value());
 	frc::SmartDashboard::PutNumber("Odometry/AccelY", currentAccels.ay.value());
 	frc::SmartDashboard::PutNumber("Odometry/AccelOmega",
@@ -220,11 +227,11 @@ void SwerveChassis::Periodic() {
 	// 		desiredSpeeds.vx), getVyLimiter().Calculate(desiredSpeeds.vy),
 	// 		getVwLimiter().Calculate(desiredSpeeds.omega) };
 
-	pathplanner::SwerveSetpoint setpoint = m_setpointGenerator.generateSetpoint(
-			previousSetpoint, desiredSpeeds, 0.02_s);
+	previousSetpoint = m_setpointGenerator.generateSetpoint(previousSetpoint,
+			desiredSpeeds, 0.02_s);
 
 	updateOdometry();
 	poseLog.Append(latestPose);
 
-	setModuleStates(setpoint.moduleStates);
+	setModuleStates(previousSetpoint.moduleStates);
 }

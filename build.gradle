@@ -57,9 +57,15 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-core:2.15.2"
     implementation "com.fasterxml.jackson.core:jackson-databind:2.15.2"
     implementation 'edu.wpi.first.thirdparty.frc2025.opencv:opencv-java:4.10.0-2'
-    implementation "com.ctre.phoenix6:wpiapi-java:25.0.0-beta-3"
-    implementation "org.photonvision:photonlib-java:v2025.0.0-beta-5"
-    implementation "org.photonvision:photontargeting-java:v2025.0.0-beta-5"
+    implementation "com.ctre.phoenix6:wpiapi-java:25.0.0-beta-4"
+    implementation "org.photonvision:photonlib-java:v2025.0.0-beta-8"
+    implementation "org.photonvision:photontargeting-java:v2025.0.0-beta-8"
+    implementation "com.pathplanner.lib:PathplannerLib-java:2025.0.0-beta-6.1"
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs.add '-XDstringConcat=inline'
+    options.encoding = 'UTF-8'
 }
 
 // Setup Javadocs to link back to WPILib docs
