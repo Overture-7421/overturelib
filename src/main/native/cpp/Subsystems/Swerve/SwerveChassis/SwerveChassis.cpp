@@ -234,6 +234,7 @@ void SwerveChassis::Periodic() {
 			getKinematics().ToSwerveModuleStates(targetSpeeds);
 	getKinematics().DesaturateWheelSpeeds(&desiredStates, getMaxModuleSpeed());
 
+
 	std::vector < frc::SwerveModuleState
 			> desiredStatesVector(desiredStates.begin(), desiredStates.end());
 	updateOdometry();
