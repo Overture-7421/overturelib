@@ -9,17 +9,17 @@
 SwerveChassis::SwerveChassis() : SwerveBase(this) {
 	frc::SmartDashboard::PutData("Chassis/Odometry", &field2d);
 
-	auto config = pathplanner::RobotConfig::fromGUISettings();
+	// auto config = pathplanner::RobotConfig::fromGUISettings();
 
-	m_setpointGenerator = SwerveSetpointGenerator(config, 12.5_tps);
+	// m_setpointGenerator = SwerveSetpointGenerator(config, 12.5_tps);
 
-	frc::ChassisSpeeds speeds = getCurrentSpeeds();
-	std::vector < frc::SwerveModuleState > currentStates(4);
-	for (int i = 0; i < 4; i++) {
-		currentStates[i] = frc::SwerveModuleState();
-	}
-	previousSetpoint = SwerveSetpoint(speeds, currentStates,
-			pathplanner::DriveFeedforwards::zeros(config.numModules));
+	// frc::ChassisSpeeds speeds = getCurrentSpeeds();
+	// std::vector < frc::SwerveModuleState > currentStates(4);
+	// for (int i = 0; i < 4; i++) {
+	// 	currentStates[i] = frc::SwerveModuleState();
+	// }
+	// previousSetpoint = SwerveSetpoint(speeds, currentStates,
+	// 		pathplanner::DriveFeedforwards::zeros(config.numModules));
 }
 
 /**
@@ -223,15 +223,22 @@ void SwerveChassis::Periodic() {
 	modulesStates[2] = getBackLeftModule().getState();
 	modulesStates[3] = getBackRightModule().getState();
 
-	// frc::ChassisSpeeds targetSpeeds = { getVxLimiter().Calculate(
-	// 		desiredSpeeds.vx), getVyLimiter().Calculate(desiredSpeeds.vy),
-	// 		getVwLimiter().Calculate(desiredSpeeds.omega) };
+	frc::ChassisSpeeds targetSpeeds = { getVxLimiter().Calculate(
+			desiredSpeeds.vx), getVyLimiter().Calculate(desiredSpeeds.vy),
+			getVwLimiter().Calculate(desiredSpeeds.omega) };
 
-	previousSetpoint = m_setpointGenerator.generateSetpoint(previousSetpoint,
-			desiredSpeeds, 0.02_s);
+	// previousSetpoint = m_setpointGenerator.generateSetpoint(previousSetpoint,
+	// 		desiredSpeeds, 0.02_s);
 
+	wpi::array < frc::SwerveModuleState, 4U > desiredStates =
+			getKinematics().ToSwerveModuleStates(targetSpeeds);
+	getKinematics().DesaturateWheelSpeeds(&desiredStates, getMaxModuleSpeed());
+
+	std::vector < frc::SwerveModuleState
+			> desiredStatesVector(desiredStates.begin(), desiredStates.end());
 	updateOdometry();
 	poseLog.Append(latestPose);
 
-	setModuleStates(previousSetpoint.moduleStates);
+	setModuleStates (desiredStatesVector);
+	// setModuleStates(previousSetpoint.moduleStates);
 }
