@@ -1,4 +1,4 @@
-package com.overture.lib.subsystems.Swerve.SwerveModule;
+package com.overture.lib.subsystems.Swerve;
 
 import static edu.wpi.first.units.Units.*;
 

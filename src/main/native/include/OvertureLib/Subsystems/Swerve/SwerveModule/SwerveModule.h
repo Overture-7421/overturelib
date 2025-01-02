@@ -51,8 +51,6 @@ private:
 	frc::SwerveModuleState latestState;
 	frc::SwerveModulePosition latestPosition;
 
-	bool useRawVoltageDrive = false;
-
 	PositionVoltage turnVoltage { 0_tr };
 	VoltageOut driveVoltage { 0_V };
 
