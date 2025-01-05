@@ -78,46 +78,6 @@ units::volt_t SwerveModule::getVoltageDrive() {
 	return driveMotor.GetMotorVoltage().GetValue();
 }
 
-void SwerveModule::simMode() {
-	ctre::phoenix6::sim::TalonFXSimState &driveMotorSim =
-			driveMotor.GetSimState();
-	ctre::phoenix6::sim::TalonFXSimState &turnMotorSim =
-			turnMotor.GetSimState();
-	ctre::phoenix6::sim::CANcoderSimState &canCoderSim = canCoder.GetSimState();
-
-	// set the supply voltage of the TalonFX
-	driveMotorSim.SetSupplyVoltage(frc::RobotController::GetBatteryVoltage());
-	turnMotorSim.SetSupplyVoltage(frc::RobotController::GetBatteryVoltage());
-	canCoderSim.SetSupplyVoltage(frc::RobotController::GetBatteryVoltage());
-
-	// get the motor voltage of the TalonFX
-	auto driveMotorVoltage = driveMotorSim.GetMotorVoltage();
-	auto turnMotorVoltage = turnMotorSim.GetMotorVoltage();
-
-	// use the motor voltage to calculate new position and velocity
-	// using WPILib's DCMotorSim class for physics simulation
-	driveMotorSimModel.SetInputVoltage(driveMotorVoltage);
-	driveMotorSimModel.Update(20_ms); // assume 20 ms loop time
-	turnMotorSimModel.SetInputVoltage(turnMotorVoltage);
-	turnMotorSimModel.Update(20_ms); // assume 20 ms loop time
-
-	// apply the new rotor position and velocity to the TalonFX;
-	// note that this is rotor position/velocity (before gear ratio), but
-	// DCMotorSim returns mechanism position/velocity (after gear ratio)
-	driveMotorSim.SetRawRotorPosition(
-			config.DriveGearRatio * driveMotorSimModel.GetAngularPosition());
-	driveMotorSim.SetRotorVelocity(
-			config.DriveGearRatio * driveMotorSimModel.GetAngularVelocity());
-	turnMotorSim.SetRawRotorPosition(
-			config.TurnGearRatio * turnMotorSimModel.GetAngularPosition());
-	turnMotorSim.SetRotorVelocity(
-			config.TurnGearRatio * turnMotorSimModel.GetAngularVelocity());
-	canCoderSim.SetRawPosition(
-			config.TurnGearRatio * turnMotorSimModel.GetAngularPosition());
-	canCoderSim.SetVelocity(
-			config.TurnGearRatio * turnMotorSimModel.GetAngularVelocity());
-}
-
 /**
  * @brief Shuffleboard Periodic
  */
