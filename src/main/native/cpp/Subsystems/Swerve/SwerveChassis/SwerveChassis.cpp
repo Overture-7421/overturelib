@@ -11,7 +11,8 @@ SwerveChassis::SwerveChassis() : SwerveBase(this) {
 
 	auto config = pathplanner::RobotConfig::fromGUISettings();
 
-	m_setpointGenerator = pathplanner::SwerveSetpointGenerator(config, 12.5_tps);
+	m_setpointGenerator = pathplanner::SwerveSetpointGenerator(config,
+			12.5_tps);
 
 	frc::ChassisSpeeds speeds = getCurrentSpeeds();
 	std::vector < frc::SwerveModuleState > currentStates(4);
