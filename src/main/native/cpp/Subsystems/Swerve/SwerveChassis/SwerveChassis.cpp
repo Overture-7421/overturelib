@@ -220,18 +220,11 @@ void SwerveChassis::Periodic() {
 			desiredSpeeds.vx), getVyLimiter().Calculate(desiredSpeeds.vy),
 			getVwLimiter().Calculate(desiredSpeeds.omega) };
 
-	// previousSetpoint = m_setpointGenerator.generateSetpoint(previousSetpoint,
-	// 		desiredSpeeds, 0.02_s);
+	previousSetpoint = m_setpointGenerator.generateSetpoint(previousSetpoint,
+			targetSpeeds, 0.02_s);
 
-	wpi::array < frc::SwerveModuleState, 4U > desiredStates =
-			getKinematics().ToSwerveModuleStates(targetSpeeds);
-	getKinematics().DesaturateWheelSpeeds(&desiredStates, getMaxModuleSpeed());
-
-	std::vector < frc::SwerveModuleState
-			> desiredStatesVector(desiredStates.begin(), desiredStates.end());
 	updateOdometry();
 	poseLog.Append(latestPose);
 
-	setModuleStates (desiredStatesVector);
-	// setModuleStates(previousSetpoint.moduleStates);
+	setModuleStates(previousSetpoint.moduleStates);
 }
