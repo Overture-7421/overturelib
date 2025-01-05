@@ -43,6 +43,8 @@ jobs:
         run: ./gradlew build -PreleaseMode ${{ matrix.build-options }}
 
   build-host:
+    env:
+      MACOSX_DEPLOYMENT_TARGET: 13.3
     strategy:
       fail-fast: false
       matrix:
@@ -52,7 +54,7 @@ jobs:
             architecture: x64
           - os: macos-15
             artifact-name: macOS
-            architecture: x64
+            architecture: aarch64
     name: "Build - ${{ matrix.artifact-name }}"
     runs-on: ${{ matrix.os }}
     steps:
