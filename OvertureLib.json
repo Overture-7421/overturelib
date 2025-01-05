@@ -19,7 +19,7 @@
     "cppDependencies": [
         {
             "groupId": "${groupId}",
-            "artifactId": "${artifactId}-driver",
+            "artifactId": "${artifactId}-cpp",
             "version": "${version}",
             "libName": "OvertureLib",
             "headerClassifier": "headers",
