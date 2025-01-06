@@ -15,7 +15,7 @@ static OverTalonFXConfig DriveInit() {
 
 	config.CurrentLimit = 90_A;
 	config.StatorCurrentLimit = 120_A;
-	config.TriggerThreshold = 0_A;
+	config.TriggerThreshold = 120_A;
 	config.TriggerThresholdTime = 0.5_s;
 	config.ClosedLoopRampRate = 0_s;
 	config.OpenLoopRampRate = 0.25_s;
@@ -29,7 +29,7 @@ static OverTalonFXConfig TurnInit() {
 
 	config.CurrentLimit = 60_A;
 	config.StatorCurrentLimit = 80_A;
-	config.TriggerThreshold = 0_A;
+	config.TriggerThreshold = 80_A;
 	config.TriggerThresholdTime = 0.2_s;
 	config.ClosedLoopRampRate = 0_s;
 	config.OpenLoopRampRate = 0_s;

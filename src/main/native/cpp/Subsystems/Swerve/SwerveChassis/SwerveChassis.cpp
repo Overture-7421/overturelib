@@ -162,13 +162,6 @@ void SwerveChassis::updateOdometry() {
 	lastSpeeds = currentSpeeds;
 }
 
-void SwerveChassis::simMode() {
-	getFrontLeftModule().simMode();
-	getFrontRightModule().simMode();
-	getBackRightModule().simMode();
-	getBackLeftModule().simMode();
-}
-
 void SwerveChassis::shuffleboardPeriodic() {
 	frc::SmartDashboard::PutNumber("Odometry/LinearX",
 			desiredSpeeds.vx.value());

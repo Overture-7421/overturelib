@@ -21,6 +21,10 @@ class OverRobot: public frc::TimedRobot {
 public:
 	OverRobot(units::second_t period = 20_ms) : frc::TimedRobot(period) {
 #ifndef __FRC_ROBORIO__
+ 	nt::NetworkTableInstance::GetDefault().StopServer();
+	nt::NetworkTableInstance::GetDefault().StartClient4("Offseason 2024");
+	nt::NetworkTableInstance::GetDefault().SetServer("127.0.0.1");
+	
 		AddPeriodic([&] {
 			simPigeonManager.Update();
 			simCANCoderManager.Update();

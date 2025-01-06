@@ -28,7 +28,6 @@ public:
 
 	void setVoltageDrive(units::volt_t volts);
 	units::volt_t getVoltageDrive();
-	void simMode();
 
 	void shuffleboardPeriodic();
 	void Periodic() override;

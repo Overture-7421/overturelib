@@ -12,6 +12,9 @@ SimCANCoderManager::SimCANCoderManager() {
 }
 
 void SimCANCoderManager::AddSimCANCoderCandidate(OverCANCoder *canCoder) {
+		std::cout << "Adding sim cancoder candidate with id: " << canCoder->GetDeviceID()
+			<< "..." << std::endl;
+
 	canCodersToRegister.emplace_back(canCoder);
 }
 
@@ -33,7 +36,7 @@ void SimCANCoderManager::RegisterSimCANCoder(OverCANCoder *canCoder) {
 
 	if (this->registeredCANCoders.contains(canCoderName)) {
 		std::cout
-				<< "SimMotorManager Warning: Tried to register a motor for simulation that was already registered"
+				<< "SimCANCoderManager Warning: Tried to register a motor for simulation that was already registered"
 				<< std::endl;
 		return;
 	}
@@ -49,7 +52,13 @@ void SimCANCoderManager::RegisterSimCANCoder(OverCANCoder *canCoder) {
 
 void SimCANCoderManager::Init(
 		const std::map<unsigned int, NTCANCoderName> CANIDToCANCoderNameMap) {
+	std::cout << "Initializing SimCANCoderManager..." << std::endl;
 	this->CANIDToCANCoderNameMap = CANIDToCANCoderNameMap;
+	std::cout << "Got " << this->CANIDToCANCoderNameMap.size()
+			<< " mapped CANCoders..." << std::endl;
+	
+	std::cout << "Got " << this->canCodersToRegister.size()
+			<< " CANCoders to register..." << std::endl;
 
 	std::for_each(canCodersToRegister.begin(), canCodersToRegister.end(),
 			std::bind(&SimCANCoderManager::RegisterSimCANCoder, this,
@@ -75,7 +84,7 @@ void SimCANCoderManager::Update() {
 		simState.SetSupplyVoltage(frc::RobotController::GetBatteryVoltage());
 
 		units::turn_t position = units::turn_t(
-				ntable->GetEntry("cancoder_position").GetDouble(0) + 0.25);
+				ntable->GetEntry("cancoder_position").GetDouble(0));
 		simState.SetRawPosition(position);
 		units::turns_per_second_t speed = units::turns_per_second_t(
 				ntable->GetEntry("cancoder_speed").GetDouble(0));
