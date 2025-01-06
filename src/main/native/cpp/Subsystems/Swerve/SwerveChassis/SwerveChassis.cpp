@@ -182,10 +182,7 @@ void SwerveChassis::shuffleboardPeriodic() {
 			desiredSpeeds.omega.value());
 
 	field2d.SetRobotPose(latestPose);
-	frc::SmartDashboard::PutNumber("Odometry/X", latestPose.X().value());
-	frc::SmartDashboard::PutNumber("Odometry/Y", latestPose.Y().value());
-	frc::SmartDashboard::PutNumber("Odometry/Rotation",
-			latestPose.Rotation().Degrees().value());
+	frc::SmartDashboard::PutNumberArray("Odometry/Pose", std::vector{latestPose.X().value(), latestPose.Y().value(), latestPose.Rotation().Radians().value()});
 
 	getFrontLeftModule().shuffleboardPeriodic();
 	getFrontRightModule().shuffleboardPeriodic();
