@@ -7,8 +7,6 @@
  * @brief Builds an object of swerve chassis
  */
 SwerveChassis::SwerveChassis() : SwerveBase(this) {
-	frc::SmartDashboard::PutData("Chassis/Odometry", &field2d);
-
 	auto config = pathplanner::RobotConfig::fromGUISettings();
 
 	m_setpointGenerator = pathplanner::SwerveSetpointGenerator(config,
