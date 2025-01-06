@@ -81,19 +81,19 @@ units::volt_t SwerveModule::getVoltageDrive() {
  * @brief Shuffleboard Periodic
  */
 void SwerveModule::shuffleboardPeriodic() {
-	frc::SmartDashboard::PutNumber(config.ModuleName + "/TargetSpeed",
+	frc::SmartDashboard::PutNumber("SwerveChassis/Modules" + config.ModuleName + "/TargetSpeed",
 			targetState.speed.value());
-	frc::SmartDashboard::PutNumber(config.ModuleName + "/Speed",
+	frc::SmartDashboard::PutNumber("SwerveChassis/Modules" + config.ModuleName + "/Speed",
 			latestState.speed.value());
-	frc::SmartDashboard::PutNumber(config.ModuleName + "/TargetAngle",
+	frc::SmartDashboard::PutNumber("SwerveChassis/Modules" + config.ModuleName + "/TargetAngle",
 			targetState.angle.Degrees().value());
-	frc::SmartDashboard::PutNumber(config.ModuleName + "/Angle",
+	frc::SmartDashboard::PutNumber("SwerveChassis/Modules" + config.ModuleName + "/Angle",
 			latestState.angle.Degrees().value());
-	frc::SmartDashboard::PutNumber(config.ModuleName + "/Distance",
+	frc::SmartDashboard::PutNumber("SwerveChassis/Modules" + config.ModuleName + "/Distance",
 			latestPosition.distance.value());
-	frc::SmartDashboard::PutNumber(config.ModuleName + "/RequestedVoltage",
+	frc::SmartDashboard::PutNumber("SwerveChassis/Modules" + config.ModuleName + "/RequestedVoltage",
 			feedForward.Calculate(targetState.speed).value());
-	frc::SmartDashboard::PutNumber(config.ModuleName + "/AppliedVoltage",
+	frc::SmartDashboard::PutNumber("SwerveChassis/Modules" + config.ModuleName + "/AppliedVoltage",
 			driveMotor.GetMotorVoltage().GetValueAsDouble());
 }
 

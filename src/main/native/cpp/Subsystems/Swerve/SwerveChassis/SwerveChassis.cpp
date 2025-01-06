@@ -162,24 +162,24 @@ void SwerveChassis::updateOdometry() {
 }
 
 void SwerveChassis::shuffleboardPeriodic() {
-	frc::SmartDashboard::PutNumber("Odometry/LinearX",
+	frc::SmartDashboard::PutNumber("SwerveChassis/Odometry/LinearX",
 			desiredSpeeds.vx.value());
-	frc::SmartDashboard::PutNumber("Odometry/LinearY",
+	frc::SmartDashboard::PutNumber("SwerveChassis/Odometry/LinearY",
 			desiredSpeeds.vy.value());
-	frc::SmartDashboard::PutNumber("Odometry/Angular",
+	frc::SmartDashboard::PutNumber("SwerveChassis/Odometry/Angular",
 			desiredSpeeds.omega.value());
 
-	frc::SmartDashboard::PutNumber("Odometry/AccelX", currentAccels.ax.value());
-	frc::SmartDashboard::PutNumber("Odometry/AccelY", currentAccels.ay.value());
-	frc::SmartDashboard::PutNumber("Odometry/AccelOmega",
+	frc::SmartDashboard::PutNumber("SwerveChassis/Odometry/AccelX", currentAccels.ax.value());
+	frc::SmartDashboard::PutNumber("SwerveChassis/Odometry/AccelY", currentAccels.ay.value());
+	frc::SmartDashboard::PutNumber("SwerveChassis/Odometry/AccelOmega",
 			currentAccels.omega.value());
 
-	frc::SmartDashboard::PutNumber("Odometry/SpeedX", desiredSpeeds.vx.value());
-	frc::SmartDashboard::PutNumber("Odometry/SpeedY", desiredSpeeds.vy.value());
-	frc::SmartDashboard::PutNumber("Odometry/SpeedOmega",
+	frc::SmartDashboard::PutNumber("SwerveChassis/Odometry/SpeedX", desiredSpeeds.vx.value());
+	frc::SmartDashboard::PutNumber("SwerveChassis/Odometry/SpeedY", desiredSpeeds.vy.value());
+	frc::SmartDashboard::PutNumber("SwerveChassis/Odometry/SpeedOmega",
 			desiredSpeeds.omega.value());
 
-	frc::SmartDashboard::PutNumberArray("Odometry/Pose", std::vector{latestPose.X().value(), latestPose.Y().value(), latestPose.Rotation().Radians().value()});
+	frc::SmartDashboard::PutNumberArray("SwerveChassis/Odometry/Pose", std::vector{latestPose.X().value(), latestPose.Y().value(), latestPose.Rotation().Radians().value()});
 
 	getFrontLeftModule().shuffleboardPeriodic();
 	getFrontRightModule().shuffleboardPeriodic();
