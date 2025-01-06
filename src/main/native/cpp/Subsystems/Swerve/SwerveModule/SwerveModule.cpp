@@ -24,8 +24,7 @@ SwerveModule::SwerveModule(SwerveModuleConfig config) : config(config), driveMot
 
 	// Set Gear Ratios
 	turnMotor.setRotorToSensorRatio(config.TurnGearRatio);
-	driveMotor.setSensorToMechanism(
-			config.DriveGearRatio * config.WheelDiameter.value() * M_PI);
+	driveMotor.setSensorToMechanism(config.DriveGearRatio);
 }
 
 /**
@@ -101,10 +100,10 @@ void SwerveModule::shuffleboardPeriodic() {
 void SwerveModule::Periodic() {
 	units::degree_t angle = canCoder.GetAbsolutePosition().GetValue();
 	latestState.speed = units::meters_per_second_t(
-			driveMotor.GetVelocity().GetValueAsDouble());
+			driveMotor.GetVelocity().GetValueAsDouble() * config.WheelDiameter.value() * M_PI);
 	latestState.angle = angle;
 
 	latestPosition.distance = units::meter_t {
-			driveMotor.GetPosition().GetValueAsDouble() };
+			driveMotor.GetPosition().GetValueAsDouble() * config.WheelDiameter.value() * M_PI};
 	latestPosition.angle = angle;
 }
