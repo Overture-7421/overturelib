@@ -63,8 +63,6 @@ private:
 	frc::ChassisSpeeds currentSpeeds, lastSpeeds;
 	ChassisAccels currentAccels;
 
-	frc::Field2d field2d;
-
 	std::optional<SpeedsHelper*> speedsHelper;
 	bool acceptingVisionMeasurements = false;
 
