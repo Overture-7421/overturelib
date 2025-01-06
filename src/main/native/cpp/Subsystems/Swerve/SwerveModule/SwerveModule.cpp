@@ -82,14 +82,20 @@ units::volt_t SwerveModule::getVoltageDrive() {
  * @brief Shuffleboard Periodic
  */
 void SwerveModule::shuffleboardPeriodic() {
+	frc::SmartDashboard::PutNumber(config.ModuleName + "/TargetSpeed",
+			targetState.speed.value());
 	frc::SmartDashboard::PutNumber(config.ModuleName + "/Speed",
 			latestState.speed.value());
-	frc::SmartDashboard::PutNumber(config.ModuleName + "/Target",
+	frc::SmartDashboard::PutNumber(config.ModuleName + "/TargetAngle",
 			targetState.angle.Degrees().value());
 	frc::SmartDashboard::PutNumber(config.ModuleName + "/Angle",
 			latestState.angle.Degrees().value());
 	frc::SmartDashboard::PutNumber(config.ModuleName + "/Distance",
 			latestPosition.distance.value());
+	frc::SmartDashboard::PutNumber(config.ModuleName + "/RequestedVoltage",
+			feedForward.Calculate(targetState.speed).value());
+	frc::SmartDashboard::PutNumber(config.ModuleName + "/AppliedVoltage",
+			driveMotor.GetMotorVoltage().GetValueAsDouble());
 }
 
 void SwerveModule::Periodic() {
