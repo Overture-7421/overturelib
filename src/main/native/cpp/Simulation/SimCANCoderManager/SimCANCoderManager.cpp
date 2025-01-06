@@ -12,8 +12,8 @@ SimCANCoderManager::SimCANCoderManager() {
 }
 
 void SimCANCoderManager::AddSimCANCoderCandidate(OverCANCoder *canCoder) {
-		std::cout << "Adding sim cancoder candidate with id: " << canCoder->GetDeviceID()
-			<< "..." << std::endl;
+	std::cout << "Adding sim cancoder candidate with id: "
+			<< canCoder->GetDeviceID() << "..." << std::endl;
 
 	canCodersToRegister.emplace_back(canCoder);
 }
@@ -56,7 +56,7 @@ void SimCANCoderManager::Init(
 	this->CANIDToCANCoderNameMap = CANIDToCANCoderNameMap;
 	std::cout << "Got " << this->CANIDToCANCoderNameMap.size()
 			<< " mapped CANCoders..." << std::endl;
-	
+
 	std::cout << "Got " << this->canCodersToRegister.size()
 			<< " CANCoders to register..." << std::endl;
 
