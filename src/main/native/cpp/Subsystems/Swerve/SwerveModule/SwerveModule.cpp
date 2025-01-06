@@ -91,9 +91,9 @@ void SwerveModule::shuffleboardPeriodic() {
 			latestState.angle.Degrees().value());
 	frc::SmartDashboard::PutNumber("SwerveChassis/Modules/" + config.ModuleName + "/Distance",
 			latestPosition.distance.value());
-	frc::SmartDashboard::PutNumber("SwerveChassis/Modules" + config.ModuleName + "/RequestedVoltage",
+	frc::SmartDashboard::PutNumber("SwerveChassis/Modules/" + config.ModuleName + "/RequestedVoltage",
 			feedForward.Calculate(targetState.speed).value());
-	frc::SmartDashboard::PutNumber("SwerveChassis/Modules" + config.ModuleName + "/AppliedVoltage",
+	frc::SmartDashboard::PutNumber("SwerveChassis/Modules/" + config.ModuleName + "/AppliedVoltage",
 			driveMotor.GetMotorVoltage().GetValueAsDouble());
 }
 
