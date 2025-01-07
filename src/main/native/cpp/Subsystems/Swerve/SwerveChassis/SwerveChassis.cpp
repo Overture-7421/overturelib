@@ -109,8 +109,8 @@ void SwerveChassis::setModuleStates(
 		const std::vector<frc::SwerveModuleState> &desiredStates) {
 	getFrontLeftModule().setState(desiredStates[0]);
 	getFrontRightModule().setState(desiredStates[1]);
-	getBackRightModule().setState(desiredStates[2]);
-	getBackLeftModule().setState(desiredStates[3]);
+	getBackLeftModule().setState(desiredStates[2]);
+	getBackRightModule().setState(desiredStates[3]);
 }
 /**
  * @brief Runs the SysId Quasisstatic command
@@ -186,6 +186,10 @@ void SwerveChassis::shuffleboardPeriodic() {
 	frc::SmartDashboard::PutNumberArray("SwerveChassis/Odometry/Pose",
 			std::vector { latestPose.X().value(), latestPose.Y().value(),
 					latestPose.Rotation().Radians().value() });
+
+	frc::SmartDashboard::PutNumberArray("SwerveChassis/Control/DesiredSpeeds",
+			std::vector { desiredSpeeds.vx.value(), desiredSpeeds.vy.value(),
+					desiredSpeeds.omega.value() });
 
 	getFrontLeftModule().shuffleboardPeriodic();
 	getFrontRightModule().shuffleboardPeriodic();
