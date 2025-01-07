@@ -2,6 +2,8 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 #include "OvertureLib/Subsystems/Swerve/SwerveChassis/SwerveChassis.h"
+#include <networktables/NetworkTableInstance.h>
+#include <networktables/StructTopic.h>
 
 /**
  * @brief Builds an object of swerve chassis
@@ -183,9 +185,9 @@ void SwerveChassis::shuffleboardPeriodic() {
 	frc::SmartDashboard::PutNumber("SwerveChassis/Odometry/SpeedOmega",
 			desiredSpeeds.omega.value());
 
-	frc::SmartDashboard::PutNumberArray("SwerveChassis/Odometry/Pose",
-			std::vector { latestPose.X().value(), latestPose.Y().value(),
-					latestPose.Rotation().Radians().value() });
+	frc::SmartDashboard::PutNumber("SwerveChassis/Odometry/AcceptingVision", acceptingVisionMeasurements);
+
+	posePublisher.Set(latestPose);
 
 	frc::SmartDashboard::PutNumberArray("SwerveChassis/Control/DesiredSpeeds",
 			std::vector { desiredSpeeds.vx.value(), desiredSpeeds.vy.value(),

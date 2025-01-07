@@ -6,6 +6,7 @@
 
 #include <map>
 #include <photon/PhotonCamera.h>
+#include <photon/simulation/PhotonCameraSim.h>
 #include <photon/PhotonPoseEstimator.h>
 #include <frc2/command/SubsystemBase.h>
 #include <frc/geometry/Pose3d.h>
@@ -13,6 +14,7 @@
 #include <frc/apriltag/AprilTagFieldLayout.h>
 #include <frc/apriltag/AprilTagFields.h>
 #include <frc/DriverStation.h>
+#include <networktables/StructArrayTopic.h>
 
 #include "OvertureLib/Subsystems/Swerve/SwerveChassis/SwerveChassis.h"
 
@@ -44,4 +46,11 @@ private:
 	Config config;
 	wpi::log::DataLog &log = frc::DataLogManager::GetLog();
 	wpi::log::StructLogEntry<frc::Pose2d> poseLog;
+
+	nt::StructArrayPublisher<frc::Pose3d> targetPosesPublisher;
+	nt::StructPublisher<frc::Pose2d> visionPose2dPublisher;
+
+#ifndef __FRC_ROBORIO__ // If on simulation
+	std::shared_ptr<photon::PhotonCameraSim> cameraSim;
+#endif
 };

@@ -11,6 +11,7 @@
 #include "OvertureLib/Simulation/SimPigeonManager/SimPigeonManager.h"
 #include "OvertureLib/Simulation/SimCANCoderManager/SimCANCoderManager.h"
 #include "OvertureLib/Simulation/SimDutyCycleEncoderManager/SimDutyCycleEncoderManager.h"
+#include "OvertureLib/Simulation/SimPhotonVisionManager/SimPhotonVisionManager.h"
 #endif
 
 /**
@@ -30,6 +31,7 @@ public:
 			simCANCoderManager.Update();
 			simDutyCycleEncoderManager.Update();
 			simMotorManager.Update();
+			simPhotonVisionManager.Update();
 		}, 5_ms);
 #endif
 	}
@@ -41,5 +43,8 @@ public:
 	SimCANCoderManager &simCANCoderManager = SimCANCoderManager::GetInstance();
 	SimDutyCycleEncoderManager &simDutyCycleEncoderManager =
 			SimDutyCycleEncoderManager::GetInstance();
+	SimPhotonVisionManager& simPhotonVisionManager = SimPhotonVisionManager::GetInstance();
 #endif
+
+
 };

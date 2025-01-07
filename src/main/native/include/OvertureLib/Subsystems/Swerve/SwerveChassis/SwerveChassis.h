@@ -17,6 +17,7 @@
 #include <frc2/command/SubsystemBase.h>
 #include <pathplanner/lib/util/swerve/SwerveSetpoint.h>
 #include <pathplanner/lib/util/swerve/SwerveSetpointGenerator.h>
+#include <networktables/StructTopic.h>
 
 #include <OvertureLib/Sensors/OverPigeon/OverPigeon.h>
 #include <OvertureLib/Subsystems/Swerve/SwerveChassis/SwerveBase.h>
@@ -69,6 +70,8 @@ private:
 	wpi::log::DataLog &log = frc::DataLogManager::GetLog();
 	wpi::log::StructLogEntry<frc::Pose2d> poseLog = wpi::log::StructLogEntry
 			< frc::Pose2d > (log, "/swerve/pose");
+
+	nt::StructPublisher<frc::Pose2d> posePublisher = nt::NetworkTableInstance::GetDefault().GetStructTopic<frc::Pose2d>("SmartDashboard/SwerveChassis/Odometry/Pose").Publish();
 
 	bool characterizing = false;frc2::sysid::SysIdRoutine m_sysIdRoutine {
 		frc2::sysid::Config {std::nullopt, std::nullopt, std::nullopt, nullptr},
