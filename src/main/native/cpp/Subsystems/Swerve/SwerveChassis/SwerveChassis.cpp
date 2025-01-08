@@ -9,18 +9,18 @@
  * @brief Builds an object of swerve chassis
  */
 SwerveChassis::SwerveChassis() : SwerveBase(this) {
-	auto config = pathplanner::RobotConfig::fromGUISettings();
+	// auto config = pathplanner::RobotConfig::fromGUISettings();
 
-	m_setpointGenerator = pathplanner::SwerveSetpointGenerator(config,
-			12.5_tps);
+	// m_setpointGenerator = pathplanner::SwerveSetpointGenerator(config,
+	// 		12.5_tps);
 
-	frc::ChassisSpeeds speeds = getCurrentSpeeds();
-	std::vector < frc::SwerveModuleState > currentStates(4);
-	for (int i = 0; i < 4; i++) {
-		currentStates[i] = frc::SwerveModuleState();
-	}
-	previousSetpoint = pathplanner::SwerveSetpoint(speeds, currentStates,
-			pathplanner::DriveFeedforwards::zeros(config.numModules));
+	// frc::ChassisSpeeds speeds = getCurrentSpeeds();
+	// std::vector < frc::SwerveModuleState > currentStates(4);
+	// for (int i = 0; i < 4; i++) {
+	// 	currentStates[i] = frc::SwerveModuleState();
+	// }
+	// previousSetpoint = pathplanner::SwerveSetpoint(speeds, currentStates,
+	// 		pathplanner::DriveFeedforwards::zeros(config.numModules));
 }
 
 /**
@@ -185,7 +185,8 @@ void SwerveChassis::shuffleboardPeriodic() {
 	frc::SmartDashboard::PutNumber("SwerveChassis/Odometry/SpeedOmega",
 			desiredSpeeds.omega.value());
 
-	frc::SmartDashboard::PutNumber("SwerveChassis/Odometry/AcceptingVision", acceptingVisionMeasurements);
+	frc::SmartDashboard::PutNumber("SwerveChassis/Odometry/AcceptingVision",
+			acceptingVisionMeasurements);
 
 	posePublisher.Set(latestPose);
 

@@ -47,7 +47,7 @@ model {
                 // Add non-Windows-specific compiler flags
                 it.cppCompiler.args.add('-Wno-error=unused-function')
             }
-            
+
             nativeUtils.wpi.getVendorDeps().getNativeVendor().cpp(it)
         }
     }

@@ -43,8 +43,8 @@ public:
 	SimCANCoderManager &simCANCoderManager = SimCANCoderManager::GetInstance();
 	SimDutyCycleEncoderManager &simDutyCycleEncoderManager =
 			SimDutyCycleEncoderManager::GetInstance();
-	SimPhotonVisionManager& simPhotonVisionManager = SimPhotonVisionManager::GetInstance();
+	SimPhotonVisionManager &simPhotonVisionManager =
+			SimPhotonVisionManager::GetInstance();
 #endif
-
 
 };

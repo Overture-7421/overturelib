@@ -21,13 +21,17 @@ AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
 	poseLog = wpi::log::StructLogEntry < frc::Pose2d
 			> (log, "/swerve/pose/" + config.cameraName);
 
-	auto cameraTable = nt::NetworkTableInstance::GetDefault().GetTable("AprilTags/" + config.cameraName);
-	targetPosesPublisher = cameraTable->GetStructArrayTopic<frc::Pose3d>("TargetPoses").Publish();
-	visionPose2dPublisher = cameraTable->GetStructTopic<frc::Pose2d>("VisionPose2d").Publish();
-	#ifndef __FRC_ROBORIO__ // If on simulation
-		cameraSim = std::make_shared <photon::PhotonCameraSim> (camera.get());
-		SimPhotonVisionManager::GetInstance().AddSimCamera(cameraSim.get(), config.cameraToRobot);
-	#endif
+	auto cameraTable = nt::NetworkTableInstance::GetDefault().GetTable(
+			"AprilTags/" + config.cameraName);
+	targetPosesPublisher = cameraTable->GetStructArrayTopic < frc::Pose3d
+			> ("TargetPoses").Publish();
+	visionPose2dPublisher = cameraTable->GetStructTopic < frc::Pose2d
+			> ("VisionPose2d").Publish();
+#ifndef __FRC_ROBORIO__ // If on simulation
+	cameraSim = std::make_shared < photon::PhotonCameraSim > (camera.get());
+	SimPhotonVisionManager::GetInstance().AddSimCamera(cameraSim.get(),
+			config.cameraToRobot);
+#endif
 
 }
 
@@ -54,8 +58,8 @@ void AprilTags::addMeasurementToChassis(
 
 	if (poseResult.has_value()) {
 
-	std::vector<frc::Pose3d> targets;
-	frc::Pose3d current3d;
+		std::vector < frc::Pose3d > targets;
+		frc::Pose3d current3d;
 
 #ifndef __FRC_ROBORIO__ // If on simulation
 		current3d = SimPhotonVisionManager::GetInstance().GetRobotPose();
@@ -63,8 +67,10 @@ void AprilTags::addMeasurementToChassis(
 		current3d = frc::Pose3d(chassis->getEstimatedPose());
 #endif
 
-		for (const auto& t : result.GetTargets()) {
-			targets.push_back(current3d.TransformBy(config.cameraToRobot).TransformBy(t.GetBestCameraToTarget()));
+		for (const auto &t : result.GetTargets()) {
+			targets.push_back(
+					current3d.TransformBy(config.cameraToRobot).TransformBy(
+							t.GetBestCameraToTarget()));
 		}
 		targetPosesPublisher.Set(targets);
 		frc::Pose2d poseTo2d = poseResult.value().estimatedPose.ToPose2d();
@@ -80,7 +86,7 @@ void AprilTags::updateOdometry() {
 	if (!result.has_value() || !result.value().HasTargets()) {
 		return;
 	}
-	
+
 	photon::PhotonPipelineResult pipelineResult = result.value();
 
 	if (checkTagDistance(pipelineResult)) {
