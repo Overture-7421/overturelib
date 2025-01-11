@@ -104,7 +104,7 @@ void SwerveChassis::resetHeading(units::degree_t angle) {
 }
 
 void SwerveChassis::setTargetSpeeds(frc::ChassisSpeeds speeds) {
-	desiredSpeeds = speeds;
+	desiredSpeeds = frc::ChassisSpeeds::Discretize(speeds, RobotConstants::LoopTime);
 }
 
 void SwerveChassis::setModuleStates(
@@ -224,12 +224,8 @@ void SwerveChassis::Periodic() {
 	modulesStates[2] = getBackLeftModule().getState();
 	modulesStates[3] = getBackRightModule().getState();
 
-	frc::ChassisSpeeds targetSpeeds = { getVxLimiter().Calculate(
-			desiredSpeeds.vx), getVyLimiter().Calculate(desiredSpeeds.vy),
-			getVwLimiter().Calculate(desiredSpeeds.omega) };
-
 	wpi::array < frc::SwerveModuleState, 4U > desiredStates =
-			getKinematics().ToSwerveModuleStates(targetSpeeds);
+			getKinematics().ToSwerveModuleStates(desiredSpeeds);
 	getKinematics().DesaturateWheelSpeeds(&desiredStates, getMaxModuleSpeed());
 
 	std::vector < frc::SwerveModuleState
