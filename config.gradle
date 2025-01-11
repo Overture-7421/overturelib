@@ -41,6 +41,13 @@ model {
     binaries {
         withType(NativeBinarySpec).all {
             nativeUtils.usePlatformArguments(it)
+            if (it.targetPlatform.operatingSystem.windows) {
+                // Add Windows-specific compiler flags
+            } else {
+                // Add non-Windows-specific compiler flags
+                it.cppCompiler.args.add('-Wno-error=unused-function')
+            }
+
             nativeUtils.wpi.getVendorDeps().getNativeVendor().cpp(it)
         }
     }

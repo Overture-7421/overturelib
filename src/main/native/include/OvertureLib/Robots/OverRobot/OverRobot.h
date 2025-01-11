@@ -11,6 +11,7 @@
 #include "OvertureLib/Simulation/SimPigeonManager/SimPigeonManager.h"
 #include "OvertureLib/Simulation/SimCANCoderManager/SimCANCoderManager.h"
 #include "OvertureLib/Simulation/SimDutyCycleEncoderManager/SimDutyCycleEncoderManager.h"
+#include "OvertureLib/Simulation/SimPhotonVisionManager/SimPhotonVisionManager.h"
 #endif
 
 /**
@@ -21,15 +22,16 @@ class OverRobot: public frc::TimedRobot {
 public:
 	OverRobot(units::second_t period = 20_ms) : frc::TimedRobot(period) {
 #ifndef __FRC_ROBORIO__
- 	nt::NetworkTableInstance::GetDefault().StopServer();
-	nt::NetworkTableInstance::GetDefault().StartClient4("Offseason 2024");
-	nt::NetworkTableInstance::GetDefault().SetServer("127.0.0.1");
-	
+		nt::NetworkTableInstance::GetDefault().StopServer();
+		nt::NetworkTableInstance::GetDefault().StartClient4("Offseason 2024");
+		nt::NetworkTableInstance::GetDefault().SetServer("127.0.0.1");
+
 		AddPeriodic([&] {
 			simPigeonManager.Update();
 			simCANCoderManager.Update();
 			simDutyCycleEncoderManager.Update();
 			simMotorManager.Update();
+			simPhotonVisionManager.Update();
 		}, 5_ms);
 #endif
 	}
@@ -41,5 +43,8 @@ public:
 	SimCANCoderManager &simCANCoderManager = SimCANCoderManager::GetInstance();
 	SimDutyCycleEncoderManager &simDutyCycleEncoderManager =
 			SimDutyCycleEncoderManager::GetInstance();
+	SimPhotonVisionManager &simPhotonVisionManager =
+			SimPhotonVisionManager::GetInstance();
 #endif
+
 };

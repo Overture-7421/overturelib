@@ -15,8 +15,9 @@
 #include <frc/DataLogManager.h>
 #include <fmt/format.h>
 #include <frc2/command/SubsystemBase.h>
-#include <pathplanner/lib/util/swerve/SwerveSetpoint.h>
-#include <pathplanner/lib/util/swerve/SwerveSetpointGenerator.h>
+// #include <pathplanner/lib/util/swerve/SwerveSetpoint.h>
+// #include <pathplanner/lib/util/swerve/SwerveSetpointGenerator.h>
+#include <networktables/StructTopic.h>
 
 #include <OvertureLib/Sensors/OverPigeon/OverPigeon.h>
 #include <OvertureLib/Subsystems/Swerve/SwerveChassis/SwerveBase.h>
@@ -55,15 +56,13 @@ private:
 			const std::vector<frc::SwerveModuleState> &desiredStates);
 	void updateOdometry();
 
-	pathplanner::SwerveSetpointGenerator m_setpointGenerator;
-	pathplanner::SwerveSetpoint previousSetpoint;
+	// pathplanner::SwerveSetpointGenerator m_setpointGenerator;
+	// pathplanner::SwerveSetpoint previousSetpoint;
 	frc::Pose2d latestPose;
 
 	frc::ChassisSpeeds desiredSpeeds;
 	frc::ChassisSpeeds currentSpeeds, lastSpeeds;
 	ChassisAccels currentAccels;
-
-	frc::Field2d field2d;
 
 	std::optional<SpeedsHelper*> speedsHelper;
 	bool acceptingVisionMeasurements = false;
@@ -71,6 +70,10 @@ private:
 	wpi::log::DataLog &log = frc::DataLogManager::GetLog();
 	wpi::log::StructLogEntry<frc::Pose2d> poseLog = wpi::log::StructLogEntry
 			< frc::Pose2d > (log, "/swerve/pose");
+
+	nt::StructPublisher<frc::Pose2d> posePublisher =
+			nt::NetworkTableInstance::GetDefault().GetStructTopic < frc::Pose2d
+					> ("SmartDashboard/SwerveChassis/Odometry/Pose").Publish();
 
 	bool characterizing = false;frc2::sysid::SysIdRoutine m_sysIdRoutine {
 		frc2::sysid::Config {std::nullopt, std::nullopt, std::nullopt, nullptr},

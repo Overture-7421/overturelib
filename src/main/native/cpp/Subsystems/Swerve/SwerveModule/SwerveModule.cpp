@@ -24,8 +24,7 @@ SwerveModule::SwerveModule(SwerveModuleConfig config) : config(config), driveMot
 
 	// Set Gear Ratios
 	turnMotor.setRotorToSensorRatio(config.TurnGearRatio);
-	driveMotor.setSensorToMechanism(
-			config.DriveGearRatio * config.WheelDiameter.value() * M_PI);
+	driveMotor.setSensorToMechanism(config.DriveGearRatio);
 }
 
 /**
@@ -82,29 +81,38 @@ units::volt_t SwerveModule::getVoltageDrive() {
  * @brief Shuffleboard Periodic
  */
 void SwerveModule::shuffleboardPeriodic() {
-	frc::SmartDashboard::PutNumber(config.ModuleName + "/TargetSpeed",
+	frc::SmartDashboard::PutNumber(
+			"SwerveChassis/Modules/" + config.ModuleName + "/TargetSpeed",
 			targetState.speed.value());
-	frc::SmartDashboard::PutNumber(config.ModuleName + "/Speed",
+	frc::SmartDashboard::PutNumber(
+			"SwerveChassis/Modules/" + config.ModuleName + "/Speed",
 			latestState.speed.value());
-	frc::SmartDashboard::PutNumber(config.ModuleName + "/TargetAngle",
+	frc::SmartDashboard::PutNumber(
+			"SwerveChassis/Modules/" + config.ModuleName + "/TargetAngle",
 			targetState.angle.Degrees().value());
-	frc::SmartDashboard::PutNumber(config.ModuleName + "/Angle",
+	frc::SmartDashboard::PutNumber(
+			"SwerveChassis/Modules/" + config.ModuleName + "/Angle",
 			latestState.angle.Degrees().value());
-	frc::SmartDashboard::PutNumber(config.ModuleName + "/Distance",
+	frc::SmartDashboard::PutNumber(
+			"SwerveChassis/Modules/" + config.ModuleName + "/Distance",
 			latestPosition.distance.value());
-	frc::SmartDashboard::PutNumber(config.ModuleName + "/RequestedVoltage",
+	frc::SmartDashboard::PutNumber(
+			"SwerveChassis/Modules/" + config.ModuleName + "/RequestedVoltage",
 			feedForward.Calculate(targetState.speed).value());
-	frc::SmartDashboard::PutNumber(config.ModuleName + "/AppliedVoltage",
+	frc::SmartDashboard::PutNumber(
+			"SwerveChassis/Modules/" + config.ModuleName + "/AppliedVoltage",
 			driveMotor.GetMotorVoltage().GetValueAsDouble());
 }
 
 void SwerveModule::Periodic() {
 	units::degree_t angle = canCoder.GetAbsolutePosition().GetValue();
 	latestState.speed = units::meters_per_second_t(
-			driveMotor.GetVelocity().GetValueAsDouble());
+			driveMotor.GetVelocity().GetValueAsDouble()
+					* config.WheelDiameter.value() * M_PI);
 	latestState.angle = angle;
 
 	latestPosition.distance = units::meter_t {
-			driveMotor.GetPosition().GetValueAsDouble() };
+			driveMotor.GetPosition().GetValueAsDouble()
+					* config.WheelDiameter.value() * M_PI };
 	latestPosition.angle = angle;
 }

@@ -22,12 +22,20 @@ frc::Rotation2d OverXboxController::getLeftStickDirection() {
 	double x = Utils::ApplyAxisFilter(-GetLeftY(), stickDeadzone);
 	double y = Utils::ApplyAxisFilter(-GetLeftX(), stickDeadzone);
 
+	if (gcem::hypot(x, y) < 1e-6) {
+		return frc::Rotation2d(0_deg);
+	}
+
 	return frc::Rotation2d(x, y);
 }
 
 frc::Rotation2d OverXboxController::getRightStickDirection() {
 	double x = Utils::ApplyAxisFilter(-GetRightY(), stickDeadzone);
 	double y = Utils::ApplyAxisFilter(-GetRightX(), stickDeadzone);
+
+	if (gcem::hypot(x, y) < 1e-6) {
+		return frc::Rotation2d(0_deg);
+	}
 
 	return frc::Rotation2d(x, y);
 }
