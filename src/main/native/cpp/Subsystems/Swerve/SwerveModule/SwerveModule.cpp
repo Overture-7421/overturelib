@@ -44,7 +44,7 @@ const frc::SwerveModuleState& SwerveModule::getState() {
 void SwerveModule::setState(frc::SwerveModuleState state) {
 	state.Optimize(latestState.angle);
 	state.CosineScale(latestState.angle);
-	
+
 	targetState = state;
 
 	turnMotor.SetControl(

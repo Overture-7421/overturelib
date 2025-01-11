@@ -104,7 +104,8 @@ void SwerveChassis::resetHeading(units::degree_t angle) {
 }
 
 void SwerveChassis::setTargetSpeeds(frc::ChassisSpeeds speeds) {
-	desiredSpeeds = frc::ChassisSpeeds::Discretize(speeds, RobotConstants::LoopTime);
+	desiredSpeeds = frc::ChassisSpeeds::Discretize(speeds,
+			RobotConstants::LoopTime);
 }
 
 void SwerveChassis::setModuleStates(
