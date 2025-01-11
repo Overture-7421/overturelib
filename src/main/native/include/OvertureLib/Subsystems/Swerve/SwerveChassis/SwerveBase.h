@@ -65,10 +65,6 @@ protected:
 	virtual SwerveModule& getBackLeftModule() = 0;
 	virtual SwerveModule& getBackRightModule() = 0;
 
-	virtual frc::SlewRateLimiter<units::meters_per_second>& getVxLimiter() = 0;
-	virtual frc::SlewRateLimiter<units::meters_per_second>& getVyLimiter() = 0;
-	virtual frc::SlewRateLimiter<units::radians_per_second>& getVwLimiter() = 0;
-
 	virtual frc::SwerveDriveKinematics<4>& getKinematics() = 0;
 
 	bool configuredChassis = false;
