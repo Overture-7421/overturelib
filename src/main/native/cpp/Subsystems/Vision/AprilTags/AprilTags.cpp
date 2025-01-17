@@ -105,7 +105,6 @@ std::optional<photon::PhotonPipelineResult> AprilTags::getCameraResult() {
 			camera->GetAllUnreadResults();
 
 	if (results.empty()) {
-		targetPosesPublisher.Set({});
 		return std::nullopt;
 	}
 
