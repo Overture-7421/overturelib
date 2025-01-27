@@ -39,7 +39,10 @@ protected:
 		configuredChassis = true;
 		AutoBuilder::configure(
 			[this]() {return getEstimatedPose();},
-			[this](frc::Pose2d pose) {resetOdometry(pose);},
+			[this](frc::Pose2d pose) {
+				resetOdometryPosePublisher.Set(pose);
+				resetOdometry(pose);
+				},
 			[this]() {return getCurrentSpeeds();},
 			[this](frc::ChassisSpeeds speeds) {setTargetSpeeds(speeds);},
 			std::make_shared<PPHolonomicDriveController>(
@@ -79,5 +82,9 @@ protected:
 
 private:
 	frc2::Subsystem* driveSubsystem;
+	
+	nt::StructPublisher<frc::Pose2d> resetOdometryPosePublisher =
+			nt::NetworkTableInstance::GetDefault().GetStructTopic < frc::Pose2d
+					> ("/PathPlanner/ResetPose").Publish();
 };
 // spotless:on
