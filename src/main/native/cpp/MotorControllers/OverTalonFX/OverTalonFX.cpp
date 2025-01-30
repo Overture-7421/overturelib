@@ -19,7 +19,8 @@ OverTalonFX::OverTalonFX(OverTalonFXConfig overConfig, std::string bus) : TalonF
 		overConfig.MotorId, bus), overConfig(overConfig) {
 	// Configuracion en modo neutral
 	ctreConfig.MotorOutput.WithNeutralMode(
-			NeutralModeValue(ctreConfig.MotorOutput.NeutralMode));
+			overConfig.NeutralMode == ControllerNeutralMode::Brake ?
+					NeutralModeValue::Brake : NeutralModeValue::Coast);
 
 	ctreConfig.Voltage.WithPeakForwardVoltage(12_V).WithPeakReverseVoltage(
 			-12_V);

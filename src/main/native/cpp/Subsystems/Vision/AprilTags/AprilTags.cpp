@@ -77,8 +77,8 @@ void AprilTags::addMeasurementToChassis(
 		chassis->addVisionMeasurement(poseTo2d, poseResult.value().timestamp);
 		poseLog.Append(poseTo2d);
 		visionPose2dPublisher.Set(poseTo2d);
-	}else{
-		targetPosesPublisher.Set({});
+	} else {
+		targetPosesPublisher.Set( { });
 	}
 }
 
@@ -86,7 +86,7 @@ void AprilTags::addMeasurementToChassis(
 void AprilTags::updateOdometry() {
 	std::optional < photon::PhotonPipelineResult > result = getCameraResult();
 	if (!result.has_value() || !result.value().HasTargets()) {
-		targetPosesPublisher.Set({});
+		targetPosesPublisher.Set( { });
 		return;
 	}
 
@@ -94,8 +94,8 @@ void AprilTags::updateOdometry() {
 
 	if (checkTagDistance(pipelineResult)) {
 		addMeasurementToChassis(pipelineResult);
-	}else{
-		targetPosesPublisher.Set({});
+	} else {
+		targetPosesPublisher.Set( { });
 	}
 }
 
