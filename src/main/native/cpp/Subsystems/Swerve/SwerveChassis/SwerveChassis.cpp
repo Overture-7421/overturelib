@@ -233,7 +233,11 @@ void SwerveChassis::Periodic() {
 			> desiredStatesVector(desiredStates.begin(), desiredStates.end());
 
 	updateOdometry();
-	poseLog.Append(latestPose);
+
+	ctre::phoenix6::SignalLogger::WriteDoubleArray("/Swerve/Chassis/Pose",
+			std::array<double, 3> { latestPose.X().value(),
+					latestPose.Y().value(),
+					latestPose.Rotation().Degrees().value() });
 
 	setModuleStates (desiredStatesVector);
 }

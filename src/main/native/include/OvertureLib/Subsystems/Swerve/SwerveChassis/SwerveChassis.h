@@ -12,8 +12,6 @@
 #include <frc/filter/SlewRateLimiter.h>
 #include <frc2/command/Commands.h>
 #include <frc2/command/sysid/SysIdRoutine.h>
-#include <frc/DataLogManager.h>
-#include <fmt/format.h>
 #include <frc2/command/SubsystemBase.h>
 // #include <pathplanner/lib/util/swerve/SwerveSetpoint.h>
 // #include <pathplanner/lib/util/swerve/SwerveSetpointGenerator.h>
@@ -24,7 +22,7 @@
 #include <OvertureLib/Subsystems/Swerve/SpeedsHelper/SpeedsHelper.h>
 #include <OvertureLib/Robots/OverRobot/RobotConstants.h>
 
-#include <wpi/DataLog.h>
+#include <ctre/phoenix6/SignalLogger.hpp>
 
 class SwerveChassis: public SwerveBase, public frc2::SubsystemBase {
 public:
@@ -66,10 +64,6 @@ private:
 
 	std::optional<SpeedsHelper*> speedsHelper;
 	bool acceptingVisionMeasurements = false;
-
-	wpi::log::DataLog &log = frc::DataLogManager::GetLog();
-	wpi::log::StructLogEntry<frc::Pose2d> poseLog = wpi::log::StructLogEntry
-			< frc::Pose2d > (log, "/swerve/pose");
 
 	nt::StructPublisher<frc::Pose2d> posePublisher =
 			nt::NetworkTableInstance::GetDefault().GetStructTopic < frc::Pose2d
