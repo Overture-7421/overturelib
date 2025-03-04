@@ -21,8 +21,7 @@
 #include <OvertureLib/Subsystems/Swerve/SwerveChassis/SwerveBase.h>
 #include <OvertureLib/Subsystems/Swerve/SpeedsHelper/SpeedsHelper.h>
 #include <OvertureLib/Robots/OverRobot/RobotConstants.h>
-
-#include <ctre/phoenix6/SignalLogger.hpp>
+#include <OvertureLib/Utils/Logging/Logging.h>
 
 class SwerveChassis: public SwerveBase, public frc2::SubsystemBase {
 public:

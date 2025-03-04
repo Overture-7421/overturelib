@@ -73,13 +73,9 @@ void AprilTags::addMeasurementToChassis(
 		frc::Pose2d poseTo2d = poseResult.value().estimatedPose.ToPose2d();
 		chassis->addVisionMeasurement(poseTo2d, poseResult.value().timestamp);
 
-		ctre::phoenix6::SignalLogger::WriteDoubleArray(
-				"/Swerve/Photonvision/" + config.cameraName,
-				std::array<double, 3> { poseTo2d.X().value(),
-						poseTo2d.Y().value(),
-						poseTo2d.Rotation().Degrees().value() }, "",
+		Logging::LogPose2d("/Swerve/Photonvision/" + config.cameraName,
+				poseTo2d,
 				frc::Timer::GetFPGATimestamp() - poseResult.value().timestamp);
-				
 		visionPose2dPublisher.Set(poseTo2d);
 	} else {
 		targetPosesPublisher.Set( { });
