@@ -18,9 +18,6 @@ AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
 			std::make_unique < photon::PhotonPoseEstimator
 					> (*this->tagLayout, photon::PoseStrategy::MULTI_TAG_PNP_ON_COPROCESSOR, this->config.cameraToRobot);
 
-	poseLog = wpi::log::StructLogEntry < frc::Pose2d
-			> (log, "/swerve/pose/" + config.cameraName);
-
 	auto cameraTable = nt::NetworkTableInstance::GetDefault().GetTable(
 			"AprilTags/" + config.cameraName);
 	targetPosesPublisher = cameraTable->GetStructArrayTopic < frc::Pose3d
@@ -75,7 +72,10 @@ void AprilTags::addMeasurementToChassis(
 		targetPosesPublisher.Set(targets);
 		frc::Pose2d poseTo2d = poseResult.value().estimatedPose.ToPose2d();
 		chassis->addVisionMeasurement(poseTo2d, poseResult.value().timestamp);
-		poseLog.Append(poseTo2d);
+
+		Logging::LogPose2d("/Swerve/Photonvision/" + config.cameraName,
+				poseTo2d,
+				frc::Timer::GetFPGATimestamp() - poseResult.value().timestamp);
 		visionPose2dPublisher.Set(poseTo2d);
 	} else {
 		targetPosesPublisher.Set( { });

@@ -4,6 +4,7 @@
 
 #pragma once
 #include <frc/TimedRobot.h>
+#include "OvertureLib/Utils/Logging/Logging.h"
 #include "RobotConstants.h"
 
 #ifndef __FRC_ROBORIO__
@@ -34,6 +35,8 @@ public:
 			simPhotonVisionManager.Update();
 		}, 5_ms);
 #endif
+
+		Logging::StartLogging();
 	}
 
 #ifndef __FRC_ROBORIO__

@@ -233,7 +233,8 @@ void SwerveChassis::Periodic() {
 			> desiredStatesVector(desiredStates.begin(), desiredStates.end());
 
 	updateOdometry();
-	poseLog.Append(latestPose);
+
+	Logging::LogPose2d("/Swerve/Chassis/Pose", latestPose);
 
 	setModuleStates (desiredStatesVector);
 }

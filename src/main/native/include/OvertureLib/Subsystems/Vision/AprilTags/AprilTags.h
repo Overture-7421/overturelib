@@ -44,8 +44,6 @@ private:
 	frc::AprilTagFieldLayout *tagLayout;
 	SwerveChassis *chassis;
 	Config config;
-	wpi::log::DataLog &log = frc::DataLogManager::GetLog();
-	wpi::log::StructLogEntry<frc::Pose2d> poseLog;
 
 	nt::StructArrayPublisher<frc::Pose3d> targetPosesPublisher;
 	nt::StructPublisher<frc::Pose2d> visionPose2dPublisher;
