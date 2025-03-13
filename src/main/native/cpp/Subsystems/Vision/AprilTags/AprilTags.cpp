@@ -111,7 +111,13 @@ std::optional<photon::PhotonPipelineResult> AprilTags::getCameraResult() {
 	return results[0];
 }
 
+void AprilTags::setEnabled(bool enabled) {
+	this->enabled = enabled;
+}
+
 void AprilTags::Periodic() {
-	updateOdometry();
+	if (enabled) {
+		updateOdometry();
+	}
 }
 

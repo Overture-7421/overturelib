@@ -34,6 +34,7 @@ public:
 	void addMeasurementToChassis(const photon::PhotonPipelineResult &result);
 	void updateOdometry();
 	std::optional<photon::PhotonPipelineResult> getCameraResult();
+	void setEnabled(bool enabled);
 	void Periodic() override;
 
 private:
@@ -44,7 +45,7 @@ private:
 	frc::AprilTagFieldLayout *tagLayout;
 	SwerveChassis *chassis;
 	Config config;
-
+	bool enabled = true;
 	nt::StructArrayPublisher<frc::Pose3d> targetPosesPublisher;
 	nt::StructPublisher<frc::Pose2d> visionPose2dPublisher;
 
