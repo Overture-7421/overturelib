@@ -38,6 +38,6 @@ private:
 	double stickDeadzone;
 	double triggerDeadzone;
 
-	frc::Alert isConnectedAlert { "Xbox Controller is not connected",
+	frc::Alert isConnectedAlert { "A Xbox Controller is not connected",
 			frc::Alert::AlertType::kWarning };
 };

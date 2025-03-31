@@ -18,6 +18,6 @@ public:
 	void updateTelemetry();
 
 private:
-	frc::Alert isConnectedAlert { "Xbox Controller is not connected",
+	frc::Alert isConnectedAlert { "Console is not connected",
 			frc::Alert::AlertType::kWarning };
 };

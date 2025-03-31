@@ -10,9 +10,9 @@ OverConsole::OverConsole(int port) : frc2::CommandGenericHID(port) {
 
 void OverConsole::updateTelemetry() {
 	if (IsConnected()) {
-		isConnectedAlert.Set(true);
-	} else {
 		isConnectedAlert.Set(false);
+	} else {
+		isConnectedAlert.Set(true);
 	}
 
 	Logging::WriteBoolean(

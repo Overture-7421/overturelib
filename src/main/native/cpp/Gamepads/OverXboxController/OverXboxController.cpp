@@ -112,9 +112,9 @@ frc2::Trigger OverXboxController::leftStick(double triggerTreshold) {
 
 void OverXboxController::updateTelemetry() {
 	if (IsConnected()) {
-		isConnectedAlert.Set(true);
-	} else {
 		isConnectedAlert.Set(false);
+	} else {
+		isConnectedAlert.Set(true);
 	}
 
 	Logging::WriteBoolean(
