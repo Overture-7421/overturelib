@@ -15,4 +15,17 @@ OverPigeon::OverPigeon(int deviceId, std::string canbus) : ctre::phoenix6::hardw
 	simPigeonManager.SetSimPigeon(this);
 #endif
 
+	isConnectedAlert.SetText(
+			"Pigeon " + std::to_string(deviceId) + " is not connected");
+}
+
+/**
+ * @brief Updates the alert for the Pigeon
+ */
+void OverPigeon::updateAlert() {
+	if (IsConnected()) {
+		isConnectedAlert.Set(false);
+	} else {
+		isConnectedAlert.Set(true);
+	}
 }

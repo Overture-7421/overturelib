@@ -49,10 +49,25 @@ OverTalonFX::OverTalonFX(OverTalonFXConfig overConfig, std::string bus) : TalonF
 	// Aplicar la configuracion
 	GetConfigurator().Apply(ctreConfig);
 
+	isConnectedAlert.SetText(
+			"Motor " + std::to_string(overConfig.MotorId)
+					+ " is not connected");
+
 #ifndef __FRC_ROBORIO__
 	SimMotorManager &simMotorManager = SimMotorManager::GetInstance();
 	simMotorManager.AddSimMotorCandidate(this);
 #endif
+}
+
+/**
+ * @brief Updates the alert for the TalonFX
+ */
+void OverTalonFX::updateAlert() {
+	if (IsConnected()) {
+		isConnectedAlert.Set(false);
+	} else {
+		isConnectedAlert.Set(true);
+	}
 }
 
 /**
