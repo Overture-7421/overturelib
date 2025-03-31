@@ -32,6 +32,21 @@ OverCANCoder::OverCANCoder(CanCoderConfig config, std::string bus) : CANcoder(
 	SimCANCoderManager &simCANCoderManager = SimCANCoderManager::GetInstance();
 	simCANCoderManager.AddSimCANCoderCandidate(this);
 #endif
+
+	isConnectedAlert.SetText(
+			"CANCoder " + std::to_string(config.CanCoderId)
+					+ " is not connected");
+}
+
+/**
+ * @brief Updates the alert for the CANCoder
+ */
+void OverCANCoder::updateAlert() {
+	if (IsConnected()) {
+		isConnectedAlert.Set(false);
+	} else {
+		isConnectedAlert.Set(true);
+	}
 }
 
 const CANcoderConfiguration& OverCANCoder::getConfiguration() {

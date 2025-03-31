@@ -18,6 +18,6 @@ public:
 	void updateTelemetry();
 
 private:
-	frc::Alert isConnectedAlert { "Console is not connected",
+	frc::Alert isConnectedAlert { "Controllers", "Console is not connected",
 			frc::Alert::AlertType::kWarning };
 };

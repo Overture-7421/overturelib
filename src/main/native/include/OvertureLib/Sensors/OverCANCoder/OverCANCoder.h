@@ -9,6 +9,7 @@
 #include <ctre/phoenix6/signals/SpnEnums.hpp>
 
 #include <OvertureLib/Sensors/OverCANCoder/Config.h>
+#include <frc/Alert.h>
 
 using namespace ctre::phoenix6::hardware;
 using namespace ctre::phoenix6::configs;
@@ -17,8 +18,11 @@ using namespace ctre::phoenix6::signals;
 class OverCANCoder: public CANcoder {
 public:
 	OverCANCoder(CanCoderConfig config, std::string bus);
+	void updateAlert();
 	const CANcoderConfiguration& getConfiguration();
 
 private:
 	CANcoderConfiguration canCoderConfiguration;
+	frc::Alert isConnectedAlert { "Devices", "CANCoder is not connected",
+			frc::Alert::AlertType::kWarning };
 };

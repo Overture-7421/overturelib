@@ -10,8 +10,8 @@
 #include <math.h>
 #include <ctre/phoenix6/TalonFX.hpp>
 #include <ctre/phoenix6/signals/SpnEnums.hpp>
-
 #include <frc/smartdashboard/SmartDashboard.h>
+#include <frc/Alert.h>
 
 using namespace ctre::phoenix6::hardware;
 using namespace ctre::phoenix6::configs;
@@ -21,7 +21,7 @@ using namespace ctre::phoenix6::controls;
 class OverTalonFX: public TalonFX {
 public:
 	OverTalonFX(OverTalonFXConfig overConfig, std::string bus);
-
+	void updateAlert();
 	void setSensorToMechanism(double gearRatio);
 	void setRotorToSensorRatio(double gearRatio);
 	void setRemoteCANCoder(int id);
@@ -44,4 +44,7 @@ public:
 private:
 	TalonFXConfiguration ctreConfig;
 	OverTalonFXConfig overConfig;
+
+	frc::Alert isConnectedAlert { "Devices", "TalonFX is not connected",
+			frc::Alert::AlertType::kError };
 };
