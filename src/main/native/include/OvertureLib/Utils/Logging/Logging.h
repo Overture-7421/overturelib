@@ -7,7 +7,7 @@
 #include <ctre/phoenix6/SignalLogger.hpp>
 #include <frc/geometry/Pose2d.h>
 
-class Logging {
+class Logging: public ctre::phoenix6::SignalLogger {
 public:
 	static void LogPose2d(std::string_view path, frc::Pose2d pose,
 			units::second_t latencySeconds = 0_s) {
@@ -15,20 +15,6 @@ public:
 				std::array<double, 3> { pose.X().value(), pose.Y().value(),
 						pose.Rotation().Degrees().value() }, "",
 				latencySeconds);
-	}
-
-	static void LogBoolean(std::string_view path, bool value) {
-		ctre::phoenix6::SignalLogger::WriteBoolean(path, value);
-	}
-
-	static void LogAngle(std::string_view path, units::degree_t angle) {
-		ctre::phoenix6::SignalLogger::WriteDouble(path, angle.value(),
-				"Degrees");
-	}
-
-	static void LogDistance(std::string_view path, units::meter_t distance) {
-		ctre::phoenix6::SignalLogger::WriteDouble(path, distance.value(),
-				"Meters");
 	}
 
 	static void StartLogging() {

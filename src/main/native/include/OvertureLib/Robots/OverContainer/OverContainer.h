@@ -12,4 +12,5 @@ public:
 	virtual void ConfigOperatorBindings() = 0;
 	virtual void ConfigDefaultCommands() = 0;
 	virtual void ConfigCharacterizationBindings() = 0;
+	virtual void UpdateTelemetry() = 0;
 };
