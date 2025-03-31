@@ -109,3 +109,15 @@ frc2::Trigger OverXboxController::leftStick(double triggerTreshold) {
 						|| std::abs(GetLeftY()) >= triggerTreshold;
 			});
 }
+
+void OverXboxController::updateTelemetry() {
+	if (IsConnected()) {
+		isConnectedAlert.Set(true);
+	} else {
+		isConnectedAlert.Set(false);
+	}
+
+	Logging::WriteBoolean(
+			"Controllers/XboxController-" + std::to_string(GetHID().GetPort())
+					+ "/IsConnected", IsConnected());
+}

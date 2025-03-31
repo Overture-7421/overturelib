@@ -3,17 +3,19 @@
 // the WPILib BSD license file in the root directory of this project.
 
 #include <frc/geometry/Rotation2d.h>
+#include <frc/Alert.h>
 #include <frc2/command/Commands.h>
 #include <frc2/command/button/Trigger.h>
-#include <frc2/command/button/CommandGenericHID.h>
 #include <frc2/command/button/CommandXboxController.h>
 #include "OvertureLib/Math/Utils.h"
+#include "OvertureLib/Utils/Logging/Logging.h"
 
 #pragma once
 
 class OverXboxController: public frc2::CommandXboxController {
 public:
 	OverXboxController(int port, double stickDeadzone, double triggerDeadzone);
+	void updateTelemetry();
 
 	double getTwist();
 	frc::Rotation2d getLeftStickDirection();
@@ -35,4 +37,7 @@ public:
 private:
 	double stickDeadzone;
 	double triggerDeadzone;
+
+	frc::Alert isConnectedAlert { "Xbox Controller is not connected",
+			frc::Alert::AlertType::kWarning };
 };
