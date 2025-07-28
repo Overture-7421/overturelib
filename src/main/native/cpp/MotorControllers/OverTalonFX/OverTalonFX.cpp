@@ -113,6 +113,17 @@ void OverTalonFX::setFusedCANCoder(int id) {
 }
 
 /**
+ * @brief Sets the sync CANCoder of the TalonFX
+ *
+ * @param deviceID The device ID of the sync CANCoder
+ */
+void OverTalonFX::setSyncCANCoder(int id) {
+	ctreConfig.Feedback.WithFeedbackRemoteSensorID(id).WithFeedbackSensorSource(
+			FeedbackSensorSourceValue::SyncCANcoder);
+	GetConfigurator().Apply(ctreConfig);
+}
+
+/**
  * @brief Sets the closed loop torque ramp rate of the TalonFX
  *
  * @param ramp The ramp rate in seconds

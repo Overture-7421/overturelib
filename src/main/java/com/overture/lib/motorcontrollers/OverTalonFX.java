@@ -103,6 +103,16 @@ public class OverTalonFX extends TalonFX {
   }
 
   /**
+   * Sets the sync CANCoder of the TalonFX
+   *
+   * @param canCoder The sync CANCoder of the TalonFX
+   */
+  public void setSyncCANCoder(OverCANCoder canCoder) {
+    this.ctreConfig.Feedback.withSyncCANcoder(canCoder);
+    this.getConfigurator().apply(this.ctreConfig);
+  }
+
+  /**
    * Sets the closed loop ramp rate of the TalonFX
    *
    * @param ramp The closed loop ramp rate of the TalonFX in seconds

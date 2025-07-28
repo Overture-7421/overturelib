@@ -26,6 +26,7 @@ public:
 	void setRotorToSensorRatio(double gearRatio);
 	void setRemoteCANCoder(int id);
 	void setFusedCANCoder(int id);
+	void setSyncCANCoder(int id);
 	void setClosedLoopTorqueRamp(units::second_t ramp);
 	void setTorqueCurrentLimit(units::ampere_t peakForward,
 			units::ampere_t peakBackward, units::ampere_t deadband);
