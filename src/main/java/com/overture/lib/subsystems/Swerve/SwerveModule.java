@@ -62,7 +62,8 @@ public class SwerveModule {
     this.feedForward = config.feedforward;
 
     this.turnMotor.setContinuousWrap();
-    this.turnMotor.setFusedCANCoder(this.encoder);
+    //this.turnMotor.setFusedCANCoder(this.encoder);
+    this.turnMotor.setSyncCANCoder(this.encoder);
     this.turnMotor.setControl(
         turnVoltage.withPosition(Rotations.of(0)).withEnableFOC(config.turnMotorConfig.useFOC));
 
