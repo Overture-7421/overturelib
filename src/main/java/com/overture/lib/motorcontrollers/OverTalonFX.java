@@ -103,9 +103,9 @@ public class OverTalonFX extends TalonFX {
   }
 
   /**
-   * Sets the fused CANCoder of the TalonFX
+   * Sets the sync CANCoder of the TalonFX
    *
-   * @param canCoder The fused CANCoder of the TalonFX
+   * @param canCoder The sync CANCoder of the TalonFX
    */
   public void setSyncCANCoder(OverCANCoder canCoder) {
     this.ctreConfig.Feedback.withSyncCANcoder(canCoder);

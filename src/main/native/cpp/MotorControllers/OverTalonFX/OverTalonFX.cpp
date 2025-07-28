@@ -113,9 +113,9 @@ void OverTalonFX::setFusedCANCoder(int id) {
 }
 
 /**
- * @brief Sets the fused CANCoder of the TalonFX
+ * @brief Sets the sync CANCoder of the TalonFX
  *
- * @param deviceID The device ID of the fused CANCoder
+ * @param deviceID The device ID of the sync CANCoder
  */
 void OverTalonFX::setSyncCANCoder(int id) {
 	ctreConfig.Feedback.WithFeedbackRemoteSensorID(id).WithFeedbackSensorSource(
