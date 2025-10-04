@@ -21,7 +21,7 @@ OverCANCoder::OverCANCoder(CanCoderConfig config, std::string bus) : CANcoder(
 		config.CanCoderId, bus) {
 
 	canCoderConfiguration.MagnetSensor.WithAbsoluteSensorDiscontinuityPoint(
-			0.5_tr);
+			config.absoluteDiscontinuityPoint);
 	canCoderConfiguration.MagnetSensor.WithMagnetOffset(config.Offset);
 	canCoderConfiguration.MagnetSensor.WithSensorDirection(
 			config.SensorDirection);

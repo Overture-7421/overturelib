@@ -7,4 +7,5 @@ struct CanCoderConfig {
 	ctre::phoenix6::signals::SensorDirectionValue SensorDirection =
 			ctre::phoenix6::signals::SensorDirectionValue::CounterClockwise_Positive;
 	units::turn_t Offset = 0_deg;
+	units::turn_t absoluteDiscontinuityPoint = 0.5_tr;
 };
