@@ -3,6 +3,8 @@
 // the WPILib BSD license file in the root directory of this project.
 
 #include "OvertureLib/Simulation/SimMotorManager/SimMotorManager.h"
+
+#include "OvertureLib/MotorControllers/OverTalonFX/OverTalonFX.h"
 #include <iostream>
 #include <frc/RobotController.h>
 

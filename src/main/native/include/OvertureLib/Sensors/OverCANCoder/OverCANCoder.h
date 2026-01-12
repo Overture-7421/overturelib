@@ -5,24 +5,18 @@
 #pragma once
 
 #include <ctre/phoenix6/CANcoder.hpp>
-#include <ctre/phoenix6/configs/Configs.hpp>
-#include <ctre/phoenix6/signals/SpnEnums.hpp>
+#include <ctre/phoenix6/CANBus.hpp>
 
 #include <OvertureLib/Sensors/OverCANCoder/Config.h>
 #include <frc/Alert.h>
 
-using namespace ctre::phoenix6::hardware;
-using namespace ctre::phoenix6::configs;
-using namespace ctre::phoenix6::signals;
-
-class OverCANCoder: public CANcoder {
+class OverCANCoder: public ctre::phoenix6::hardware::CANcoder {
 public:
-	OverCANCoder(CanCoderConfig config, std::string bus);
-	void updateAlert();
-	const CANcoderConfiguration& getConfiguration();
+	OverCANCoder(CanCoderConfig config, ctre::phoenix6::CANBus bus);
+	const ctre::phoenix6::configs::CANcoderConfiguration& getConfiguration();
 
 private:
-	CANcoderConfiguration canCoderConfiguration;
+	ctre::phoenix6::configs::CANcoderConfiguration canCoderConfiguration;
 	frc::Alert isConnectedAlert { "Devices", "CANCoder is not connected",
 			frc::Alert::AlertType::kWarning };
 };

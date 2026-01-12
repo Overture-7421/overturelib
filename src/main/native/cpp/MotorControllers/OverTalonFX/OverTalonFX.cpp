@@ -15,12 +15,14 @@
  * @param bus         The bus of the TalonFX
  */
 
-OverTalonFX::OverTalonFX(OverTalonFXConfig overConfig, std::string bus) : TalonFX(
+OverTalonFX::OverTalonFX(OverTalonFXConfig overConfig,
+		ctre::phoenix6::CANBus bus) : ctre::phoenix6::hardware::TalonFX(
 		overConfig.MotorId, bus), overConfig(overConfig) {
 	// Configuracion en modo neutral
 	ctreConfig.MotorOutput.WithNeutralMode(
 			overConfig.NeutralMode == ControllerNeutralMode::Brake ?
-					NeutralModeValue::Brake : NeutralModeValue::Coast);
+					ctre::phoenix6::signals::NeutralModeValue::Brake :
+					ctre::phoenix6::signals::NeutralModeValue::Coast);
 
 	ctreConfig.Voltage.WithPeakForwardVoltage(12_V).WithPeakReverseVoltage(
 			-12_V);
@@ -60,17 +62,6 @@ OverTalonFX::OverTalonFX(OverTalonFXConfig overConfig, std::string bus) : TalonF
 }
 
 /**
- * @brief Updates the alert for the TalonFX
- */
-void OverTalonFX::updateAlert() {
-	if (IsConnected()) {
-		isConnectedAlert.Set(false);
-	} else {
-		isConnectedAlert.Set(true);
-	}
-}
-
-/**
  * @brief Sets the sensor to mechanism ratio of the TalonFX
  *
  * @param gearRatio The gear ratio of the TalonFX
@@ -97,7 +88,7 @@ void OverTalonFX::setRotorToSensorRatio(double gearRatio) {
  */
 void OverTalonFX::setRemoteCANCoder(int id) {
 	ctreConfig.Feedback.WithFeedbackRemoteSensorID(id).WithFeedbackSensorSource(
-			FeedbackSensorSourceValue::RemoteCANcoder);
+			ctre::phoenix6::signals::FeedbackSensorSourceValue::RemoteCANcoder);
 	GetConfigurator().Apply(ctreConfig);
 }
 
@@ -108,7 +99,7 @@ void OverTalonFX::setRemoteCANCoder(int id) {
  */
 void OverTalonFX::setFusedCANCoder(int id) {
 	ctreConfig.Feedback.WithFeedbackRemoteSensorID(id).WithFeedbackSensorSource(
-			FeedbackSensorSourceValue::FusedCANcoder);
+			ctre::phoenix6::signals::FeedbackSensorSourceValue::FusedCANcoder);
 	GetConfigurator().Apply(ctreConfig);
 }
 
@@ -119,7 +110,7 @@ void OverTalonFX::setFusedCANCoder(int id) {
  */
 void OverTalonFX::setSyncCANCoder(int id) {
 	ctreConfig.Feedback.WithFeedbackRemoteSensorID(id).WithFeedbackSensorSource(
-			FeedbackSensorSourceValue::SyncCANcoder);
+			ctre::phoenix6::signals::FeedbackSensorSourceValue::SyncCANcoder);
 	GetConfigurator().Apply(ctreConfig);
 }
 
@@ -154,7 +145,7 @@ void OverTalonFX::setTorqueCurrentLimit(units::ampere_t peakForward,
  * @param inverted Whether or not the TalonFX is inverted
  */
 void OverTalonFX::setFollow(int masterID, bool inverted) {
-	SetControl(Follower { masterID, inverted });
+	SetControl(ctre::phoenix6::controls::Follower { masterID, inverted });
 }
 
 /**
@@ -162,7 +153,7 @@ void OverTalonFX::setFollow(int masterID, bool inverted) {
  *
  * @return The TalonFX configuration
  */
-const TalonFXConfiguration& OverTalonFX::getCTREConfig() {
+const ctre::phoenix6::configs::TalonFXConfiguration& OverTalonFX::getCTREConfig() {
 	return ctreConfig;
 }
 

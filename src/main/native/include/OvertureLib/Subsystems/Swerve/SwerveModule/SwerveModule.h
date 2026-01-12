@@ -9,7 +9,6 @@
 #include <frc/kinematics/SwerveModulePosition.h>
 #include <frc/controller/SimpleMotorFeedforward.h>
 #include <frc/smartdashboard/SmartDashboard.h>
-#include <memory.h>
 
 #include "OvertureLib/MotorControllers/OverTalonFX/OverTalonFX.h"
 #include "OvertureLib/Sensors/OverCANCoder/OverCANCoder.h"
@@ -47,7 +46,7 @@ private:
 	frc::SwerveModuleState latestState;
 	frc::SwerveModulePosition latestPosition;
 
-	PositionVoltage turnVoltage { 0_tr };
-	VoltageOut driveVoltage { 0_V };
+	ctre::phoenix6::controls::PositionVoltage turnVoltage { 0_tr };
+	ctre::phoenix6::controls::VoltageOut driveVoltage { 0_V };
 
 };
