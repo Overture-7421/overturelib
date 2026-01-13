@@ -17,7 +17,7 @@
  *
  * @param bus    CAN Bus of the CANCoder
  */
-OverCANCoder::OverCANCoder(CanCoderConfig config, std::string bus) : CANcoder(
+OverCANCoder::OverCANCoder(CanCoderConfig config, ctre::phoenix6::CANBus bus) : ctre::phoenix6::hardware::CANcoder(
 		config.CanCoderId, bus) {
 
 	canCoderConfiguration.MagnetSensor.WithAbsoluteSensorDiscontinuityPoint(
@@ -38,17 +38,6 @@ OverCANCoder::OverCANCoder(CanCoderConfig config, std::string bus) : CANcoder(
 					+ " is not connected");
 }
 
-/**
- * @brief Updates the alert for the CANCoder
- */
-void OverCANCoder::updateAlert() {
-	if (IsConnected()) {
-		isConnectedAlert.Set(false);
-	} else {
-		isConnectedAlert.Set(true);
-	}
-}
-
-const CANcoderConfiguration& OverCANCoder::getConfiguration() {
+const ctre::phoenix6::configs::CANcoderConfiguration& OverCANCoder::getConfiguration() {
 	return canCoderConfiguration;
 }

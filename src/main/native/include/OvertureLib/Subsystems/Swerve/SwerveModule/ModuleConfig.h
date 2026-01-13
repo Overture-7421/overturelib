@@ -5,8 +5,12 @@
 #pragma once
 
 #include <string>
+#include <ctre/phoenix6/CANBus.hpp>
 #include <OvertureLib/MotorControllers/OverTalonFX/Config.h>
 #include <OvertureLib/Sensors/OverCANCoder/Config.h>
+#include <frc/controller/SimpleMotorFeedforward.h>
+#include <units/velocity.h>
+#include <units/acceleration.h>
 
 static OverTalonFXConfig DriveInit() {
 	OverTalonFXConfig config;
@@ -48,7 +52,7 @@ struct SwerveModuleConfig {
 	CanCoderConfig EncoderConfig;
 
 	std::string ModuleName = "";
-	std::string CanBus = "";
+	ctre::phoenix6::CANBus CanBus { "" };
 
 	units::meter_t WheelDiameter = 0.1016_m;
 	double TurnGearRatio = 1.0;

@@ -2,7 +2,7 @@
     "fileName": "${fileName}",
     "name": "OvertureLib",
     "version": "${version}",
-    "frcYear": "2025",
+    "frcYear": "2026",
     "uuid": "f5b78b8e-1696-4920-b6a1-154fa9a48d06",
     "mavenUrls": [
         "https://overture-7421.github.io/overturelib/repo"
@@ -26,7 +26,6 @@
             "sharedLibrary": true,
             "skipInvalidPlatforms": true,
             "binaryPlatforms": [
-                "windowsx86-64",
                 "windowsx86",
                 "linuxarm64",
                 "linuxx86-64",

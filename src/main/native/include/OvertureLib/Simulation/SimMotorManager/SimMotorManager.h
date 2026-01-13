@@ -4,13 +4,17 @@
 
 #pragma once
 
-#include "OvertureLib/MotorControllers/OverTalonFX/OverTalonFX.h"
 #include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 #include <networktables/NetworkTable.h>
 #include <networktables/NetworkTableInstance.h>
 
 typedef std::string NTMotorName;
+
+class OverTalonFX;
 
 class SimMotorManager {
 public:

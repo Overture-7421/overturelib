@@ -1,7 +1,7 @@
 #pragma once
 
 #include "OvertureLib/MotorControllers/ControllerNeutralMode/ControllerNeutralMode.h"
-#include <ctre/phoenix6/configs/Configs.hpp>
+#include <ctre/phoenix6/configs/Slot0Configs.hpp>
 #include <units/current.h>
 #include <units/time.h>
 
