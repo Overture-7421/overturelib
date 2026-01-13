@@ -51,7 +51,7 @@ void AprilTags::addMeasurementToChassis(
 		const photon::PhotonPipelineResult &result) {
 
 	std::optional < photon::EstimatedRobotPose > poseResult =
-			poseEstimator->Update(result);
+			poseEstimator->EstimateCoprocMultiTagPose(result);
 
 	if (poseResult.has_value()) {
 
