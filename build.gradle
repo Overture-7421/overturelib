@@ -60,7 +60,7 @@ dependencies {
     implementation "com.ctre.phoenix6:wpiapi-java:25.1.0"
     implementation "org.photonvision:photonlib-java:v2025.0.0-beta-8"
     implementation "org.photonvision:photontargeting-java:v2025.0.0-beta-8"
-    implementation "com.pathplanner.lib:PathplannerLib-java:2025.1.1"
+    implementation "com.pathplanner.lib:PathplannerLib-java:2025.1.2"
 }
 
 tasks.withType(JavaCompile) {
