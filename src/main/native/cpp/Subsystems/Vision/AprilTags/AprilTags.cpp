@@ -13,9 +13,8 @@ AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
 
 	camera = std::make_unique < photon::PhotonCamera
 			> (this->config.cameraName);
-	poseEstimator =
-			std::make_unique < photon::PhotonPoseEstimator
-					> (*this->tagLayout, this->config.cameraToRobot);
+	poseEstimator = std::make_unique < photon::PhotonPoseEstimator
+			> (*this->tagLayout, this->config.cameraToRobot);
 
 	auto cameraTable = nt::NetworkTableInstance::GetDefault().GetTable(
 			"AprilTags/" + config.cameraName);
