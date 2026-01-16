@@ -80,11 +80,12 @@ void SwerveChassis::resetOdometry(frc::Pose2d initPose) {
  * @brief Updates odometry using vision
  */
 void SwerveChassis::addVisionMeasurement(frc::Pose2d pose,
-		units::second_t timestamp) {
+		units::second_t timestamp, Eigen::Matrix<double, 3, 1> stdDevs) {
 	if (!acceptingVisionMeasurements) {
 		return;
 	}
-	odometry->AddVisionMeasurement(pose, timestamp);
+	odometry->AddVisionMeasurement(pose, timestamp, wpi::array<double, 3> {
+			stdDevs(0, 0), stdDevs(1, 0), stdDevs(2, 0) });
 }
 
 void SwerveChassis::setAcceptingVisionMeasurements(

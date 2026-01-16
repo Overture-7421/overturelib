@@ -4,7 +4,6 @@
 
 #include "OvertureLib/Subsystems/Vision/AprilTags/AprilTags.h"
 #include "OvertureLib/Simulation/SimPhotonVisionManager/SimPhotonVisionManager.h"
-#include <iostream>
 
 AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
 		SwerveChassis *chassis, Config config) {
@@ -16,7 +15,7 @@ AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
 			> (this->config.cameraName);
 	poseEstimator =
 			std::make_unique < photon::PhotonPoseEstimator
-					> (*this->tagLayout, photon::PoseStrategy::MULTI_TAG_PNP_ON_COPROCESSOR, this->config.cameraToRobot);
+					> (*this->tagLayout, this->config.cameraToRobot);
 
 	auto cameraTable = nt::NetworkTableInstance::GetDefault().GetTable(
 			"AprilTags/" + config.cameraName);
@@ -29,86 +28,64 @@ AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
 	SimPhotonVisionManager::GetInstance().AddSimCamera(cameraSim.get(),
 			config.cameraToRobot);
 #endif
-
 }
 
-//Check if distance between robot and tag is less than a certain value ;)
-bool AprilTags::checkTagDistance(const photon::PhotonPipelineResult &result) {
-	if (result.GetTargets().size() > config.tagValidDistances.size()) {
-		return true;
+Eigen::Matrix<double, 3, 1> AprilTags::GetEstimationStdDevs(
+		const photon::PhotonPipelineResult &result, frc::Pose2d estimatedPose) {
+	Eigen::Matrix<double, 3, 1> estStdDevs = singleTagStdDevs;
+	auto targets = result.GetTargets();
+	int numTags = 0;
+	units::meter_t avgDist = 0_m;
+	for (const auto &tgt : targets) {
+		auto tagPose = poseEstimator->GetFieldLayout().GetTagPose(
+				tgt.GetFiducialId());
+		if (tagPose) {
+			numTags++;
+			avgDist += tagPose->ToPose2d().Translation().Distance(
+					estimatedPose.Translation());
+		}
 	}
-
-	if (result.GetBestTarget().GetBestCameraToTarget().Translation().Distance( {
-			0_m, 0_m, 0_m })
-			< config.tagValidDistances.at(result.GetTargets().size())) {
-		return true;
+	if (numTags == 0) {
+		return estStdDevs;
 	}
-
-	return false;
+	avgDist /= numTags;
+	if (numTags > 1) {
+		estStdDevs = multiTagStdDevs;
+	}
+	if (numTags == 1 && avgDist > 4_m) {
+		estStdDevs = Eigen::Matrix<double, 3, 1> { 1e6, 1e6, 1e6 };
+	} else {
+		estStdDevs = estStdDevs
+				* (1 + (avgDist.value() * avgDist.value() / 30));
+	}
+	return estStdDevs;
 }
 
 void AprilTags::addMeasurementToChassis(
-		const photon::PhotonPipelineResult &result) {
+		const photon::PhotonPipelineResult &result, frc::Pose2d pose,
+		units::second_t timestamp) {
 
-	std::optional < photon::EstimatedRobotPose > poseResult =
-			poseEstimator->EstimateCoprocMultiTagPose(result);
-
-	if (poseResult.has_value()) {
-
-		std::vector < frc::Pose3d > targets;
-		frc::Pose3d current3d;
+	std::vector < frc::Pose3d > targets;
+	frc::Pose3d current3d;
 
 #ifndef __FRC_ROBORIO__ // If on simulation
-		current3d = SimPhotonVisionManager::GetInstance().GetRobotPose();
+	current3d = SimPhotonVisionManager::GetInstance().GetRobotPose();
 #else
 		current3d = frc::Pose3d(chassis->getEstimatedPose());
 #endif
 
-		for (const auto &t : result.GetTargets()) {
-			targets.push_back(
-					current3d.TransformBy(config.cameraToRobot).TransformBy(
-							t.GetBestCameraToTarget()));
-		}
-		targetPosesPublisher.Set(targets);
-		frc::Pose2d poseTo2d = poseResult.value().estimatedPose.ToPose2d();
-		chassis->addVisionMeasurement(poseTo2d, poseResult.value().timestamp);
-
-		Logging::LogPose2d("/Swerve/Photonvision/" + config.cameraName,
-				poseTo2d,
-				frc::Timer::GetFPGATimestamp() - poseResult.value().timestamp);
-		visionPose2dPublisher.Set(poseTo2d);
-	} else {
-		targetPosesPublisher.Set( { });
+	for (const auto &t : result.GetTargets()) {
+		targets.push_back(
+				current3d.TransformBy(config.cameraToRobot).TransformBy(
+						t.GetBestCameraToTarget()));
 	}
-}
+	targetPosesPublisher.Set(targets);
+	chassis->addVisionMeasurement(pose, timestamp,
+			GetEstimationStdDevs(result, pose));
 
-//Update odometry with vision :0
-void AprilTags::updateOdometry() {
-	std::optional < photon::PhotonPipelineResult > result = getCameraResult();
-	if (!result.has_value() || !result.value().HasTargets()) {
-		targetPosesPublisher.Set( { });
-		return;
-	}
-
-	photon::PhotonPipelineResult pipelineResult = result.value();
-
-	if (checkTagDistance(pipelineResult)) {
-		addMeasurementToChassis(pipelineResult);
-	} else {
-		targetPosesPublisher.Set( { });
-	}
-}
-
-//Get PhotonPipeResult from PhotonVision
-std::optional<photon::PhotonPipelineResult> AprilTags::getCameraResult() {
-	std::vector < photon::PhotonPipelineResult > results =
-			camera->GetAllUnreadResults();
-
-	if (results.empty()) {
-		return std::nullopt;
-	}
-
-	return results[0];
+	Logging::LogPose2d("/Swerve/Photonvision/" + config.cameraName, pose,
+			frc::Timer::GetFPGATimestamp() - timestamp);
+	visionPose2dPublisher.Set(pose);
 }
 
 void AprilTags::setEnabled(bool enabled) {
@@ -117,7 +94,23 @@ void AprilTags::setEnabled(bool enabled) {
 
 void AprilTags::Periodic() {
 	if (enabled) {
-		updateOdometry();
+		for (const auto &result : camera->GetAllUnreadResults()) {
+			auto visionEst = poseEstimator->EstimateCoprocMultiTagPose(result);
+			if (!visionEst) {
+				visionEst = poseEstimator->EstimateLowestAmbiguityPose(result);
+			}
+			m_latestResult = result;
+
+			if (visionEst) {
+				frc::Pose2d poseTo2d =
+						visionEst.value().estimatedPose.ToPose2d();
+				addMeasurementToChassis(result, poseTo2d,
+						visionEst.value().timestamp);
+			} else {
+				targetPosesPublisher.Set(std::vector<frc::Pose3d> { });
+				continue;
+			}
+		}
 	}
 }
 
