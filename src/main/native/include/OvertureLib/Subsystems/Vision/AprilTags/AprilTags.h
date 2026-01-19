@@ -30,10 +30,14 @@ public:
 
 	AprilTags(frc::AprilTagFieldLayout *tagLayout, SwerveChassis *chassis,
 			Config config);
-	bool checkTagDistance(const photon::PhotonPipelineResult &result);
-	void addMeasurementToChassis(const photon::PhotonPipelineResult &result);
-	void updateOdometry();
-	std::optional<photon::PhotonPipelineResult> getCameraResult();
+	Eigen::Matrix<double, 3, 1> GetEstimationStdDevs(
+			const photon::PhotonPipelineResult &result,
+			frc::Pose2d estimatedPose);
+	const photon::PhotonPipelineResult& GetLatestResult() const {
+		return m_latestResult;
+	}
+	void addMeasurementToChassis(const photon::PhotonPipelineResult &result,
+			frc::Pose2d pose, units::second_t timestamp);
 	void setEnabled(bool enabled);
 	void Periodic() override;
 
@@ -41,6 +45,11 @@ private:
 	/* PhotonVision */
 	std::unique_ptr<photon::PhotonCamera> camera;
 	std::unique_ptr<photon::PhotonPoseEstimator> poseEstimator;
+	photon::PhotonPipelineResult m_latestResult;
+
+	// Standard deviations for vision measurements
+	const Eigen::Matrix<double, 3, 1> singleTagStdDevs { 4, 4, 8 };
+	const Eigen::Matrix<double, 3, 1> multiTagStdDevs { 0.5, 0.5, 1 };
 
 	frc::AprilTagFieldLayout *tagLayout;
 	SwerveChassis *chassis;
