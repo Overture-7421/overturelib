@@ -27,6 +27,9 @@ AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
 	SimPhotonVisionManager::GetInstance().AddSimCamera(cameraSim.get(),
 			config.cameraToRobot);
 #endif
+
+	this->singleTagStdDevs = config.singleTagStdDevs;
+	this->multiTagStdDevs = config.multiTagStdDevs;
 }
 
 Eigen::Matrix<double, 3, 1> AprilTags::GetEstimationStdDevs(
