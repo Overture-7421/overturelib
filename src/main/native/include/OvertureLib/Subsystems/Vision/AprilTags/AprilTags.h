@@ -23,13 +23,13 @@ public:
 	struct Config {
 		std::string cameraName;
 		frc::Transform3d cameraToRobot;
-		Eigen::Matrix<double, 3, 1> singleTagStdDevs;
-		Eigen::Matrix<double, 3, 1> multiTagStdDevs;
+		wpi::array<double, 3> singleTagStdDevs;
+		wpi::array<double, 3> multiTagStdDevs;
 	};
 
 	AprilTags(frc::AprilTagFieldLayout *tagLayout, SwerveChassis *chassis,
 			Config config);
-	Eigen::Matrix<double, 3, 1> GetEstimationStdDevs(
+	wpi::array<double, 3> GetEstimationStdDevs(
 			const photon::PhotonPipelineResult &result,
 			frc::Pose2d estimatedPose);
 	const photon::PhotonPipelineResult& GetLatestResult() const {
@@ -47,8 +47,8 @@ private:
 	photon::PhotonPipelineResult m_latestResult;
 
 	// Standard deviations for vision measurements
-	Eigen::Matrix<double, 3, 1> singleTagStdDevs { 2, 2, 4 };
-	Eigen::Matrix<double, 3, 1> multiTagStdDevs { 0.1, 0.1, 0.3 };
+	wpi::array<double, 3> singleTagStdDevs { 2.0, 2.0, 4.0 };
+	wpi::array<double, 3> multiTagStdDevs { 0.1, 0.1, 0.3 };
 
 	frc::AprilTagFieldLayout *tagLayout;
 	SwerveChassis *chassis;
