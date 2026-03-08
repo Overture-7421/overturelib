@@ -5,6 +5,9 @@
 #pragma once
 
 #include <map>
+#include <string>
+#include <utility>
+#include <wpi/array.h>
 #include <photon/PhotonCamera.h>
 #include <photon/simulation/PhotonCameraSim.h>
 #include <photon/PhotonPoseEstimator.h>
@@ -22,9 +25,22 @@ class AprilTags: public frc2::SubsystemBase {
 public:
 	struct Config {
 		std::string cameraName;
-		frc::Transform3d cameraToRobot;
-		wpi::array<double, 3> singleTagStdDevs;
-		wpi::array<double, 3> multiTagStdDevs;
+		frc::Transform3d cameraToRobot { };
+		wpi::array<double, 3> singleTagStdDevs { 2.0, 2.0, 4.0 };
+		wpi::array<double, 3> multiTagStdDevs { 0.1, 0.1, 0.3 };
+
+		Config() = default;
+
+		Config(std::string cameraName, frc::Transform3d cameraToRobot) : cameraName(
+				std::move(cameraName)), cameraToRobot(std::move(cameraToRobot)) {
+		}
+
+		Config(std::string cameraName, frc::Transform3d cameraToRobot,
+				wpi::array<double, 3> singleTagStdDevs,
+				wpi::array<double, 3> multiTagStdDevs) : cameraName(
+				std::move(cameraName)), cameraToRobot(std::move(cameraToRobot)), singleTagStdDevs(
+				singleTagStdDevs), multiTagStdDevs(multiTagStdDevs) {
+		}
 	};
 
 	AprilTags(frc::AprilTagFieldLayout *tagLayout, SwerveChassis *chassis,
