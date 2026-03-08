@@ -37,7 +37,7 @@ public:
 	void resetOdometry(frc::Pose2d initPose) override;
 
 	void addVisionMeasurement(frc::Pose2d pose, units::second_t Latency,
-			Eigen::Matrix<double, 3, 1> stdDevs);
+			wpi::array<double, 3> stdDevs);
 	void setAcceptingVisionMeasurements(bool acceptingVisionMeasurements);
 
 	void resetHeading(units::degree_t angle = 0_deg);
