@@ -38,12 +38,13 @@ public:
 	void addMeasurementToChassis(const photon::PhotonPipelineResult &result,
 			frc::Pose2d pose, units::second_t timestamp);
 	void setEnabled(bool enabled);
+	virtual std::optional<photon::EstimatedRobotPose> getEstimatedPose(const photon::PhotonPipelineResult& result);
 	void Periodic() override;
-
+protected:
+	std::unique_ptr<photon::PhotonPoseEstimator> poseEstimator;
 private:
 	/* PhotonVision */
 	std::unique_ptr<photon::PhotonCamera> camera;
-	std::unique_ptr<photon::PhotonPoseEstimator> poseEstimator;
 	photon::PhotonPipelineResult m_latestResult;
 
 	// Standard deviations for vision measurements

@@ -93,13 +93,18 @@ void AprilTags::setEnabled(bool enabled) {
 	this->enabled = enabled;
 }
 
+std::optional<photon::EstimatedRobotPose> AprilTags::getEstimatedPose(const photon::PhotonPipelineResult& result) {
+	auto visionEst = poseEstimator->EstimateCoprocMultiTagPose(result);
+	if (!visionEst) {
+		visionEst = poseEstimator->EstimateLowestAmbiguityPose(result);
+	}
+	return visionEst;
+}
+
 void AprilTags::Periodic() {
 	if (enabled) {
 		for (const auto &result : camera->GetAllUnreadResults()) {
-			auto visionEst = poseEstimator->EstimateCoprocMultiTagPose(result);
-			if (!visionEst) {
-				visionEst = poseEstimator->EstimateLowestAmbiguityPose(result);
-			}
+			auto visionEst = getEstimatedPose(result);
 			m_latestResult = result;
 
 			if (visionEst) {
