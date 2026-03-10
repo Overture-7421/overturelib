@@ -77,7 +77,8 @@ void AprilTags::addMeasurementToChassis(
 
 	for (const auto &t : result.GetTargets()) {
 		targets.push_back(
-				current3d.TransformBy(poseEstimator->GetRobotToCameraTransform()).TransformBy(
+				current3d.TransformBy(
+						poseEstimator->GetRobotToCameraTransform()).TransformBy(
 						t.GetBestCameraToTarget()));
 	}
 	targetPosesPublisher.Set(targets);
@@ -93,7 +94,8 @@ void AprilTags::setEnabled(bool enabled) {
 	this->enabled = enabled;
 }
 
-std::optional<photon::EstimatedRobotPose> AprilTags::getEstimatedPose(const photon::PhotonPipelineResult& result) {
+std::optional<photon::EstimatedRobotPose> AprilTags::getEstimatedPose(
+		const photon::PhotonPipelineResult &result) {
 	auto visionEst = poseEstimator->EstimateCoprocMultiTagPose(result);
 	if (!visionEst) {
 		visionEst = poseEstimator->EstimateLowestAmbiguityPose(result);
