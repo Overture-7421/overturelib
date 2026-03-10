@@ -24,9 +24,6 @@ AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
 	SimPhotonVisionManager::GetInstance().AddSimCamera(cameraSim.get(),
 			this->config.cameraToRobot);
 #endif
-
-	singleTagStdDevs = this->config.singleTagStdDevs;
-	multiTagStdDevs = this->config.multiTagStdDevs;
 }
 
 wpi::array<double, 3> AprilTags::GetEstimationStdDevs(
