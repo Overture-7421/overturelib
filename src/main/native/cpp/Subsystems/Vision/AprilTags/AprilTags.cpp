@@ -33,6 +33,7 @@ wpi::array<double, 3> AprilTags::GetEstimationStdDevs(
 		const photon::PhotonPipelineResult &result, frc::Pose2d estimatedPose) {
 	wpi::array<double, 3> estStdDevs = singleTagStdDevs;
 	auto targets = result.GetTargets();
+
 	int numTags = 0;
 	units::meter_t avgDist = 0_m;
 	for (const auto &tgt : targets) {
@@ -80,6 +81,7 @@ void AprilTags::addMeasurementToChassis(
 				current3d.TransformBy(config.cameraToRobot).TransformBy(
 						t.GetBestCameraToTarget()));
 	}
+
 	targetPosesPublisher.Set(targets);
 	chassis->addVisionMeasurement(pose, timestamp,
 			GetEstimationStdDevs(result, pose));

@@ -1,252 +1,250 @@
 name: Publish New Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        type: string
-        description: The full version string, i.e. 2024.0.0-beta-1 or 2024.1.1
-        required: true
-      prerelease:
-        type: boolean
-        description: Is this a pre-release?
-        required: true
-        default: false
+    workflow_dispatch:
+        inputs:
+            version:
+                type: string
+                description: The full version string, i.e. 2024.0.0-beta-1 or 2024.1.1
+                required: true
+            prerelease:
+                type: boolean
+                description: Is this a pre-release?
+                required: true
+                default: false
 
 jobs:
-  build-docker:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - container: wpilib/roborio-cross-ubuntu:2025-22.04
-            artifact-name: Athena
-            build-options: "-Ponlylinuxathena"
+    build-docker:
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - container: wpilib/roborio-cross-ubuntu:2025-22.04
+                      artifact-name: Athena
+                      build-options: "-Ponlylinuxathena"
 
-          - container: wpilib/ubuntu-base:22.04
-            artifact-name: Linux
-            build-options: ""
-    name: "Build - ${{ matrix.artifact-name }}"
-    runs-on: ubuntu-22.04
-    container: ${{ matrix.container }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-          fetch-depth: 0
+                    - container: wpilib/ubuntu-base:22.04
+                      artifact-name: Linux
+                      build-options: ""
+        name: "Build - ${{ matrix.artifact-name }}"
+        runs-on: ubuntu-22.04
+        container: ${{ matrix.container }}
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  submodules: true
+                  fetch-depth: 0
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+            - name: Grant execute permission for gradlew
+              run: chmod +x gradlew
 
-      - name: Fetch all history and metadata
-        run: |
-          git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
+            - name: Fetch all history and metadata
+              run: |
+                  git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
 
-      - name: Set version
-        run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
+            - name: Set version
+              run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
 
-      - name: Ensure spotless is applied
-        run: ./gradlew spotlessApply
+            - name: Ensure spotless is applied
+              run: ./gradlew spotlessApply
 
-      - name: Build with Gradle
-        run: ./gradlew build -PreleaseMode ${{ matrix.build-options }}
+            - name: Build with Gradle
+              run: ./gradlew build -PreleaseMode ${{ matrix.build-options }}
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact-name }}
-          path: build/allOutputs
+            - name: Upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ matrix.artifact-name }}
+                  path: build/allOutputs
 
-  build-host:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-2022
-            os-name: windows
-            artifact-name: Win64
-            architecture: x64
-          - os: macos-15
-            os-name: macos
-            artifact-name: macOS
-            architecture: x64
-    name: "Build - ${{ matrix.artifact-name }}"
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
+    build-host:
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - os: windows-2022
+                      os-name: windows
+                      artifact-name: Win64
+                      architecture: x64
+                #   - os: macos-15
+                #     os-name: macos
+                #     artifact-name: macOS
+                #     architecture: x64
+        name: "Build - ${{ matrix.artifact-name }}"
+        runs-on: ${{ matrix.os }}
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  submodules: true
 
-      - name: Fetch all history and metadata
-        run: git fetch --prune --unshallow
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 17
-          architecture: ${{ matrix.architecture }}
+            - name: Fetch all history and metadata
+              run: git fetch --prune --unshallow
+            - uses: actions/setup-java@v4
+              with:
+                  distribution: "temurin"
+                  java-version: 17
+                  architecture: ${{ matrix.architecture }}
 
-      - name: Set version
-        if: ${{ matrix.os-name != 'macos' }}
-        run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
-        working-directory: ./
-    
-      - name: Set version (mac)
-        if: ${{ matrix.os-name == 'macos' }}
-        run: sed -i '' "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
-        working-directory: ./
+            - name: Set version
+              if: ${{ matrix.os-name != 'macos' }}
+              run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
+              working-directory: ./
 
-      - name: Ensure spotless is applied
-        run: ./gradlew spotlessApply
-      
-      - name: Build with Gradle
-        run: ./gradlew build -Pbuildalldesktop -PreleaseMode
-        working-directory: ./
+            - name: Set version (mac)
+              if: ${{ matrix.os-name == 'macos' }}
+              run: sed -i '' "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
+              working-directory: ./
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact-name }}
-          path: build/allOutputs
+            - name: Ensure spotless is applied
+              run: ./gradlew spotlessApply
 
-  combine:
-    name: Combine
-    needs: [build-docker, build-host]
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: wpilibsuite/build-tools
+            - name: Build with Gradle
+              run: ./gradlew build -Pbuildalldesktop -PreleaseMode
+              working-directory: ./
 
-      - uses: actions/download-artifact@v4
-        with:
-          path: combiner/products/build/allOutputs
+            - name: Upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ matrix.artifact-name }}
+                  path: build/allOutputs
 
-      - name: Flatten Artifacts
-        run: rsync -a --delete combiner/products/build/allOutputs/*/* combiner/products/build/allOutputs/
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 17
+    combine:
+        name: Combine
+        needs: [build-docker, build-host]
+        runs-on: ubuntu-22.04
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  repository: wpilibsuite/build-tools
 
-      - name: Combine
-        run: ./gradlew publish -Pthirdparty
-        working-directory: combiner
+            - uses: actions/download-artifact@v4
+              with:
+                  path: combiner/products/build/allOutputs
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: OvertureLib-${{ github.event.inputs.version }}
-          path: ~/releases/
+            - name: Flatten Artifacts
+              run: rsync -a --delete combiner/products/build/allOutputs/*/* combiner/products/build/allOutputs/
+            - uses: actions/setup-java@v4
+              with:
+                  distribution: "temurin"
+                  java-version: 17
 
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
+            - name: Combine
+              run: ./gradlew publish -Pthirdparty
+              working-directory: combiner
 
-      - name: Set Filename
-        if : ${{ github.event.inputs.prerelease == 'true' }}
-        run: sed -i "s/OutputFile.json/OvertureLib-Beta.json/g" publish.gradle
-        working-directory: ./
+            - uses: actions/upload-artifact@v4
+              with:
+                  name: OvertureLib-${{ github.event.inputs.version }}
+                  path: ~/releases/
 
-      - name: Set Filename
-        if : ${{ github.event.inputs.prerelease == 'false' }}
-        run: sed -i "s/OutputFile.json/OvertureLib.json/g" publish.gradle
-        working-directory: ./
+            - uses: actions/checkout@v4
+              with:
+                  submodules: true
 
-      - name: Set version
-        run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
+            - name: Set Filename
+              if: ${{ github.event.inputs.prerelease == 'true' }}
+              run: sed -i "s/OutputFile.json/OvertureLib-Beta.json/g" publish.gradle
+              working-directory: ./
 
-      - name: Create Output File
-        run: ./gradlew vendordepJson
+            - name: Set Filename
+              if: ${{ github.event.inputs.prerelease == 'false' }}
+              run: sed -i "s/OutputFile.json/OvertureLib.json/g" publish.gradle
+              working-directory: ./
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: OvertureLib.json
-          path: build/repos/
+            - name: Set version
+              run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
 
-  upload:
-    name: Upload to GitHub
-    needs: [combine]
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Clone Pages
-        run: |
-          git clone https://github.com/Overture-7421/overture-7421.github.io.git
+            - name: Create Output File
+              run: ./gradlew vendordepJson
 
-      - name : Set up git
-        run: |
-          cd overture-7421.github.io
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
+            - name: Upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: OvertureLib.json
+                  path: build/repos/
 
-      - uses: actions/download-artifact@v4
-        with:
-          name: OvertureLib-${{ github.event.inputs.version }}
-          path: ~/releases/
+    upload:
+        name: Upload to GitHub
+        needs: [combine]
+        runs-on: ubuntu-22.04
+        steps:
+            - name: Clone Pages
+              run: |
+                  git clone https://github.com/Overture-7421/overture-7421.github.io.git
 
-      - name: Copy artifacts
-        run: cp -r ~/releases/maven/development/com overture-7421.github.io/overturelib/repo/
+            - name: Set up git
+              run: |
+                  cd overture-7421.github.io
+                  git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git config --global user.name "github-actions[bot]"
 
-      - uses: actions/download-artifact@v4
-        with:
-          name: OvertureLib.json
-          path: ~/overturelib
+            - uses: actions/download-artifact@v4
+              with:
+                  name: OvertureLib-${{ github.event.inputs.version }}
+                  path: ~/releases/
 
-      - name: Update json
-        if : ${{ github.event.inputs.prerelease == 'false' }}
-        run: |
-          cp -r ~/overturelib overture-7421.github.io/
+            - name: Copy artifacts
+              run: cp -r ~/releases/maven/development/com overture-7421.github.io/overturelib/repo/
 
-      - name: Update json beta
-        if : ${{ github.event.inputs.prerelease == 'true' }}
-        run: |
-          cp -r ~/overturelib overture-7421.github.io/
+            - uses: actions/download-artifact@v4
+              with:
+                  name: OvertureLib.json
+                  path: ~/overturelib
 
-      - name: Commit
-        run: |
-          cd overture-7421.github.io
-          git add .
-          git commit -m "Upgrade to ${{ github.event.inputs.version }}"
-      
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          repository: overture-7421/overture-7421.github.io
-          github_token: ${{ secrets.ACCESS_TOKEN }}
-          directory: overture-7421.github.io
-  
-  publish-relase:
-    name: Publish Release
-    needs: [upload]
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: OvertureLib-${{ github.event.inputs.version }}
+            - name: Update json
+              if: ${{ github.event.inputs.prerelease == 'false' }}
+              run: |
+                  cp -r ~/overturelib overture-7421.github.io/
 
-      - name: Zip artifacts
-        run: zip -r OvertureLib-${{ github.event.inputs.version }}.zip maven/development/com/overture/lib
-        
-      - name: Create Release
-        if: github.event.inputs.prerelease == 'false'
-        uses: softprops/action-gh-release@v2
-        with:
-          name: OvertureLib ${{ github.event.inputs.version }}
-          files: OvertureLib-${{ github.event.inputs.version }}.zip
-          tag_name: ${{ github.event.inputs.version }}
-          generate_release_notes: true
-          prerelease: false
-          make_latest: true
-        
-      - name: Create Pre-Release
-        if: github.event.inputs.prerelease == 'true'
-        uses: softprops/action-gh-release@v2
-        with:
-          name: OvertureLib ${{ github.event.inputs.version }}
-          files: OvertureLib-${{ github.event.inputs.version }}.zip
-          tag_name: ${{ github.event.inputs.version }}
-          generate_release_notes: true
-          prerelease: true
-          make_latest: false
+            - name: Update json beta
+              if: ${{ github.event.inputs.prerelease == 'true' }}
+              run: |
+                  cp -r ~/overturelib overture-7421.github.io/
 
+            - name: Commit
+              run: |
+                  cd overture-7421.github.io
+                  git add .
+                  git commit -m "Upgrade to ${{ github.event.inputs.version }}"
 
+            - name: Push changes
+              uses: ad-m/github-push-action@master
+              with:
+                  repository: overture-7421/overture-7421.github.io
+                  github_token: ${{ secrets.ACCESS_TOKEN }}
+                  directory: overture-7421.github.io
+
+    publish-relase:
+        name: Publish Release
+        needs: [upload]
+        runs-on: ubuntu-22.04
+        steps:
+            - name: Download artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: OvertureLib-${{ github.event.inputs.version }}
+
+            - name: Zip artifacts
+              run: zip -r OvertureLib-${{ github.event.inputs.version }}.zip maven/development/com/overture/lib
+
+            - name: Create Release
+              if: github.event.inputs.prerelease == 'false'
+              uses: softprops/action-gh-release@v2
+              with:
+                  name: OvertureLib ${{ github.event.inputs.version }}
+                  files: OvertureLib-${{ github.event.inputs.version }}.zip
+                  tag_name: ${{ github.event.inputs.version }}
+                  generate_release_notes: true
+                  prerelease: false
+                  make_latest: true
+
+            - name: Create Pre-Release
+              if: github.event.inputs.prerelease == 'true'
+              uses: softprops/action-gh-release@v2
+              with:
+                  name: OvertureLib ${{ github.event.inputs.version }}
+                  files: OvertureLib-${{ github.event.inputs.version }}.zip
+                  tag_name: ${{ github.event.inputs.version }}
+                  generate_release_notes: true
+                  prerelease: true
+                  make_latest: false
