@@ -30,7 +30,7 @@ public:
 
 	AprilTags(frc::AprilTagFieldLayout *tagLayout, SwerveChassis *chassis,
 			Config config);
-	wpi::array<double, 3> GetEstimationStdDevs(
+	Eigen::Matrix<double, 3, 1> GetEstimationStdDevs(
 			const photon::PhotonPipelineResult &result,
 			frc::Pose2d estimatedPose);
 	const photon::PhotonPipelineResult& GetLatestResult() const {
@@ -50,8 +50,8 @@ private:
 	photon::PhotonPipelineResult m_latestResult;
 
 	// Standard deviations for vision measurements
-	wpi::array<double, 3> singleTagStdDevs { 2.0, 2.0, 4.0 };
-	wpi::array<double, 3> multiTagStdDevs { 0.1, 0.1, 0.3 };
+	Eigen::Matrix<double, 3, 1> singleTagStdDevs { 2.0, 2.0, 4.0 };
+	Eigen::Matrix<double, 3, 1> multiTagStdDevs { 0.1, 0.1, 0.3 };
 
 	frc::AprilTagFieldLayout *tagLayout;
 	SwerveChassis *chassis;

@@ -6,15 +6,18 @@
 #include "OvertureLib/Simulation/SimPhotonVisionManager/SimPhotonVisionManager.h"
 
 AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
-		SwerveChassis *chassis, Config configIn) : tagLayout(tagLayout), chassis(
-		chassis), config(std::move(configIn)) {
+		SwerveChassis *chassis, Config config) {
+	this->config = config;
+	this->tagLayout = tagLayout;
+	this->chassis = chassis;
+
 	camera = std::make_unique < photon::PhotonCamera
 			> (this->config.cameraName);
 	poseEstimator = std::make_unique < photon::PhotonPoseEstimator
 			> (*this->tagLayout, this->config.cameraToRobot);
 
 	auto cameraTable = nt::NetworkTableInstance::GetDefault().GetTable(
-			"AprilTags/" + this->config.cameraName);
+			"AprilTags/" + config.cameraName);
 	targetPosesPublisher = cameraTable->GetStructArrayTopic < frc::Pose3d
 			> ("TargetPoses").Publish();
 	visionPose2dPublisher = cameraTable->GetStructTopic < frc::Pose2d
@@ -22,13 +25,13 @@ AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
 #ifndef __FRC_ROBORIO__ // If on simulation
 	cameraSim = std::make_shared < photon::PhotonCameraSim > (camera.get());
 	SimPhotonVisionManager::GetInstance().AddSimCamera(cameraSim.get(),
-			this->config.cameraToRobot);
+			config.cameraToRobot);
 #endif
 }
 
-wpi::array<double, 3> AprilTags::GetEstimationStdDevs(
+Eigen::Matrix<double, 3, 1> AprilTags::GetEstimationStdDevs(
 		const photon::PhotonPipelineResult &result, frc::Pose2d estimatedPose) {
-	wpi::array<double, 3> estStdDevs = singleTagStdDevs;
+	Eigen::Matrix<double, 3, 1> estStdDevs = singleTagStdDevs;
 	auto targets = result.GetTargets();
 	int numTags = 0;
 	units::meter_t avgDist = 0_m;
@@ -49,12 +52,10 @@ wpi::array<double, 3> AprilTags::GetEstimationStdDevs(
 		estStdDevs = multiTagStdDevs;
 	}
 	if (numTags == 1 && avgDist > 4_m) {
-		estStdDevs = wpi::array<double, 3> { 1e6, 1e6, 1e6 };
+		estStdDevs = Eigen::Matrix<double, 3, 1> { 1e6, 1e6, 1e6 };
 	} else {
-		double scaleFactor = 1 + (avgDist.value() * avgDist.value() / 30);
-		for (size_t i = 0; i < estStdDevs.size(); i++) {
-			estStdDevs[i] *= scaleFactor;
-		}
+		estStdDevs = estStdDevs
+				* (1 + (avgDist.value() * avgDist.value() / 30));
 	}
 	return estStdDevs;
 }
