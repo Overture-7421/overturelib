@@ -77,7 +77,7 @@ void AprilTags::addMeasurementToChassis(
 
 	for (const auto &t : result.GetTargets()) {
 		targets.push_back(
-				current3d.TransformBy(config.cameraToRobot).TransformBy(
+				current3d.TransformBy(poseEstimator->GetRobotToCameraTransform()).TransformBy(
 						t.GetBestCameraToTarget()));
 	}
 	targetPosesPublisher.Set(targets);
