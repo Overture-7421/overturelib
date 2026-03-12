@@ -32,7 +32,7 @@ public:
 	virtual frc::Rotation3d getRotation3d() = 0;
 
 protected:
-	void configureSwerveBase(PIDConstants translationPIDConstants, PIDConstants rotationPIDConstants) {
+	void configureSwerveBase() {
 
 		pathplanner::RobotConfig robotConfig = RobotConfig::fromGUISettings();
 
@@ -46,8 +46,8 @@ protected:
 			[this]() {return getCurrentSpeeds();},
 			[this](frc::ChassisSpeeds speeds) {setTargetSpeeds(speeds);},
 			std::make_shared<PPHolonomicDriveController>(
-				translationPIDConstants,
-				rotationPIDConstants
+				PIDConstants(6.5,0,0),
+				PIDConstants(6.5,0,0)
 			),
 			robotConfig,
 			[]() {
