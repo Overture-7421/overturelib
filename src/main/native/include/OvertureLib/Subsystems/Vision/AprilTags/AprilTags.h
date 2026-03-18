@@ -22,7 +22,7 @@ class AprilTags: public frc2::SubsystemBase {
 public:
 	struct Config {
 		std::string cameraName;
-		frc::Transform3d cameraToRobot;
+		std::function<frc::Transform3d()> cameraToRobotSupplier;
 
 		std::map<int, units::meter_t> tagValidDistances = { { 1, 3.5_m }, { 2,
 				6.0_m }, { 3, 8.0_m } };
@@ -48,8 +48,8 @@ private:
 	photon::PhotonPipelineResult m_latestResult;
 
 	// Standard deviations for vision measurements
-	const Eigen::Matrix<double, 3, 1> singleTagStdDevs { 4, 4, 8 };
-	const Eigen::Matrix<double, 3, 1> multiTagStdDevs { 0.5, 0.5, 1 };
+	const Eigen::Matrix<double, 3, 1> singleTagStdDevs { 2, 2, 2 };
+	const Eigen::Matrix<double, 3, 1> multiTagStdDevs { 0.07, 0.07, 0.5 };
 
 	frc::AprilTagFieldLayout *tagLayout;
 	SwerveChassis *chassis;

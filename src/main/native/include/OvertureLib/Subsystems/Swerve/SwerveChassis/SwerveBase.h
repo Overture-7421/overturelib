@@ -46,8 +46,8 @@ protected:
 			[this]() {return getCurrentSpeeds();},
 			[this](frc::ChassisSpeeds speeds) {setTargetSpeeds(speeds);},
 			std::make_shared<PPHolonomicDriveController>(
-				PIDConstants(6.5, 0.0, 0.0),
-				PIDConstants(6.5, 0.0, 0.0)
+				    getTranslationPID(),
+				    getRotationPID()
 			),
 			robotConfig,
 			[]() {
@@ -65,10 +65,13 @@ protected:
 
 	virtual SwerveModule& getFrontLeftModule() = 0;
 	virtual SwerveModule& getFrontRightModule() = 0;
-	virtual SwerveModule& getBackLeftModule() = 0;
+	virtual SwerveModule& getBackLeftModule() = 0;	
 	virtual SwerveModule& getBackRightModule() = 0;
 
 	virtual frc::SwerveDriveKinematics<4>& getKinematics() = 0;
+
+	virtual PIDConstants getTranslationPID() = 0;
+	virtual PIDConstants getRotationPID() = 0;
 
 	bool configuredChassis = false;
 

@@ -14,7 +14,7 @@ AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
 	camera = std::make_unique < photon::PhotonCamera
 			> (this->config.cameraName);
 	poseEstimator = std::make_unique < photon::PhotonPoseEstimator
-			> (*this->tagLayout, this->config.cameraToRobot);
+			> (*this->tagLayout, this->config.cameraToRobotSupplier());
 
 	auto cameraTable = nt::NetworkTableInstance::GetDefault().GetTable(
 			"AprilTags/" + config.cameraName);
@@ -25,7 +25,7 @@ AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
 #ifndef __FRC_ROBORIO__ // If on simulation
 	cameraSim = std::make_shared < photon::PhotonCameraSim > (camera.get());
 	SimPhotonVisionManager::GetInstance().AddSimCamera(cameraSim.get(),
-			config.cameraToRobot);
+			config.cameraToRobotSupplier());
 #endif
 }
 
@@ -70,12 +70,12 @@ void AprilTags::addMeasurementToChassis(
 #ifndef __FRC_ROBORIO__ // If on simulation
 	current3d = SimPhotonVisionManager::GetInstance().GetRobotPose();
 #else
-		current3d = frc::Pose3d(chassis->getEstimatedPose());
+	current3d = frc::Pose3d(chassis->getEstimatedPose());
 #endif
 
 	for (const auto &t : result.GetTargets()) {
 		targets.push_back(
-				current3d.TransformBy(config.cameraToRobot).TransformBy(
+				current3d.TransformBy(config.cameraToRobotSupplier()).TransformBy(
 						t.GetBestCameraToTarget()));
 	}
 	targetPosesPublisher.Set(targets);
@@ -93,6 +93,8 @@ void AprilTags::setEnabled(bool enabled) {
 
 void AprilTags::Periodic() {
 	if (enabled) {
+		poseEstimator->SetRobotToCameraTransform(
+				config.cameraToRobotSupplier());
 		for (const auto &result : camera->GetAllUnreadResults()) {
 			auto visionEst = poseEstimator->EstimateCoprocMultiTagPose(result);
 			if (!visionEst) {
