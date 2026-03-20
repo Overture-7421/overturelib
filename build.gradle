@@ -10,7 +10,7 @@ plugins {
 }
 
 // WPILib Version
-ext.wpilibVersion = "2026.+"
+ext.wpilibVersion = "2026.2.1"
 
 repositories {
     mavenCentral()
@@ -56,7 +56,7 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-annotations:2.19.2"
     implementation "com.fasterxml.jackson.core:jackson-core:2.19.2"
     implementation "com.fasterxml.jackson.core:jackson-databind:2.19.2"
-    implementation 'edu.wpi.first.thirdparty.frc2025.opencv:opencv-java:4.10.0-2'
+    implementation 'edu.wpi.first.thirdparty.frc2025.opencv:opencv-java:4.10.0-3'
 }
 
 tasks.withType(JavaCompile) {
