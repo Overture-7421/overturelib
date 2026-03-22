@@ -53,6 +53,7 @@ ext.addTaskToCopyAllOutputs = { task ->
 def artifactGroupId = 'com.overture.lib'
 def baseArtifactId = 'OvertureLib'
 def zipBaseName = "_GROUP_com_overture_lib_ID_${baseArtifactId}-cpp_CLS"
+// def javaBaseName = "_GROUP_com_overture_lib_ID_${baseArtifactId}-java_CLS"
 
 task cppHeadersZip(type: Zip) {
     destinationDirectory = outputsFolder
@@ -87,6 +88,37 @@ addTaskToCopyAllOutputs(cppHeadersZip)
 build.dependsOn cppSourceZip
 addTaskToCopyAllOutputs(cppSourceZip)
 
+// Java publishing tasks (commented out)
+// task sourcesJar(type: Jar, dependsOn: classes) {
+//     archiveClassifier = 'sources'
+//     from sourceSets.main.allSource
+// }
+
+// task javadocJar(type: Jar, dependsOn: javadoc) {
+//     archiveClassifier = 'javadoc'
+//     from javadoc.destinationDir
+// }
+
+// task outputJar(type: Jar, dependsOn: classes) {
+//     archiveBaseName = javaBaseName
+//     destinationDirectory = outputsFolder
+//     from sourceSets.main.output
+// }
+
+// task outputSourcesJar(type: Jar, dependsOn: classes) {
+//     archiveBaseName = javaBaseName
+//     destinationDirectory = outputsFolder
+//     archiveClassifier = 'sources'
+//     from sourceSets.main.allSource
+// }
+
+// task outputJavadocJar(type: Jar, dependsOn: javadoc) {
+//     archiveBaseName = javaBaseName
+//     destinationDirectory = outputsFolder
+//     archiveClassifier = 'javadoc'
+//     from javadoc.destinationDir
+// }
+
 // Apply template variables from the vendordep file.
 // Replaces ${VARIABLE} with VARIABLE: value in expand()
 task vendordepJson() {
@@ -115,8 +147,25 @@ task vendordepJsonZip(type: Zip) {
     dependsOn vendordepJson
 }
 
+// Java assemble and build dependencies (commented out)
+// artifacts {
+//     tasks.named("assemble") {
+//         dependsOn(sourcesJar)
+//         dependsOn(javadocJar)
+//         dependsOn(outputJar)
+//         dependsOn(outputSourcesJar)
+//         dependsOn(outputJavadocJar)
+//     }
+// }
+
+// addTaskToCopyAllOutputs(outputSourcesJar)
+// addTaskToCopyAllOutputs(outputJavadocJar)
+// addTaskToCopyAllOutputs(outputJar)
 addTaskToCopyAllOutputs(vendordepJsonZip)
 
+// build.dependsOn outputSourcesJar
+// build.dependsOn outputJavadocJar
+// build.dependsOn outputJar
 build.dependsOn vendordepJsonZip
 
 libraryBuild.dependsOn build
@@ -154,6 +203,16 @@ model {
                 groupId artifactGroupId
                 version pubVersion
             }
+
+            // java(MavenPublication) {
+            //     artifact jar
+            //     artifact sourcesJar
+            //     artifact javadocJar
+
+            //     artifactId = "${baseArtifactId}-java"
+            //     groupId artifactGroupId
+            //     version pubVersion
+            // }
 
             vendordep(MavenPublication) {
                 artifact vendordepJsonZip
