@@ -8,13 +8,7 @@
         "https://overture-7421.github.io/overturelib/repo"
     ],
     "jsonUrl": "https://overture-7421.github.io/overturelib/${fileName}",
-    "javaDependencies": [
-		{
-            "groupId": "${groupId}",
-            "artifactId": "${artifactId}-java",
-            "version": "${version}"
-		}
-	],
+    "javaDependencies": [],
     "jniDependencies": [],
     "cppDependencies": [
         {
