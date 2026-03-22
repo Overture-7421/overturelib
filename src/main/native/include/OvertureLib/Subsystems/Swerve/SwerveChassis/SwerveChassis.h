@@ -13,10 +13,9 @@
 #include <frc2/command/Commands.h>
 #include <frc2/command/sysid/SysIdRoutine.h>
 #include <frc2/command/SubsystemBase.h>
-// #include <pathplanner/lib/util/swerve/SwerveSetpoint.h>
-// #include <pathplanner/lib/util/swerve/SwerveSetpointGenerator.h>
 #include <networktables/StructTopic.h>
 
+#include <OvertureLib/Math/ChassisAccels.h>
 #include <OvertureLib/Sensors/OverPigeon/OverPigeon.h>
 #include <OvertureLib/Subsystems/Swerve/SwerveChassis/SwerveBase.h>
 #include <OvertureLib/Subsystems/Swerve/SpeedsHelper/SpeedsHelper.h>
@@ -37,7 +36,7 @@ public:
 	void resetOdometry(frc::Pose2d initPose) override;
 
 	void addVisionMeasurement(frc::Pose2d pose, units::second_t Latency,
-			Eigen::Matrix<double, 3, 1> stdDevs);
+			wpi::array<double, 3> stdDevs);
 	void setAcceptingVisionMeasurements(bool acceptingVisionMeasurements);
 
 	void resetHeading(units::degree_t angle = 0_deg);
@@ -54,8 +53,6 @@ private:
 			const std::vector<frc::SwerveModuleState> &desiredStates);
 	void updateOdometry();
 
-	// pathplanner::SwerveSetpointGenerator m_setpointGenerator;
-	// pathplanner::SwerveSetpoint previousSetpoint;
 	frc::Pose2d latestPose;
 
 	frc::ChassisSpeeds desiredSpeeds;

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <map>
+#include <wpi/array.h>
 #include <photon/PhotonCamera.h>
 #include <photon/simulation/PhotonCameraSim.h>
 #include <photon/PhotonPoseEstimator.h>
@@ -26,11 +27,14 @@ public:
 
 		std::map<int, units::meter_t> tagValidDistances = { { 1, 3.5_m }, { 2,
 				6.0_m }, { 3, 8.0_m } };
+
+		wpi::array<double, 3> singleTagStdDevs { 2.0, 2.0, 2.0 };
+		wpi::array<double, 3> multiTagStdDevs { 0.07, 0.07, 0.5 };
 	};
 
 	AprilTags(frc::AprilTagFieldLayout *tagLayout, SwerveChassis *chassis,
 			Config config);
-	Eigen::Matrix<double, 3, 1> GetEstimationStdDevs(
+	wpi::array<double, 3> GetEstimationStdDevs(
 			const photon::PhotonPipelineResult &result,
 			frc::Pose2d estimatedPose);
 	const photon::PhotonPipelineResult& GetLatestResult() const {
@@ -46,10 +50,6 @@ private:
 	std::unique_ptr<photon::PhotonCamera> camera;
 	std::unique_ptr<photon::PhotonPoseEstimator> poseEstimator;
 	photon::PhotonPipelineResult m_latestResult;
-
-	// Standard deviations for vision measurements
-	const Eigen::Matrix<double, 3, 1> singleTagStdDevs { 2, 2, 2 };
-	const Eigen::Matrix<double, 3, 1> multiTagStdDevs { 0.07, 0.07, 0.5 };
 
 	frc::AprilTagFieldLayout *tagLayout;
 	SwerveChassis *chassis;

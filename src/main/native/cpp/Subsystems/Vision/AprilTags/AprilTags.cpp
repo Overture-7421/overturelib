@@ -3,6 +3,7 @@
 // the WPILib BSD license file in the root directory of this project.
 
 #include "OvertureLib/Subsystems/Vision/AprilTags/AprilTags.h"
+#include "OvertureLib/Subsystems/Swerve/SwerveChassis/SwerveChassis.h"
 #include "OvertureLib/Simulation/SimPhotonVisionManager/SimPhotonVisionManager.h"
 
 AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
@@ -29,9 +30,9 @@ AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
 #endif
 }
 
-Eigen::Matrix<double, 3, 1> AprilTags::GetEstimationStdDevs(
+wpi::array<double, 3> AprilTags::GetEstimationStdDevs(
 		const photon::PhotonPipelineResult &result, frc::Pose2d estimatedPose) {
-	Eigen::Matrix<double, 3, 1> estStdDevs = singleTagStdDevs;
+	wpi::array<double, 3> estStdDevs = config.singleTagStdDevs;
 	auto targets = result.GetTargets();
 	int numTags = 0;
 	units::meter_t avgDist = 0_m;
@@ -49,13 +50,14 @@ Eigen::Matrix<double, 3, 1> AprilTags::GetEstimationStdDevs(
 	}
 	avgDist /= numTags;
 	if (numTags > 1) {
-		estStdDevs = multiTagStdDevs;
+		estStdDevs = config.multiTagStdDevs;
 	}
 	if (numTags == 1 && avgDist > 4_m) {
-		estStdDevs = Eigen::Matrix<double, 3, 1> { 1e6, 1e6, 1e6 };
+		estStdDevs = wpi::array<double, 3> { 1e6, 1e6, 1e6 };
 	} else {
-		estStdDevs = estStdDevs
-				* (1 + (avgDist.value() * avgDist.value() / 30));
+		double scale = 1 + (avgDist.value() * avgDist.value() / 30);
+		estStdDevs = wpi::array<double, 3> { estStdDevs[0] * scale,
+				estStdDevs[1] * scale, estStdDevs[2] * scale };
 	}
 	return estStdDevs;
 }

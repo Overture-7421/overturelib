@@ -40,14 +40,14 @@ protected:
 		AutoBuilder::configure(
 			[this]() {return getEstimatedPose();},
 			[this](frc::Pose2d pose) {
-				resetOdometryPosePublisher.Set(pose);
-				resetOdometry(pose);
-				},
+			resetOdometryPosePublisher.Set(pose);
+			resetOdometry(pose);
+		},
 			[this]() {return getCurrentSpeeds();},
 			[this](frc::ChassisSpeeds speeds) {setTargetSpeeds(speeds);},
 			std::make_shared<PPHolonomicDriveController>(
-				    getTranslationPID(),
-				    getRotationPID()
+				getTranslationPID(),
+				getRotationPID()
 			),
 			robotConfig,
 			[]() {
@@ -65,7 +65,7 @@ protected:
 
 	virtual SwerveModule& getFrontLeftModule() = 0;
 	virtual SwerveModule& getFrontRightModule() = 0;
-	virtual SwerveModule& getBackLeftModule() = 0;	
+	virtual SwerveModule& getBackLeftModule() = 0;
 	virtual SwerveModule& getBackRightModule() = 0;
 
 	virtual frc::SwerveDriveKinematics<4>& getKinematics() = 0;
@@ -85,9 +85,9 @@ protected:
 
 private:
 	frc2::Subsystem* driveSubsystem;
-	
+
 	nt::StructPublisher<frc::Pose2d> resetOdometryPosePublisher =
-			nt::NetworkTableInstance::GetDefault().GetStructTopic < frc::Pose2d
-					> ("/PathPlanner/ResetPose").Publish();
+		nt::NetworkTableInstance::GetDefault().GetStructTopic < frc::Pose2d
+		>("/PathPlanner/ResetPose").Publish();
 };
 // spotless:on
