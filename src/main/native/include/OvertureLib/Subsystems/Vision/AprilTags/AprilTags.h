@@ -5,6 +5,7 @@
 #pragma once
 
 #include <map>
+#include <wpi/array.h>
 #include <photon/PhotonCamera.h>
 #include <photon/simulation/PhotonCameraSim.h>
 #include <photon/PhotonPoseEstimator.h>
@@ -17,44 +18,48 @@
 #include <networktables/StructArrayTopic.h>
 
 #include "OvertureLib/Subsystems/Swerve/SwerveChassis/SwerveChassis.h"
+#include "OvertureLib/Subsystems/Vision/AprilTags/LimelightHelpers.h"
+
+enum class VisionBackend {
+	PhotonVision, Limelight
+};
 
 class AprilTags: public frc2::SubsystemBase {
 public:
 	struct Config {
+		VisionBackend backend = VisionBackend::PhotonVision;
 		std::string cameraName;
-		frc::Transform3d cameraToRobot;
+		std::function<frc::Transform3d()> cameraToRobotSupplier;
 
 		std::map<int, units::meter_t> tagValidDistances = { { 1, 3.5_m }, { 2,
 				6.0_m }, { 3, 8.0_m } };
+
+		wpi::array<double, 3> singleTagStdDevs { 2.0, 2.0, 2.0 };
+		wpi::array<double, 3> multiTagStdDevs { 0.07, 0.07, 0.5 };
 	};
 
 	AprilTags(frc::AprilTagFieldLayout *tagLayout, SwerveChassis *chassis,
 			Config config);
-	Eigen::Matrix<double, 3, 1> GetEstimationStdDevs(
-			const photon::PhotonPipelineResult &result,
-			frc::Pose2d estimatedPose);
-	const photon::PhotonPipelineResult& GetLatestResult() const {
-		return m_latestResult;
-	}
-	void addMeasurementToChassis(const photon::PhotonPipelineResult &result,
-			frc::Pose2d pose, units::second_t timestamp);
+	wpi::array<double, 3> GetEstimationStdDevs(int tagCount,
+			units::meter_t avgDist, frc::Pose2d estimatedPose);
+	void addMeasurementToChassis(frc::Pose2d pose, units::second_t timestamp,
+			int tagCount, units::meter_t avgDist);
 	void setEnabled(bool enabled);
 	void Periodic() override;
 
 private:
+	void PeriodicPhotonVision();
+	void PeriodicLimelight();
+
 	/* PhotonVision */
 	std::unique_ptr<photon::PhotonCamera> camera;
 	std::unique_ptr<photon::PhotonPoseEstimator> poseEstimator;
-	photon::PhotonPipelineResult m_latestResult;
-
-	// Standard deviations for vision measurements
-	const Eigen::Matrix<double, 3, 1> singleTagStdDevs { 4, 4, 8 };
-	const Eigen::Matrix<double, 3, 1> multiTagStdDevs { 0.5, 0.5, 1 };
 
 	frc::AprilTagFieldLayout *tagLayout;
 	SwerveChassis *chassis;
 	Config config;
 	bool enabled = true;
+	bool lastRobotEnabled = false;
 	nt::StructArrayPublisher<frc::Pose3d> targetPosesPublisher;
 	nt::StructPublisher<frc::Pose2d> visionPose2dPublisher;
 
