@@ -66,10 +66,10 @@ jobs:
             os-name: windows
             artifact-name: Win64
             architecture: x64
-          - os: macos-15
-            os-name: macos
-            artifact-name: macOS
-            architecture: x64
+        #   - os: macos-15
+        #     os-name: macos
+        #     artifact-name: macOS
+        #     architecture: x64
     name: "Build - ${{ matrix.artifact-name }}"
     runs-on: ${{ matrix.os }}
     steps:
@@ -85,15 +85,15 @@ jobs:
           java-version: 17
           architecture: ${{ matrix.architecture }}
 
-      - name: Set version
-        if: ${{ matrix.os-name != 'macos' }}
-        run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
-        working-directory: ./
+    #   - name: Set version
+    #     if: ${{ matrix.os-name != 'macos' }}
+    #     run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
+    #     working-directory: ./
     
-      - name: Set version (mac)
-        if: ${{ matrix.os-name == 'macos' }}
-        run: sed -i '' "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
-        working-directory: ./
+    #   - name: Set version (mac)
+    #     if: ${{ matrix.os-name == 'macos' }}
+    #     run: sed -i '' "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
+    #     working-directory: ./
 
       - name: Ensure spotless is applied
         run: ./gradlew spotlessApply
