@@ -35,11 +35,11 @@ AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
 		if (config.cameraToRobotSupplier) {
 			frc::Transform3d transform = config.cameraToRobotSupplier();
 			LimelightHelpers::setCameraPose_RobotSpace(config.cameraName,
-					transform.X().value(), transform.Y().value(),
+					transform.X().value(), -transform.Y().value(),
 					transform.Z().value(),
-					transform.Rotation().X().convert<units::degrees>().value(),
-					transform.Rotation().Y().convert<units::degrees>().value(),
-					transform.Rotation().Z().convert<units::degrees>().value());
+					-transform.Rotation().X().convert<units::degrees>().value(),
+					-transform.Rotation().Y().convert<units::degrees>().value(),
+					-transform.Rotation().Z().convert<units::degrees>().value());
 		}
 
 		// Seed internal IMU with external gyro (mode 1) until enabled
