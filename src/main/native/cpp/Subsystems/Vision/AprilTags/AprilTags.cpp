@@ -148,12 +148,14 @@ void AprilTags::PeriodicPhotonVision() {
 }
 
 void AprilTags::PeriodicLimelight() {
-	// Switch IMU mode based on robot state
+	// Switch IMU mode and throttle based on robot state
 	// Mode 1: seed internal IMU when robot is disabled (pre-match)
 	// Mode 4: internal IMU + external assist when robot is enabled (recommended)
 	bool robotEnabled = frc::DriverStation::IsEnabled();
 	if (robotEnabled != lastRobotEnabled) {
 		LimelightHelpers::SetIMUMode(config.cameraName, robotEnabled ? 4 : 1);
+		LimelightHelpers::SetThrottle(config.cameraName,
+				robotEnabled ? 0 : 200);
 		lastRobotEnabled = robotEnabled;
 	}
 
@@ -162,15 +164,24 @@ void AprilTags::PeriodicLimelight() {
 	LimelightHelpers::SetRobotOrientation(config.cameraName, robotYaw, 0.0, 0.0,
 			0.0, 0.0, 0.0);
 
-	LimelightHelpers::PoseEstimate mt2 =
-			LimelightHelpers::getBotPoseEstimate_wpiBlue_MegaTag2(
-					config.cameraName);
+	// Determine which estimate to use:
+	// MegaTag1 mode: always use MegaTag1
+	// MegaTag2 mode: use MegaTag1 while disabled (to seed correct yaw), MegaTag2 when enabled
+	bool useMegaTag2 = config.limelightMode == LimelightMode::MegaTag2
+			&& robotEnabled;
 
-	if (mt2.tagCount == 0) {
+	LimelightHelpers::PoseEstimate estimate =
+			useMegaTag2 ?
+					LimelightHelpers::getBotPoseEstimate_wpiBlue_MegaTag2(
+							config.cameraName) :
+					LimelightHelpers::getBotPoseEstimate_wpiBlue(
+							config.cameraName);
+
+	if (estimate.tagCount == 0) {
 		targetPosesPublisher.Set(std::vector<frc::Pose3d> { });
 		return;
 	}
 
-	addMeasurementToChassis(mt2.pose, mt2.timestampSeconds, mt2.tagCount,
-			units::meter_t { mt2.avgTagDist });
+	addMeasurementToChassis(estimate.pose, estimate.timestampSeconds,
+			estimate.tagCount, units::meter_t { estimate.avgTagDist });
 }
