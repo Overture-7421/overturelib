@@ -164,24 +164,54 @@ void AprilTags::PeriodicLimelight() {
 	LimelightHelpers::SetRobotOrientation(config.cameraName, robotYaw, 0.0, 0.0,
 			0.0, 0.0, 0.0);
 
-	// Determine which estimate to use:
-	// MegaTag1 mode: always use MegaTag1
-	// MegaTag2 mode: use MegaTag1 while disabled (to seed correct yaw), MegaTag2 when enabled
-	bool useMegaTag2 = config.limelightMode == LimelightMode::MegaTag2
-			&& robotEnabled;
+	if (config.limelightMode == LimelightMode::MegaTag2 && robotEnabled) {
+		// MegaTag1 yaw watchdog: check if heading has drifted
+		LimelightHelpers::PoseEstimate mt1Estimate =
+				LimelightHelpers::getBotPoseEstimate_wpiBlue(config.cameraName);
 
-	LimelightHelpers::PoseEstimate estimate =
-			useMegaTag2 ?
-					LimelightHelpers::getBotPoseEstimate_wpiBlue_MegaTag2(
-							config.cameraName) :
-					LimelightHelpers::getBotPoseEstimate_wpiBlue(
-							config.cameraName);
+		if (mt1Estimate.tagCount >= config.yawCorrectionMinTags) {
+			units::degree_t mt1Yaw = mt1Estimate.pose.Rotation().Degrees();
+			units::degree_t chassisYaw =
+					chassis->getEstimatedPose().Rotation().Degrees();
+			units::degree_t yawError = units::math::abs(mt1Yaw - chassisYaw);
 
-	if (estimate.tagCount == 0) {
-		targetPosesPublisher.Set(std::vector<frc::Pose3d> { });
-		return;
+			// Normalize to [0, 180]
+			if (yawError > 180_deg) {
+				yawError = 360_deg - yawError;
+			}
+
+			if (yawError > config.yawCorrectionThreshold) {
+				// Yaw has drifted significantly, use MegaTag1 to correct
+				addMeasurementToChassis(mt1Estimate.pose,
+						mt1Estimate.timestampSeconds, mt1Estimate.tagCount,
+						units::meter_t { mt1Estimate.avgTagDist });
+				return;
+			}
+		}
+
+		// Normal MegaTag2 path
+		LimelightHelpers::PoseEstimate estimate =
+				LimelightHelpers::getBotPoseEstimate_wpiBlue_MegaTag2(
+						config.cameraName);
+
+		if (estimate.tagCount == 0) {
+			targetPosesPublisher.Set(std::vector<frc::Pose3d> { });
+			return;
+		}
+
+		addMeasurementToChassis(estimate.pose, estimate.timestampSeconds,
+				estimate.tagCount, units::meter_t { estimate.avgTagDist });
+	} else {
+		// MegaTag1 mode or disabled: use MegaTag1
+		LimelightHelpers::PoseEstimate estimate =
+				LimelightHelpers::getBotPoseEstimate_wpiBlue(config.cameraName);
+
+		if (estimate.tagCount == 0) {
+			targetPosesPublisher.Set(std::vector<frc::Pose3d> { });
+			return;
+		}
+
+		addMeasurementToChassis(estimate.pose, estimate.timestampSeconds,
+				estimate.tagCount, units::meter_t { estimate.avgTagDist });
 	}
-
-	addMeasurementToChassis(estimate.pose, estimate.timestampSeconds,
-			estimate.tagCount, units::meter_t { estimate.avgTagDist });
 }

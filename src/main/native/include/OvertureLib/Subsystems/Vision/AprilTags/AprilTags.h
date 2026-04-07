@@ -43,6 +43,11 @@ public:
 
 		wpi::array<double, 3> singleTagStdDevs { 2.0, 2.0, 2.0 };
 		wpi::array<double, 3> multiTagStdDevs { 0.07, 0.07, 0.5 };
+
+		// MegaTag1 yaw watchdog: correct heading when MegaTag1 disagrees
+		// by more than this threshold (degrees)
+		units::degree_t yawCorrectionThreshold = 5_deg;
+		int yawCorrectionMinTags = 2;
 	};
 
 	AprilTags(frc::AprilTagFieldLayout *tagLayout, SwerveChassis *chassis,
