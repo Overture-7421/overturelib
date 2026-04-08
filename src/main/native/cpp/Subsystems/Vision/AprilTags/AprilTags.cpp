@@ -6,6 +6,8 @@
 #include "OvertureLib/Subsystems/Swerve/SwerveChassis/SwerveChassis.h"
 #include "OvertureLib/Simulation/SimPhotonVisionManager/SimPhotonVisionManager.h"
 
+#include <cmath>
+
 AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
 		SwerveChassis *chassis, Config config) {
 	this->config = config;
@@ -44,11 +46,15 @@ AprilTags::AprilTags(frc::AprilTagFieldLayout *tagLayout,
 
 		// Seed internal IMU with external gyro (mode 1) until enabled
 		LimelightHelpers::SetIMUMode(config.cameraName, 1);
+		// Speed up mode-4 complementary filter so external-yaw corrections
+		// (e.g. from Photon multi-tag or our MT1 watchdog) propagate quickly
+		LimelightHelpers::SetIMUAssistAlpha(config.cameraName,
+				config.imuAssistAlpha);
 	}
 }
 
 wpi::array<double, 3> AprilTags::GetEstimationStdDevs(int tagCount,
-		units::meter_t avgDist, frc::Pose2d estimatedPose) {
+		units::meter_t avgDist, frc::Pose2d estimatedPose, bool trustRotation) {
 	wpi::array<double, 3> estStdDevs = config.singleTagStdDevs;
 
 	if (tagCount == 0) {
@@ -64,13 +70,20 @@ wpi::array<double, 3> AprilTags::GetEstimationStdDevs(int tagCount,
 		estStdDevs = wpi::array<double, 3> { estStdDevs[0] * scale,
 				estStdDevs[1] * scale, estStdDevs[2] * scale };
 	}
+	// MegaTag2's rotation is just the yaw we sent it via SetRobotOrientation,
+	// so feeding it back into the estimator's theta would create a loop.
+	// Tell the pose estimator to ignore rotation entirely for those samples.
+	if (!trustRotation) {
+		estStdDevs[2] = 9999999.0;
+	}
 	return estStdDevs;
 }
 
 void AprilTags::addMeasurementToChassis(frc::Pose2d pose,
-		units::second_t timestamp, int tagCount, units::meter_t avgDist) {
+		units::second_t timestamp, int tagCount, units::meter_t avgDist,
+		bool trustRotation) {
 	chassis->addVisionMeasurement(pose, timestamp,
-			GetEstimationStdDevs(tagCount, avgDist, pose));
+			GetEstimationStdDevs(tagCount, avgDist, pose, trustRotation));
 
 	Logging::LogPose2d("/Swerve/Vision/" + config.cameraName, pose,
 			frc::Timer::GetFPGATimestamp() - timestamp);
@@ -156,7 +169,11 @@ void AprilTags::PeriodicLimelight() {
 		LimelightHelpers::SetIMUMode(config.cameraName, robotEnabled ? 4 : 1);
 		LimelightHelpers::SetThrottle(config.cameraName,
 				robotEnabled ? 0 : 200);
+		// Re-assert alpha in case the LL rebooted between transitions
+		LimelightHelpers::SetIMUAssistAlpha(config.cameraName,
+				config.imuAssistAlpha);
 		lastRobotEnabled = robotEnabled;
+		yawErrorStreak = 0;
 	}
 
 	// MegaTag2 requires robot orientation every frame
@@ -165,11 +182,21 @@ void AprilTags::PeriodicLimelight() {
 			0.0, 0.0, 0.0);
 
 	if (config.limelightMode == LimelightMode::MegaTag2 && robotEnabled) {
-		// MegaTag1 yaw watchdog: check if heading has drifted
+		// MegaTag1 yaw watchdog: snap chassis heading if it has drifted away
+		// from a high-confidence MT1 reading. Debounced and gated on low
+		// chassis speed because MT1 yaw is only trustworthy near-stationary.
 		LimelightHelpers::PoseEstimate mt1Estimate =
 				LimelightHelpers::getBotPoseEstimate_wpiBlue(config.cameraName);
 
-		if (mt1Estimate.tagCount >= config.yawCorrectionMinTags) {
+		frc::ChassisSpeeds speeds = chassis->getCurrentSpeeds();
+		units::meters_per_second_t speedMag { std::hypot(speeds.vx.value(),
+				speeds.vy.value()) };
+
+		bool watchdogEligible = mt1Estimate.tagCount
+				>= config.yawCorrectionMinTags
+				&& speedMag < config.yawCorrectionMaxSpeed;
+
+		if (watchdogEligible) {
 			units::degree_t mt1Yaw = mt1Estimate.pose.Rotation().Degrees();
 			units::degree_t chassisYaw =
 					chassis->getEstimatedPose().Rotation().Degrees();
@@ -181,15 +208,26 @@ void AprilTags::PeriodicLimelight() {
 			}
 
 			if (yawError > config.yawCorrectionThreshold) {
-				// Yaw has drifted significantly, use MegaTag1 to correct
-				addMeasurementToChassis(mt1Estimate.pose,
-						mt1Estimate.timestampSeconds, mt1Estimate.tagCount,
-						units::meter_t { mt1Estimate.avgTagDist });
-				return;
+				if (++yawErrorStreak >= config.yawCorrectionMinStreak) {
+					// Hard-snap heading. resetHeading rewrites the pose
+					// estimator's gyro offset without touching translation,
+					// so MT2 will produce a correct pose on the very next
+					// frame instead of fighting a Kalman blend.
+					chassis->resetHeading(mt1Yaw);
+					yawErrorStreak = 0;
+					return;
+				}
+			} else {
+				yawErrorStreak = 0;
 			}
+		} else {
+			yawErrorStreak = 0;
 		}
 
-		// Normal MegaTag2 path
+		// Normal MegaTag2 path. Theta std dev is forced to infinity inside
+		// addMeasurementToChassis because MT2's rotation is just the yaw we
+		// sent in via SetRobotOrientation; trusting it would feed our own
+		// yaw back into ourselves.
 		LimelightHelpers::PoseEstimate estimate =
 				LimelightHelpers::getBotPoseEstimate_wpiBlue_MegaTag2(
 						config.cameraName);
@@ -200,9 +238,11 @@ void AprilTags::PeriodicLimelight() {
 		}
 
 		addMeasurementToChassis(estimate.pose, estimate.timestampSeconds,
-				estimate.tagCount, units::meter_t { estimate.avgTagDist });
+				estimate.tagCount, units::meter_t { estimate.avgTagDist },
+				false);
 	} else {
-		// MegaTag1 mode or disabled: use MegaTag1
+		// MegaTag1 mode or disabled: use MegaTag1. MT1 rotation is observed
+		// from tag geometry, so it's safe to trust in the estimator.
 		LimelightHelpers::PoseEstimate estimate =
 				LimelightHelpers::getBotPoseEstimate_wpiBlue(config.cameraName);
 

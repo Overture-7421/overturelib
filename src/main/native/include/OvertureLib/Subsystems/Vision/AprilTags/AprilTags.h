@@ -44,18 +44,29 @@ public:
 		wpi::array<double, 3> singleTagStdDevs { 2.0, 2.0, 2.0 };
 		wpi::array<double, 3> multiTagStdDevs { 0.07, 0.07, 0.5 };
 
-		// MegaTag1 yaw watchdog: correct heading when MegaTag1 disagrees
-		// by more than this threshold (degrees)
+		// Limelight MegaTag2 complementary filter alpha (mode 4).
+		// Higher = LL internal IMU tracks the external (chassis) yaw faster,
+		// so corrections from resetHeading / Photon propagate quickly.
+		// Default LL value is 0.001; we bump it slightly for faster recovery.
+		double imuAssistAlpha = 0.005;
+
+		// MegaTag1 yaw watchdog: hard-snap chassis heading when MegaTag1
+		// disagrees with the fused estimator yaw by more than this threshold
+		// for `yawCorrectionMinStreak` consecutive frames, while moving
+		// slower than `yawCorrectionMaxSpeed`.
 		units::degree_t yawCorrectionThreshold = 5_deg;
 		int yawCorrectionMinTags = 2;
+		int yawCorrectionMinStreak = 5;
+		units::meters_per_second_t yawCorrectionMaxSpeed = 0.5_mps;
 	};
 
 	AprilTags(frc::AprilTagFieldLayout *tagLayout, SwerveChassis *chassis,
 			Config config);
 	wpi::array<double, 3> GetEstimationStdDevs(int tagCount,
-			units::meter_t avgDist, frc::Pose2d estimatedPose);
+			units::meter_t avgDist, frc::Pose2d estimatedPose,
+			bool trustRotation = true);
 	void addMeasurementToChassis(frc::Pose2d pose, units::second_t timestamp,
-			int tagCount, units::meter_t avgDist);
+			int tagCount, units::meter_t avgDist, bool trustRotation = true);
 	void setEnabled(bool enabled);
 	void Periodic() override;
 
@@ -72,6 +83,7 @@ private:
 	Config config;
 	bool enabled = true;
 	bool lastRobotEnabled = false;
+	int yawErrorStreak = 0;
 	nt::StructArrayPublisher<frc::Pose3d> targetPosesPublisher;
 	nt::StructPublisher<frc::Pose2d> visionPose2dPublisher;
 
