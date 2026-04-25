@@ -41,6 +41,8 @@ public:
 
 	void resetHeading(units::degree_t angle = 0_deg);
 
+	void setXMode(bool enabled);
+
 	frc2::CommandPtr SysIdQuadstatic(frc2::sysid::Direction direction);
 	frc2::CommandPtr SysIdDinamic(frc2::sysid::Direction direction);
 	void sysIdVoltage(units::volt_t voltage);
@@ -61,6 +63,7 @@ private:
 
 	std::optional<SpeedsHelper*> speedsHelper;
 	bool acceptingVisionMeasurements = false;
+	bool xModeEnabled = false;
 
 	nt::StructPublisher<frc::Pose2d> posePublisher =
 			nt::NetworkTableInstance::GetDefault().GetStructTopic < frc::Pose2d

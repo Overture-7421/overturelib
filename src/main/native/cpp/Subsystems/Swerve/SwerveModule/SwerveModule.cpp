@@ -79,6 +79,17 @@ units::volt_t SwerveModule::getVoltageDrive() {
 	return driveMotor.GetMotorVoltage().GetValue();
 }
 
+void SwerveModule::setDriveNeutralMode(ControllerNeutralMode mode) {
+	driveMotor.SetNeutralMode(
+			mode == ControllerNeutralMode::Brake ?
+					ctre::phoenix6::signals::NeutralModeValue::Brake :
+					ctre::phoenix6::signals::NeutralModeValue::Coast);
+}
+
+void SwerveModule::restoreDriveNeutralMode() {
+	setDriveNeutralMode(config.DriveMotorConfig.NeutralMode);
+}
+
 /**
  * @brief Shuffleboard Periodic
  */

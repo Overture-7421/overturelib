@@ -103,6 +103,25 @@ void SwerveChassis::resetHeading(units::degree_t angle) {
 	resetOdometry(newOdometry);
 }
 
+void SwerveChassis::setXMode(bool enabled) {
+	if (enabled == xModeEnabled) {
+		return;
+	}
+	xModeEnabled = enabled;
+
+	if (enabled) {
+		getFrontLeftModule().setDriveNeutralMode(ControllerNeutralMode::Brake);
+		getFrontRightModule().setDriveNeutralMode(ControllerNeutralMode::Brake);
+		getBackLeftModule().setDriveNeutralMode(ControllerNeutralMode::Brake);
+		getBackRightModule().setDriveNeutralMode(ControllerNeutralMode::Brake);
+	} else {
+		getFrontLeftModule().restoreDriveNeutralMode();
+		getFrontRightModule().restoreDriveNeutralMode();
+		getBackLeftModule().restoreDriveNeutralMode();
+		getBackRightModule().restoreDriveNeutralMode();
+	}
+}
+
 void SwerveChassis::setTargetSpeeds(frc::ChassisSpeeds speeds) {
 	desiredSpeeds = frc::ChassisSpeeds::Discretize(speeds,
 			RobotConstants::LoopTime);
@@ -231,6 +250,13 @@ void SwerveChassis::Periodic() {
 
 	std::vector < frc::SwerveModuleState
 			> desiredStatesVector(desiredStates.begin(), desiredStates.end());
+
+	if (xModeEnabled) {
+		desiredStatesVector[0] = { 0_mps, frc::Rotation2d { 45_deg } };
+		desiredStatesVector[1] = { 0_mps, frc::Rotation2d { -45_deg } };
+		desiredStatesVector[2] = { 0_mps, frc::Rotation2d { -45_deg } };
+		desiredStatesVector[3] = { 0_mps, frc::Rotation2d { 45_deg } };
+	}
 
 	updateOdometry();
 
