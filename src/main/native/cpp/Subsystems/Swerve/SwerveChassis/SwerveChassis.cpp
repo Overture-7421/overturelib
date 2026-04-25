@@ -104,7 +104,22 @@ void SwerveChassis::resetHeading(units::degree_t angle) {
 }
 
 void SwerveChassis::setXMode(bool enabled) {
+	if (enabled == xModeEnabled) {
+		return;
+	}
 	xModeEnabled = enabled;
+
+	if (enabled) {
+		getFrontLeftModule().setDriveNeutralMode(ControllerNeutralMode::Brake);
+		getFrontRightModule().setDriveNeutralMode(ControllerNeutralMode::Brake);
+		getBackLeftModule().setDriveNeutralMode(ControllerNeutralMode::Brake);
+		getBackRightModule().setDriveNeutralMode(ControllerNeutralMode::Brake);
+	} else {
+		getFrontLeftModule().restoreDriveNeutralMode();
+		getFrontRightModule().restoreDriveNeutralMode();
+		getBackLeftModule().restoreDriveNeutralMode();
+		getBackRightModule().restoreDriveNeutralMode();
+	}
 }
 
 void SwerveChassis::setTargetSpeeds(frc::ChassisSpeeds speeds) {
