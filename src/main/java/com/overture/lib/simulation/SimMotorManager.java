@@ -9,6 +9,7 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 import com.overture.lib.motorcontrollers.OverTalonFX;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,9 +32,14 @@ public final class SimMotorManager {
     private OverTalonFX motor;
   }
 
-  // Nothing here may have side effects: OverRobot holds this singleton unconditionally, so the
-  // class is loaded on a real robot too. init() logs instead, and only ever runs in simulation.
-  private SimMotorManager() {}
+  // OverRobot holds this singleton unconditionally, so the class is loaded on a real robot too.
+  // Keep the constructor free of anything the roboRIO would notice; the log line is useful in
+  // simulation and stays there.
+  private SimMotorManager() {
+    if (RobotBase.isSimulation()) {
+      System.out.println("Created new Sim Motor Manager...");
+    }
+  }
 
   /**
    * Returns the singleton instance.
