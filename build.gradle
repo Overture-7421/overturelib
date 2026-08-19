@@ -103,9 +103,16 @@ javadoc {
 }
 
 // Apply C++ configuration
-// Run with -PjavaOnly to skip the whole C++ toolchain, which makes Java-only
-// iteration much faster. The C++ sources and build config are untouched.
-ext.javaOnly = project.hasProperty('javaOnly')
+// Java-only is the default, set in gradle.properties, because the library is being
+// phased over to Java. Build the C++ too with -PjavaOnly=false. The C++ sources and
+// build config are untouched either way.
+//
+// The value is read, not just the presence of the property: hasProperty alone is true
+// for javaOnly=false as well, and a property set in gradle.properties cannot be unset
+// from the command line, so there would be no way back to a C++ build without editing
+// the file. Bare -PjavaOnly still works, since Gradle gives it an empty value.
+ext.javaOnly =
+        project.hasProperty('javaOnly') && project.property('javaOnly').toString() != 'false'
 
 if (!javaOnly) {
     apply from: 'config.gradle'

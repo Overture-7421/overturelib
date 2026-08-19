@@ -3,14 +3,15 @@
 Team 7421's vendor library for FRC, built against **WPILib 2026**.
 
 The library ships in both **C++ and Java**. The two implementations are kept feature
-equivalent; the Java port is the one being actively moved toward for the 2027 SystemCore
-transition, and the C++ sources remain in the tree and keep building.
+equivalent, but Java is the one being actively developed ahead of the 2027 SystemCore
+transition, and **builds are Java only by default**. The C++ sources remain in the tree
+and still build on demand, with `-PjavaOnly=false`.
 
 ## Layout
 
 | Language | Sources | Published artifact |
 | -------- | ------- | ------------------ |
-| C++ | `src/main/native/cpp`, `src/main/native/include` | `com.overture.lib:OvertureLib-cpp` |
+| C++ | `src/main/native/cpp`, `src/main/native/include` | `com.overture.lib:OvertureLib-cpp` (only with `-PjavaOnly=false`) |
 | Java | `src/main/java` | `com.overture.lib:OvertureLib-java` |
 
 The Java root package is `com.overture.lib`. Package names mirror the C++ include
@@ -49,24 +50,29 @@ directories, lowercased:
 ## Building
 
 ```bash
-./gradlew build              # C++ and Java
-./gradlew build -PjavaOnly   # Java only, skips the whole native toolchain
+./gradlew build                    # Java only, the default
+./gradlew build -PjavaOnly=false   # Java and the whole native toolchain
 ```
 
-**CI builds Java only.** Both workflows run `-PjavaOnly`, and the C++ jobs are
-commented out rather than deleted, so released versions from here on ship the
-Java artifacts and nothing else. `OvertureLib.json` declares an empty
-`cppDependencies` to match, because advertising binaries that are never
-published makes every C++ platform 404 rather than just the unbuilt ones.
+**Java only is the default**, set by `javaOnly=true` in `gradle.properties`, because the
+library is being phased over to Java. It skips `config.gradle`, the native component and
+the C++ publications, which also makes iteration on the Java sources much faster. Nothing
+about the C++ build is removed, and `-PjavaOnly=false` is the way back to it.
 
-A local `./gradlew build` still compiles and links the C++ exactly as before —
-only CI and publishing changed. To put C++ back: uncomment the `build-docker`
-and `build-host` jobs in both workflows, drop `-PjavaOnly` from the build step,
-and restore the `cppDependencies` block in `OvertureLib.json` (see git history
-for the exact block).
+The flag is read by value, not by presence. `hasProperty` alone is also true for
+`javaOnly=false`, and a property set in `gradle.properties` cannot be unset from the
+command line, so there would be no way back to a C++ build short of editing the file. A
+bare `-PjavaOnly` still means Java only, which is what both CI workflows pass.
 
-`-PjavaOnly` is for fast iteration on the Java sources. It skips `config.gradle`, the
-native component, and the C++ publications; nothing about the C++ build is removed.
+**CI builds Java only** as well, and the C++ jobs are commented out rather than deleted,
+so released versions from here on ship the Java artifacts and nothing else.
+`OvertureLib.json` declares an empty `cppDependencies` to match, because advertising
+binaries that are never published makes every C++ platform 404 rather than just the
+unbuilt ones.
+
+To put C++ back: uncomment the `build-docker` and `build-host` jobs in both workflows, set
+`javaOnly=false` in `gradle.properties`, and restore the `cppDependencies` block in
+`OvertureLib.json` (see git history for the exact block).
 
 By default the build resolves the latest WPILib development build. To build against the
 last tagged release, add `-PreleaseMode`.
