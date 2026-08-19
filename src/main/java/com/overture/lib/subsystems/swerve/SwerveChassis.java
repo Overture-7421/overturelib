@@ -322,9 +322,14 @@ public abstract class SwerveChassis extends SwerveBase {
       throw new IllegalStateException("Have not called SwerveBase.configureSwerveBase!!!");
     }
 
-    if (!characterizing) {
-      speedsHelper.ifPresent(helper -> helper.alterSpeed(desiredSpeeds));
+    // Nothing below runs while a SysId routine is in progress. SysId is unaffected by this: its
+    // logged voltage is read straight off the motor and its position and velocity come from
+    // SwerveModule.periodic(), a separate registered subsystem that keeps running regardless.
+    if (characterizing) {
+      return;
     }
+
+    speedsHelper.ifPresent(helper -> helper.alterSpeed(desiredSpeeds));
 
     modulesPositions[0] = getFrontLeftModule().getPosition();
     modulesPositions[1] = getFrontRightModule().getPosition();
@@ -336,25 +341,6 @@ public abstract class SwerveChassis extends SwerveBase {
     modulesStates[2] = getBackLeftModule().getState();
     modulesStates[3] = getBackRightModule().getState();
 
-    // Odometry keeps running during characterization.
-    //
-    // To be clear about what this does NOT fix: SysId itself is unaffected either way. Its logged
-    // voltage comes straight off the motor, and its position and velocity come from
-    // SwerveModule.periodic(), which is a separate registered subsystem and keeps running no
-    // matter what happens here. Characterization data was never at risk.
-    //
-    // What the early return froze was latestPose, currentSpeeds and currentAccels, which anything
-    // else running at the same time still reads. Keeping them truthful costs nothing measurable
-    // and means odometry is still valid when the routine ends. Only the module commanding below
-    // is skipped, which is the part that must not fight the SysId voltage.
-    updateOdometry();
-
-    Logging.logPose2d("/Swerve/Chassis/Pose", latestPose);
-
-    if (characterizing) {
-      return;
-    }
-
     SwerveModuleState[] desiredStates = getKinematics().toSwerveModuleStates(desiredSpeeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, getMaxModuleSpeed());
 
@@ -364,6 +350,10 @@ public abstract class SwerveChassis extends SwerveBase {
       desiredStates[2] = new SwerveModuleState(0, Rotation2d.fromDegrees(-45));
       desiredStates[3] = new SwerveModuleState(0, Rotation2d.fromDegrees(45));
     }
+
+    updateOdometry();
+
+    Logging.logPose2d("/Swerve/Chassis/Pose", latestPose);
 
     setModuleStates(desiredStates);
   }

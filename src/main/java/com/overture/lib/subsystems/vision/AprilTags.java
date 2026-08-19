@@ -27,9 +27,7 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.photonvision.EstimatedRobotPose;
@@ -79,9 +77,6 @@ public class AprilTags extends SubsystemBase {
     /** Which Limelight botpose flavour to consume. */
     public LimelightMode limelightMode = LimelightMode.MegaTag2;
 
-    /** Maximum trusted distance, in meters, keyed by visible tag count. */
-    public Map<Integer, Double> tagValidDistances = defaultTagValidDistances();
-
     /** Standard deviations used when a single tag is visible. */
     public double[] singleTagStdDevs = {2.0, 2.0, 2.0};
 
@@ -112,14 +107,6 @@ public class AprilTags extends SubsystemBase {
 
     /** Maximum chassis speed, in meters per second, for the yaw watchdog to act. */
     public double yawCorrectionMaxSpeed = 0.5;
-
-    private static Map<Integer, Double> defaultTagValidDistances() {
-      Map<Integer, Double> distances = new HashMap<>();
-      distances.put(1, 3.5);
-      distances.put(2, 6.0);
-      distances.put(3, 8.0);
-      return distances;
-    }
   }
 
   /* PhotonVision */

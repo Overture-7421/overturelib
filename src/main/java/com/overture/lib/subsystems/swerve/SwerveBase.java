@@ -11,7 +11,6 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -94,25 +93,11 @@ public abstract class SwerveBase extends SubsystemBase {
   public abstract double getMaxModuleSpeed();
 
   /**
-   * Returns the distance from the chassis center to a module.
-   *
-   * @return the drive base radius, in meters
-   */
-  public abstract double getDriveBaseRadius();
-
-  /**
    * Returns the gyro heading.
    *
    * @return the heading
    */
   public abstract Rotation2d getRotation2d();
-
-  /**
-   * Returns the full gyro attitude.
-   *
-   * @return the attitude
-   */
-  public abstract Rotation3d getRotation3d();
 
   /**
    * Wires up PathPlanner and builds the pose estimator. Call this from the constructor of the
