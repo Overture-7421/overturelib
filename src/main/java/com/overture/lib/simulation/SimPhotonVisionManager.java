@@ -13,20 +13,42 @@ import edu.wpi.first.networktables.StructSubscriber;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.VisionSystemSim;
 
-/** Drives PhotonVision's simulated cameras from the externally simulated drivetrain pose. */
+/**
+ * Drives PhotonVision's simulated cameras from the externally simulated drivetrain pose.
+ *
+ * <p>The C++ counterpart only existed off the roboRIO, behind {@code #ifndef __FRC_ROBORIO__}. Java
+ * has no preprocessor and {@link com.overture.lib.robots.OverRobot} holds this singleton as a plain
+ * field, so the class is loaded on a real robot too. Everything expensive is therefore created
+ * lazily on first use: {@link VisionSystemSim} publishes a {@code Field2d} to SmartDashboard from
+ * its constructor, which would otherwise put a phantom sim widget and its NetworkTables traffic on
+ * a competition robot. Every caller of the methods below is already gated on {@code
+ * RobotBase.isSimulation()}, so on a real robot none of this is ever built.
+ */
 public final class SimPhotonVisionManager {
   private static final SimPhotonVisionManager instance = new SimPhotonVisionManager();
 
-  private final VisionSystemSim visionSim = new VisionSystemSim("main");
-  private final StructSubscriber<Pose2d> simulatedDriveTrainPoseEntry;
+  private VisionSystemSim visionSim;
+  private StructSubscriber<Pose2d> simulatedDriveTrainPoseEntry;
 
-  private SimPhotonVisionManager() {
-    simulatedDriveTrainPoseEntry =
-        NetworkTableInstance.getDefault()
-            .getStructTopic(
-                "/AdvantageKit/RealOutputs/FieldSimulation/RobotPosition", Pose2d.struct)
-            .subscribe(new Pose2d());
-    System.out.println("SimPhotonVisionManager initialized!!!");
+  private SimPhotonVisionManager() {}
+
+  private VisionSystemSim visionSim() {
+    if (visionSim == null) {
+      visionSim = new VisionSystemSim("main");
+      System.out.println("SimPhotonVisionManager initialized!!!");
+    }
+    return visionSim;
+  }
+
+  private StructSubscriber<Pose2d> simulatedDriveTrainPoseEntry() {
+    if (simulatedDriveTrainPoseEntry == null) {
+      simulatedDriveTrainPoseEntry =
+          NetworkTableInstance.getDefault()
+              .getStructTopic(
+                  "/AdvantageKit/RealOutputs/FieldSimulation/RobotPosition", Pose2d.struct)
+              .subscribe(new Pose2d());
+    }
+    return simulatedDriveTrainPoseEntry;
   }
 
   /**
@@ -44,16 +66,17 @@ public final class SimPhotonVisionManager {
    * @param tagLayout the ideal tag layout, not the one we measured
    */
   public void init(AprilTagFieldLayout tagLayout) {
-    visionSim.addAprilTags(tagLayout);
+    visionSim().addAprilTags(tagLayout);
   }
 
   /** Moves the simulated cameras to follow the simulated robot. Call this periodically. */
   public void update() {
-    if (!simulatedDriveTrainPoseEntry.exists()) {
+    StructSubscriber<Pose2d> poseEntry = simulatedDriveTrainPoseEntry();
+    if (!poseEntry.exists()) {
       System.err.println(
           "Simulated drive train pose entry does not exist! Cannot update simulated cameras");
     }
-    visionSim.update(simulatedDriveTrainPoseEntry.get());
+    visionSim().update(poseEntry.get());
   }
 
   /**
@@ -63,7 +86,7 @@ public final class SimPhotonVisionManager {
    * @param robotToCamera the transform from the robot to the camera
    */
   public void addSimCamera(PhotonCameraSim camera, Transform3d robotToCamera) {
-    visionSim.addCamera(camera, robotToCamera);
+    visionSim().addCamera(camera, robotToCamera);
     System.out.println(
         "Added camera " + camera.getCamera().getName() + " to SimPhotonVisionManager");
   }
@@ -74,6 +97,6 @@ public final class SimPhotonVisionManager {
    * @return the simulated robot pose
    */
   public Pose3d getRobotPose() {
-    return visionSim.getRobotPose();
+    return visionSim().getRobotPose();
   }
 }

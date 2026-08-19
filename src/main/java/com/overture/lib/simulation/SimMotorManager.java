@@ -31,9 +31,9 @@ public final class SimMotorManager {
     private OverTalonFX motor;
   }
 
-  private SimMotorManager() {
-    System.out.println("Created new Sim Motor Manager...");
-  }
+  // Nothing here may have side effects: OverRobot holds this singleton unconditionally, so the
+  // class is loaded on a real robot too. init() logs instead, and only ever runs in simulation.
+  private SimMotorManager() {}
 
   /**
    * Returns the singleton instance.
