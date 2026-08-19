@@ -12,6 +12,7 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
@@ -373,8 +374,25 @@ public class AprilTags extends SubsystemBase {
               && speedMag < config.yawCorrectionMaxSpeed;
 
       if (watchdogEligible) {
+        // Compare like for like in time. LimelightHelpers back-dates the estimate by the pipeline
+        // latency (adjustedTimestamp = timestamp - latency), so mt1Estimate.pose describes where we
+        // were tens of milliseconds ago. Comparing it against the current fused yaw charges that
+        // latency to "drift": while rotating, the apparent error is omega * latency even when
+        // nothing has drifted at all. The speed gate deliberately ignores omega, so spinning in
+        // place passes it, which is exactly when this skew is largest.
+        Rotation2d chassisRotationNow = chassis.getEstimatedPose().getRotation();
+        Rotation2d chassisRotationThen =
+            chassis
+                .getEstimatedPoseAt(mt1Estimate.timestampSeconds)
+                .map(Pose2d::getRotation)
+                .orElse(chassisRotationNow);
+
+        // Rotation accumulated since the sample, used to carry a correction found in the past
+        // forward to now.
+        Rotation2d rotationSinceSample = chassisRotationNow.minus(chassisRotationThen);
+
         double mt1Yaw = mt1Estimate.pose.getRotation().getDegrees();
-        double chassisYaw = chassis.getEstimatedPose().getRotation().getDegrees();
+        double chassisYaw = chassisRotationThen.getDegrees();
         double yawError = Math.abs(mt1Yaw - chassisYaw);
 
         // Normalize to [0, 180]
@@ -388,7 +406,11 @@ public class AprilTags extends SubsystemBase {
             // estimator's gyro offset without touching translation,
             // so MT2 will produce a correct pose on the very next
             // frame instead of fighting a Kalman blend.
-            chassis.resetHeading(mt1Yaw);
+            // Carry the correction forward by the rotation accumulated since the sample, so we
+            // snap to where MegaTag1 implies we are NOW rather than to a stale heading. With zero
+            // latency, or standing still, this is exactly mt1Yaw.
+            chassis.resetHeading(
+                mt1Estimate.pose.getRotation().plus(rotationSinceSample).getDegrees());
             yawErrorStreak = 0;
             return;
           }

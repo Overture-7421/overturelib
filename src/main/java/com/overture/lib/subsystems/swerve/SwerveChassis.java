@@ -127,6 +127,22 @@ public abstract class SwerveChassis extends SwerveBase {
   @Override
   public void resetOdometry(Pose2d initPose) {
     odometry.resetPosition(getRotation2d(), modulesPositions, initPose);
+    // Refresh the cache getEstimatedPose() serves. Without this the estimator knows the new pose
+    // but every reader keeps seeing the old one until the next periodic(), and CommandScheduler
+    // runs subsystem periodics BEFORE it initializes commands. PathPlanner registers
+    // resetOdometry as its reset consumer and getEstimatedPose as its pose supplier, so a
+    // reset-then-follow scheduled from a trigger would start the path from the pre-reset pose.
+    latestPose = odometry.getEstimatedPosition();
+  }
+
+  /**
+   * Samples the pose estimator at a past timestamp.
+   *
+   * @param timestampSeconds the FPGA timestamp to sample at
+   * @return the estimated pose at that time, empty if it is outside the estimator's buffer
+   */
+  public Optional<Pose2d> getEstimatedPoseAt(double timestampSeconds) {
+    return odometry.sampleAt(timestampSeconds);
   }
 
   /**
@@ -306,11 +322,9 @@ public abstract class SwerveChassis extends SwerveBase {
       throw new IllegalStateException("Have not called SwerveBase.configureSwerveBase!!!");
     }
 
-    if (characterizing) {
-      return;
+    if (!characterizing) {
+      speedsHelper.ifPresent(helper -> helper.alterSpeed(desiredSpeeds));
     }
-
-    speedsHelper.ifPresent(helper -> helper.alterSpeed(desiredSpeeds));
 
     modulesPositions[0] = getFrontLeftModule().getPosition();
     modulesPositions[1] = getFrontRightModule().getPosition();
@@ -322,6 +336,19 @@ public abstract class SwerveChassis extends SwerveBase {
     modulesStates[2] = getBackLeftModule().getState();
     modulesStates[3] = getBackRightModule().getState();
 
+    // Odometry keeps running during characterization. The C++ returned early and froze latestPose,
+    // currentSpeeds and currentAccels for the whole SysId routine, which other subsystems keep
+    // reading: AprilTags sends a frozen yaw to the Limelight every frame, and MegaTag2 depends on
+    // that orientation being current, so the poses it returns get fused back in wrong. Only the
+    // module commanding below is skipped, which is what must not fight the SysId voltage.
+    updateOdometry();
+
+    Logging.logPose2d("/Swerve/Chassis/Pose", latestPose);
+
+    if (characterizing) {
+      return;
+    }
+
     SwerveModuleState[] desiredStates = getKinematics().toSwerveModuleStates(desiredSpeeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, getMaxModuleSpeed());
 
@@ -331,10 +358,6 @@ public abstract class SwerveChassis extends SwerveBase {
       desiredStates[2] = new SwerveModuleState(0, Rotation2d.fromDegrees(-45));
       desiredStates[3] = new SwerveModuleState(0, Rotation2d.fromDegrees(45));
     }
-
-    updateOdometry();
-
-    Logging.logPose2d("/Swerve/Chassis/Pose", latestPose);
 
     setModuleStates(desiredStates);
   }
