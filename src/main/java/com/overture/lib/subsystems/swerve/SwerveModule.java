@@ -46,15 +46,19 @@ public class SwerveModule extends SubsystemBase {
    * @param config the configuration of the module
    */
   public SwerveModule(SwerveModuleConfig config) {
-    this.config = config;
-    this.driveMotor = new OverTalonFX(config.DriveMotorConfig, config.CanBus);
-    this.turnMotor = new OverTalonFX(config.TurnMotorConfig, config.CanBus);
-    this.canCoder = new OverCANCoder(config.EncoderConfig, config.CanBus);
-    this.feedForward = config.FeedForward;
+    // Snapshot, matching the C++ which took and stored this struct by value. WheelDiameter,
+    // ModuleName, useFOC and NeutralMode are all read live every loop, so four modules built from
+    // one re-stamped config must not end up sharing it.
+    this.config = new SwerveModuleConfig(config);
+    this.driveMotor = new OverTalonFX(this.config.DriveMotorConfig, this.config.CanBus);
+    this.turnMotor = new OverTalonFX(this.config.TurnMotorConfig, this.config.CanBus);
+    this.canCoder = new OverCANCoder(this.config.EncoderConfig, this.config.CanBus);
+    this.feedForward = this.config.FeedForward;
 
     turnMotor.setContinuousWrap();
-    turnMotor.setFusedCANCoder(config.EncoderConfig.CanCoderId);
-    turnMotor.setControl(turnVoltage.withPosition(0).withEnableFOC(config.TurnMotorConfig.useFOC));
+    turnMotor.setFusedCANCoder(this.config.EncoderConfig.CanCoderId);
+    turnMotor.setControl(
+        turnVoltage.withPosition(0).withEnableFOC(this.config.TurnMotorConfig.useFOC));
 
     driveMotor.setPosition(0);
 
@@ -63,8 +67,8 @@ public class SwerveModule extends SubsystemBase {
     driveMotor.setVelocityUpdateFrequency(200);
 
     // Set Gear Ratios
-    turnMotor.setRotorToSensorRatio(config.TurnGearRatio);
-    driveMotor.setSensorToMechanism(config.DriveGearRatio);
+    turnMotor.setRotorToSensorRatio(this.config.TurnGearRatio);
+    driveMotor.setSensorToMechanism(this.config.DriveGearRatio);
   }
 
   /**

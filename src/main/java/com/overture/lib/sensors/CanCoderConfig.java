@@ -19,4 +19,20 @@ public class CanCoderConfig {
 
   /** Where the absolute position wraps around, in rotations. */
   public double absoluteDiscontinuityPoint = 0.5;
+
+  /** Constructs a configuration with the default values. */
+  public CanCoderConfig() {}
+
+  /**
+   * Copy constructor, so holders can snapshot the configuration the way the C++ struct did by
+   * value.
+   *
+   * @param other the configuration to copy
+   */
+  public CanCoderConfig(CanCoderConfig other) {
+    CanCoderId = other.CanCoderId;
+    SensorDirection = other.SensorDirection;
+    Offset = other.Offset;
+    absoluteDiscontinuityPoint = other.absoluteDiscontinuityPoint;
+  }
 }

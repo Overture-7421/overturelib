@@ -18,11 +18,24 @@ public class HeadingSpeedsHelper implements SpeedsHelper {
   /**
    * Constructs a HeadingSpeedsHelper.
    *
-   * @param headingController the profiled controller, in radians
+   * <p>The controller is copied rather than adopted. The C++ took it by value and held it as a
+   * by-value member, so the three settings applied below landed on a private copy. Keeping the
+   * caller's reference instead would mean two helpers built from one controller share its profile
+   * state and integral accumulator, and that the caller's own controller silently comes back with
+   * continuous input enabled, an I-zone of 3 rad and a 1 degree tolerance it never asked for.
+   *
+   * @param headingController the profiled controller, in radians; its gains, constraints and period
+   *     are copied
    * @param chassis the chassis whose heading is being controlled
    */
   public HeadingSpeedsHelper(ProfiledPIDController headingController, SwerveChassis chassis) {
-    this.headingController = headingController;
+    this.headingController =
+        new ProfiledPIDController(
+            headingController.getP(),
+            headingController.getI(),
+            headingController.getD(),
+            headingController.getConstraints(),
+            headingController.getPeriod());
     this.chassis = chassis;
     this.headingController.enableContinuousInput(-Math.PI, Math.PI);
     this.headingController.setIZone(3);

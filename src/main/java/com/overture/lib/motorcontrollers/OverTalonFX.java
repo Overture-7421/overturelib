@@ -33,7 +33,10 @@ public class OverTalonFX extends TalonFX {
    */
   public OverTalonFX(OverTalonFXConfig overConfig, CANBus bus) {
     super(overConfig.MotorId, bus);
-    this.overConfig = overConfig;
+    // Snapshot, matching the C++ which took and stored this struct by value. Fields such as
+    // NeutralMode and useFOC are read live long after construction, so an aliased config would
+    // let a later edit by the caller change how an already built motor behaves.
+    this.overConfig = new OverTalonFXConfig(overConfig);
 
     // Configuracion en modo neutral
     ctreConfig.MotorOutput.withNeutralMode(
@@ -66,10 +69,9 @@ public class OverTalonFX extends TalonFX {
         .withSupplyCurrentLimit(overConfig.TriggerThreshold)
         .withSupplyCurrentLowerTime(overConfig.TriggerThresholdTime);
 
-    // Configuracion de PID. Cloned because the Java withSlot0 stores the reference, whereas the
-    // C++ TalonFXConfiguration held Slot0 by value. Without the copy, later edits to the caller's
-    // OverTalonFXConfig.PIDConfigs would leak onto this motor at the next configurator apply.
-    ctreConfig.withSlot0(overConfig.PIDConfigs.clone());
+    // Configuracion de PID. Reads from our snapshot, whose PIDConfigs is already an independent
+    // clone, so later edits to the caller's config cannot leak onto this motor at the next apply.
+    ctreConfig.withSlot0(this.overConfig.PIDConfigs.clone());
 
     // Aplicar la configuracion
     getConfigurator().apply(ctreConfig);

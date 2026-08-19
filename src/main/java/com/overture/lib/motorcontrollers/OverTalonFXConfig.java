@@ -43,4 +43,30 @@ public class OverTalonFXConfig {
 
   /** Open loop voltage ramp period, in seconds. */
   public double OpenLoopRampRate = 0.0;
+
+  /** Constructs a configuration with the default values. */
+  public OverTalonFXConfig() {}
+
+  /**
+   * Copy constructor.
+   *
+   * <p>The C++ struct was passed and stored by value everywhere, so each motor owned its own
+   * configuration. Java hands out references, so anything that keeps a configuration must snapshot
+   * it or a later edit by the caller silently reconfigures an already built motor.
+   *
+   * @param other the configuration to copy
+   */
+  public OverTalonFXConfig(OverTalonFXConfig other) {
+    MotorId = other.MotorId;
+    NeutralMode = other.NeutralMode;
+    Inverted = other.Inverted;
+    useFOC = other.useFOC;
+    PIDConfigs = other.PIDConfigs.clone();
+    CurrentLimit = other.CurrentLimit;
+    StatorCurrentLimit = other.StatorCurrentLimit;
+    TriggerThreshold = other.TriggerThreshold;
+    TriggerThresholdTime = other.TriggerThresholdTime;
+    ClosedLoopRampRate = other.ClosedLoopRampRate;
+    OpenLoopRampRate = other.OpenLoopRampRate;
+  }
 }
