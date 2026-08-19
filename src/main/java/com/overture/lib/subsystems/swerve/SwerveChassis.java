@@ -336,11 +336,17 @@ public abstract class SwerveChassis extends SwerveBase {
     modulesStates[2] = getBackLeftModule().getState();
     modulesStates[3] = getBackRightModule().getState();
 
-    // Odometry keeps running during characterization. The C++ returned early and froze latestPose,
-    // currentSpeeds and currentAccels for the whole SysId routine, which other subsystems keep
-    // reading: AprilTags sends a frozen yaw to the Limelight every frame, and MegaTag2 depends on
-    // that orientation being current, so the poses it returns get fused back in wrong. Only the
-    // module commanding below is skipped, which is what must not fight the SysId voltage.
+    // Odometry keeps running during characterization.
+    //
+    // To be clear about what this does NOT fix: SysId itself is unaffected either way. Its logged
+    // voltage comes straight off the motor, and its position and velocity come from
+    // SwerveModule.periodic(), which is a separate registered subsystem and keeps running no
+    // matter what happens here. Characterization data was never at risk.
+    //
+    // What the early return froze was latestPose, currentSpeeds and currentAccels, which anything
+    // else running at the same time still reads. Keeping them truthful costs nothing measurable
+    // and means odometry is still valid when the routine ends. Only the module commanding below
+    // is skipped, which is the part that must not fight the SysId voltage.
     updateOdometry();
 
     Logging.logPose2d("/Swerve/Chassis/Pose", latestPose);
