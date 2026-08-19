@@ -76,6 +76,27 @@ class TargetingWhileMovingTest {
     assertEquals(0.0, aim.getY(), 1e-6);
   }
 
+  /**
+   * Pins the fixed point refinement itself, not just its direction.
+   *
+   * <p>With t(d) = d/10, a target 10 m ahead and 2 m/s of closing speed, a single unrefined pass
+   * gives 10 - 1.0*2 = 8.0. The loop then walks 8.0 -> 8.4 -> 8.32 and stops on the 0.010 s
+   * tolerance. Asserting the exact converged value is what makes this test fail if the loop is
+   * removed, its bound changed, or the tolerance altered - the weaker inequality above passes for
+   * every one of those mutations.
+   */
+  @Test
+  void refinementConvergesToItsFixedPoint() {
+    TargetingWhileMoving targeting = new TargetingWhileMoving(travelTime());
+    targeting.setTargetLocation(new Translation2d(10, 0));
+
+    Translation2d aim =
+        targeting.getMovingTarget(
+            new Pose2d(0, 0, Rotation2d.kZero), new ChassisSpeeds(2.0, 0, 0), new ChassisAccels());
+
+    assertEquals(8.32, aim.getX(), 1e-9, "refinement should converge to 8.32, got " + aim.getX());
+  }
+
   @Test
   void lateralMotionShiftsTheAimPointSideways() {
     TargetingWhileMoving targeting = new TargetingWhileMoving(travelTime());

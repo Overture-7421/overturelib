@@ -5,8 +5,10 @@
 package com.overture.lib.math;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.overture.lib.motorcontrollers.ControllerNeutralMode;
+import com.overture.lib.subsystems.swerve.SwerveModuleConfig;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import org.junit.jupiter.api.Test;
@@ -46,19 +48,46 @@ class UnitsContractTest {
   }
 
   /**
-   * SwerveModule converts drive rotations to meters with rotations * diameter * PI. Confirms the
-   * factor is circumference, not radius.
+   * Pins the swerve module defaults carried over from the C++ ModuleConfig.h. The wheel diameter in
+   * particular is the factor SwerveModule multiplies drive rotations by, so a regression here
+   * silently rescales odometry.
+   *
+   * <p>The conversion itself lives in SwerveModule.periodic(), which needs real devices and so is
+   * not reachable from a plain unit test. This covers the inputs to it, not the arithmetic.
    */
   @Test
-  void driveRotationsToMeters() {
-    double wheelDiameterMeters = 0.1016;
-    double circumference = wheelDiameterMeters * Math.PI;
+  void swerveModuleConfigDefaults() {
+    SwerveModuleConfig config = new SwerveModuleConfig(new SimpleMotorFeedforward(0, 0, 0));
 
-    assertEquals(circumference, 1.0 * wheelDiameterMeters * Math.PI, kEpsilon);
-    assertEquals(0.31918, circumference, 1e-5);
+    // 4 inch wheel, expressed in meters.
+    assertEquals(0.1016, config.WheelDiameter, 1e-12);
+    assertEquals(1.0, config.DriveGearRatio, 1e-12);
+    assertEquals(1.0, config.TurnGearRatio, 1e-12);
 
-    // One rotation of a 4 inch wheel is roughly 0.319 m, not 0.16 m.
-    assertTrue(circumference > wheelDiameterMeters);
+    // Drive brakes and is current limited harder than turn; turn coasts.
+    assertEquals(ControllerNeutralMode.Brake, config.DriveMotorConfig.NeutralMode);
+    assertEquals(ControllerNeutralMode.Coast, config.TurnMotorConfig.NeutralMode);
+    assertEquals(40.0, config.DriveMotorConfig.CurrentLimit, 1e-12);
+    assertEquals(120.0, config.DriveMotorConfig.StatorCurrentLimit, 1e-12);
+    assertEquals(80.0, config.TurnMotorConfig.StatorCurrentLimit, 1e-12);
+    assertEquals(0.25, config.DriveMotorConfig.OpenLoopRampRate, 1e-12);
+  }
+
+  /**
+   * OverTalonFX clones the gains it is handed, because the Java withSlot0 stores the reference
+   * where the C++ member was held by value. Two modules built from one config must not share gains.
+   */
+  @Test
+  void moduleConfigsDoNotShareGainObjects() {
+    SimpleMotorFeedforward ff = new SimpleMotorFeedforward(0, 0, 0);
+    SwerveModuleConfig a = new SwerveModuleConfig(ff);
+    SwerveModuleConfig b = new SwerveModuleConfig(ff);
+
+    a.TurnMotorConfig.PIDConfigs.withKP(40);
+    b.TurnMotorConfig.PIDConfigs.withKP(12);
+
+    assertEquals(40.0, a.TurnMotorConfig.PIDConfigs.kP, 1e-12);
+    assertEquals(12.0, b.TurnMotorConfig.PIDConfigs.kP, 1e-12);
   }
 
   /**
