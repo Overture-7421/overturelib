@@ -52,6 +52,23 @@ repositories {
     }
 }
 
+// Maven classifier for this machine's desktop natives, used only by the test runtime.
+ext.desktopClassifier = {
+    def os = org.gradle.internal.os.OperatingSystem.current()
+    def arch = System.getProperty('os.arch') in ['aarch64', 'arm64'] ? 'arm64' : 'x86-64'
+    if (os.isWindows()) {
+        return 'windows' + arch
+    }
+    if (os.isMacOsX()) {
+        return 'osx' + arch
+    }
+    return 'linux' + arch
+}()
+
+configurations {
+    testNatives
+}
+
 dependencies {
     implementation "edu.wpi.first.cscore:cscore-java:$wpilibVersion"
     implementation "edu.wpi.first.cameraserver:cameraserver-java:$wpilibVersion"
@@ -75,12 +92,37 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testRuntimeOnly 'us.hebi.quickbuf:quickbuf-runtime:1.4'
+
+    // Desktop natives for the test JVM, so tests can bring the HAL up and drive classes that touch
+    // real WPILib devices instead of leaving them with no coverage at all. WPILib 2026 publishes no
+    // -jni jars; the JNI shims live inside these -cpp zips, which is why GradleRIO extracts them to
+    // build/jni/release before running a simulation. extractTestNatives does the same thing here.
+    testNatives "edu.wpi.first.hal:hal-cpp:$wpilibVersion:$desktopClassifier@zip"
+    testNatives "edu.wpi.first.wpiutil:wpiutil-cpp:$wpilibVersion:$desktopClassifier@zip"
+    testNatives "edu.wpi.first.wpimath:wpimath-cpp:$wpilibVersion:$desktopClassifier@zip"
+    testNatives "edu.wpi.first.ntcore:ntcore-cpp:$wpilibVersion:$desktopClassifier@zip"
+    testNatives "edu.wpi.first.wpinet:wpinet-cpp:$wpilibVersion:$desktopClassifier@zip"
+}
+
+def testNativesDir = layout.buildDirectory.dir('testNatives')
+
+tasks.register('extractTestNatives', Copy) {
+    from {configurations.testNatives.collect {zipTree(it)}}
+    into testNativesDir
+    include '**/*.dll', '**/*.so', '**/*.so.*', '**/*.dylib'
+    // Flatten: the zips nest the libraries under <platform>/shared, and java.library.path wants
+    // them all in one directory.
+    eachFile {it.relativePath = new RelativePath(true, it.relativePath.lastName)}
+    includeEmptyDirs = false
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 // Set up java tests
 test {
     useJUnitPlatform()
     systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
+    dependsOn 'extractTestNatives'
+    systemProperty 'java.library.path', testNativesDir.get().asFile.absolutePath
     testLogging {
         events "failed"
         exceptionFormat = "full"

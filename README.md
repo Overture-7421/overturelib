@@ -77,6 +77,32 @@ To put C++ back: uncomment the `build-docker` and `build-host` jobs in both work
 By default the build resolves the latest WPILib development build. To build against the
 last tagged release, add `-PreleaseMode`.
 
+## Tests
+
+```bash
+./gradlew test
+```
+
+Some tests drive classes that talk to real WPILib devices — the LED strip, the duty cycle
+encoder — so the test JVM brings up the simulation HAL. WPILib 2026 publishes no `-jni`
+jars; the JNI shims live inside the `-cpp` zips, so `extractTestNatives` unpacks them into
+`build/testNatives` and `test` puts that on `java.library.path`. This is the same thing
+GradleRIO does with `build/jni/release` before a simulation, done by hand because this
+project uses NativeUtils rather than GradleRIO.
+
+Two constraints those tests run into, both inherited from the HAL:
+
+- **Only one `AddressableLED` may exist per program**, matching the roboRIO's single LED
+  output. Every LED test therefore shares the strip built by `SharedTestLeds`, carved into
+  disjoint slices so they cannot disturb each other.
+- **A PWM channel stays claimed for the life of the JVM**, so tests cannot each allocate
+  their own.
+
+`./gradlew clean build` in a *single* invocation fails in `copyAllOutputs`, because
+`vendordepJson` is judged up to date against a snapshot taken before `clean` removed its
+output. Run them as two invocations (`./gradlew clean && ./gradlew build`). This predates
+the Java migration and does not affect CI, which never cleans.
+
 Formatting is enforced by Spotless (`googleJavaFormat` for Java, `eclipseCdt` for C++):
 
 ```bash
