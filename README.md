@@ -53,6 +53,18 @@ directories, lowercased:
 ./gradlew build -PjavaOnly   # Java only, skips the whole native toolchain
 ```
 
+**CI builds Java only.** Both workflows run `-PjavaOnly`, and the C++ jobs are
+commented out rather than deleted, so released versions from here on ship the
+Java artifacts and nothing else. `OvertureLib.json` declares an empty
+`cppDependencies` to match, because advertising binaries that are never
+published makes every C++ platform 404 rather than just the unbuilt ones.
+
+A local `./gradlew build` still compiles and links the C++ exactly as before —
+only CI and publishing changed. To put C++ back: uncomment the `build-docker`
+and `build-host` jobs in both workflows, drop `-PjavaOnly` from the build step,
+and restore the `cppDependencies` block in `OvertureLib.json` (see git history
+for the exact block).
+
 `-PjavaOnly` is for fast iteration on the Java sources. It skips `config.gradle`, the
 native component, and the C++ publications; nothing about the C++ build is removed.
 

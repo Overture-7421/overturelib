@@ -14,21 +14,10 @@ on:
         default: false
 
 jobs:
-  build-docker:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - container: wpilib/roborio-cross-ubuntu:2025-22.04
-            artifact-name: Athena
-            build-options: "-Ponlylinuxathena"
-
-          - container: wpilib/ubuntu-base:22.04
-            artifact-name: Linux
-            build-options: ""
-    name: "Build - ${{ matrix.artifact-name }}"
+  build-java:
+    name: "Build - Java"
     runs-on: ubuntu-22.04
-    container: ${{ matrix.container }}
+    container: wpilib/ubuntu-base:22.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,68 +38,117 @@ jobs:
         run: ./gradlew spotlessApply
 
       - name: Build with Gradle
-        run: ./gradlew build -PreleaseMode ${{ matrix.build-options }}
+        run: ./gradlew build -PjavaOnly -PreleaseMode
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact-name }}
+          name: Java
           path: build/allOutputs
 
-  build-host:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-2022
-            os-name: windows
-            artifact-name: Win64
-            architecture: x64
-        #   - os: macos-15
-        #     os-name: macos
-        #     artifact-name: macOS
-        #     architecture: x64
-    name: "Build - ${{ matrix.artifact-name }}"
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Fetch all history and metadata
-        run: git fetch --prune --unshallow
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 17
-          architecture: ${{ matrix.architecture }}
-
-    #   - name: Set version
-    #     if: ${{ matrix.os-name != 'macos' }}
-    #     run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
-    #     working-directory: ./
-    
-    #   - name: Set version (mac)
-    #     if: ${{ matrix.os-name == 'macos' }}
-    #     run: sed -i '' "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
-    #     working-directory: ./
-
-      - name: Ensure spotless is applied
-        run: ./gradlew spotlessApply
-      
-      - name: Build with Gradle
-        run: ./gradlew build -Pbuildalldesktop -PreleaseMode
-        working-directory: ./
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact-name }}
-          path: build/allOutputs
-
+# ---------------------------------------------------------------------------
+# C++ builds, disabled while the library migrates to Java for 2026.
+# The C++ sources still live in src/main/native and still build locally with a
+# plain `./gradlew build`. To bring them back, uncomment the jobs below, drop
+# -PjavaOnly above, and restore cppDependencies in OvertureLib.json.
+# ---------------------------------------------------------------------------
+#  build-docker:
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        include:
+#          - container: wpilib/roborio-cross-ubuntu:2025-22.04
+#            artifact-name: Athena
+#            build-options: "-Ponlylinuxathena"
+#
+#          - container: wpilib/ubuntu-base:22.04
+#            artifact-name: Linux
+#            build-options: ""
+#    name: "Build - ${{ matrix.artifact-name }}"
+#    runs-on: ubuntu-22.04
+#    container: ${{ matrix.container }}
+#    steps:
+#      - uses: actions/checkout@v4
+#        with:
+#          submodules: true
+#          fetch-depth: 0
+#
+#      - name: Grant execute permission for gradlew
+#        run: chmod +x gradlew
+#
+#      - name: Fetch all history and metadata
+#        run: |
+#          git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
+#
+#      - name: Set version
+#        run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
+#
+#      - name: Ensure spotless is applied
+#        run: ./gradlew spotlessApply
+#
+#      - name: Build with Gradle
+#        run: ./gradlew build -PreleaseMode ${{ matrix.build-options }}
+#
+#      - name: Upload artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ${{ matrix.artifact-name }}
+#          path: build/allOutputs
+#
+#  build-host:
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        include:
+#          - os: windows-2022
+#            os-name: windows
+#            artifact-name: Win64
+#            architecture: x64
+#        #   - os: macos-15
+#        #     os-name: macos
+#        #     artifact-name: macOS
+#        #     architecture: x64
+#    name: "Build - ${{ matrix.artifact-name }}"
+#    runs-on: ${{ matrix.os }}
+#    steps:
+#      - uses: actions/checkout@v4
+#        with:
+#          submodules: true
+#
+#      - name: Fetch all history and metadata
+#        run: git fetch --prune --unshallow
+#      - uses: actions/setup-java@v4
+#        with:
+#          distribution: 'temurin'
+#          java-version: 17
+#          architecture: ${{ matrix.architecture }}
+#
+#    #   - name: Set version
+#    #     if: ${{ matrix.os-name != 'macos' }}
+#    #     run: sed -i "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
+#    #     working-directory: ./
+#    
+#    #   - name: Set version (mac)
+#    #     if: ${{ matrix.os-name == 'macos' }}
+#    #     run: sed -i '' "s/0.0.0/${{ github.event.inputs.version }}/g" publish.gradle
+#    #     working-directory: ./
+#
+#      - name: Ensure spotless is applied
+#        run: ./gradlew spotlessApply
+#      
+#      - name: Build with Gradle
+#        run: ./gradlew build -Pbuildalldesktop -PreleaseMode
+#        working-directory: ./
+#
+#      - name: Upload artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ${{ matrix.artifact-name }}
+#          path: build/allOutputs
+#
   combine:
     name: Combine
-    needs: [build-docker, build-host]
+    needs: [build-java]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
