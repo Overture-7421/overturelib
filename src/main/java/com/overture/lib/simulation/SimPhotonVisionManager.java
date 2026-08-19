@@ -29,6 +29,7 @@ public final class SimPhotonVisionManager {
 
   private VisionSystemSim visionSim;
   private StructSubscriber<Pose2d> simulatedDriveTrainPoseEntry;
+  private boolean warnedMissingPose = false;
 
   private SimPhotonVisionManager() {}
 
@@ -69,12 +70,21 @@ public final class SimPhotonVisionManager {
     visionSim().addAprilTags(tagLayout);
   }
 
-  /** Moves the simulated cameras to follow the simulated robot. Call this periodically. */
+  /**
+   * Moves the simulated cameras to follow the simulated robot. Call this periodically.
+   *
+   * <p>The missing-pose warning is printed once per outage rather than on every call. This runs at
+   * the 5 ms simulation period, so warning unconditionally floods the console at 200 Hz and can
+   * push the loop into overruns when the external physics simulation is not running.
+   */
   public void update() {
     StructSubscriber<Pose2d> poseEntry = simulatedDriveTrainPoseEntry();
-    if (!poseEntry.exists()) {
+    if (poseEntry.exists()) {
+      warnedMissingPose = false;
+    } else if (!warnedMissingPose) {
       System.err.println(
           "Simulated drive train pose entry does not exist! Cannot update simulated cameras");
+      warnedMissingPose = true;
     }
     visionSim().update(poseEntry.get());
   }
