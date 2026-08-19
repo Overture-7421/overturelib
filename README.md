@@ -1,25 +1,74 @@
-# WPILib Vendor Template
+# OvertureLib
 
-This is the base WPILib vendor template for 2023.
+Team 7421's vendor library for FRC, built against **WPILib 2026**.
+
+The library ships in both **C++ and Java**. The two implementations are kept feature
+equivalent; the Java port is the one being actively moved toward for the 2027 SystemCore
+transition, and the C++ sources remain in the tree and keep building.
 
 ## Layout
 
-The build is split into 3 libraries. A java library is built. This has access to all of wpilib, and also can JNI load the driver library.
+| Language | Sources | Published artifact |
+| -------- | ------- | ------------------ |
+| C++ | `src/main/native/cpp`, `src/main/native/include` | `com.overture.lib:OvertureLib-cpp` |
+| Java | `src/main/java` | `com.overture.lib:OvertureLib-java` |
 
-A driver library is built. This should contain all low level code you want to access from both C++, Java and any other text based language. This will not work with LabVIEW. This library has access to the WPILib HAL and wpiutil. This library can only export C symbols. It cannot export C++ symbols at all, and all C symbols must be explicitly listed in the symbols.txt file in the driver folder. JNI symbols must be listed in this file as well. This library however can be written in C++. If you attempt to change this library to have access to all of wpilib, you will break JNI access and it will no longer work.
+The Java root package is `com.overture.lib`. Package names mirror the C++ include
+directories, lowercased:
 
-A native C++ library is built. This has access to all of wpilib, and access to the driver library. This should implment the standard wpilib interfaces.
+| C++ header | Java package |
+| ---------- | ------------ |
+| `OvertureLib/Gamepads/...` | `com.overture.lib.gamepads` |
+| `OvertureLib/Math/...` | `com.overture.lib.math` |
+| `OvertureLib/MotorControllers/...` | `com.overture.lib.motorcontrollers` |
+| `OvertureLib/Robots/...` | `com.overture.lib.robots` |
+| `OvertureLib/Sensors/...` | `com.overture.lib.sensors` |
+| `OvertureLib/Simulation/...` | `com.overture.lib.simulation` |
+| `OvertureLib/Subsystems/LedsManager/...` | `com.overture.lib.subsystems.leds` |
+| `OvertureLib/Subsystems/Swerve/...` | `com.overture.lib.subsystems.swerve` |
+| `OvertureLib/Subsystems/Vision/...` | `com.overture.lib.subsystems.vision` |
+| `OvertureLib/Utils/...` | `com.overture.lib.utils` |
 
-## Customizing
-For Java, the library name will be the folder name the build is started from, so rename the folder to the name of your choosing.
+## Conventions in the Java port
 
-For the native impl, you need to change the library name in the exportsConfigs block of build.gradle, the components block of build.gradle, and the taskList input array name in publish.gradle.
+- **Units are plain SI doubles**, matching WPILib Java itself: meters, meters per second,
+  seconds, radians, volts, amps. Motor-native quantities stay in rotations, which is what
+  Phoenix 6's `double` overloads expect.
+- **Simulation is selected at runtime, not compile time.** The C++ code switches on the
+  `__FRC_ROBORIO__` macro; Java has no preprocessor, so the simulation managers are always
+  linked and only driven when `RobotBase.isSimulation()` is true.
+- **`SwerveBase` extends `SubsystemBase`.** C++ mixes the two in via multiple inheritance,
+  which Java does not have, so the hierarchy is `SubsystemBase` → `SwerveBase` →
+  `SwerveChassis` → your drivetrain.
+- **Standard deviations are `Matrix<N3, N1>`** (built with `VecBuilder.fill`) rather than
+  the C++ `wpi::array<double, 3>`, because that is what the WPILib pose estimator takes.
+- `LimelightHelpers.java` is vendored from
+  [limelightlib-wpijava](https://github.com/LimelightVision/limelightlib-wpijava) (v1.14).
+  Only its `package` declaration and one malformed Javadoc tag were changed.
 
-For the driver, change the library name in privateExportsConfigs, the driver name in components, and the driverTaskList input array name. In addition, you'll need to change the `lib library` in the native C++ impl component, and the JNI library name in the JNI java class.
+## Building
 
-For the maven artifact names, those are all in publish.gradle about 40 lines down.
+```bash
+./gradlew build              # C++ and Java
+./gradlew build -PjavaOnly   # Java only, skips the whole native toolchain
+```
 
-## Building and editing
-This uses gradle, and uses the same base setup as a standard GradleRIO robot project. This means you build with `./gradlew build`, and can install the native toolchain with `./gradlew installRoboRIOToolchain`. If you open this project in VS Code with the wpilib extension installed, you will get intellisense set up for both C++ and Java.
+`-PjavaOnly` is for fast iteration on the Java sources. It skips `config.gradle`, the
+native component, and the C++ publications; nothing about the C++ build is removed.
 
-By default, this template builds against the latest WPILib development build. To build against the last WPILib tagged release, build with `./gradlew build -PreleaseMode`.
+By default the build resolves the latest WPILib development build. To build against the
+last tagged release, add `-PreleaseMode`.
+
+Formatting is enforced by Spotless (`googleJavaFormat` for Java, `eclipseCdt` for C++):
+
+```bash
+./gradlew spotlessApply
+```
+
+## Vendor dependencies
+
+Java vendor dependencies are read directly out of `vendordeps/*.json` at configuration
+time, so the Java and C++ builds always consume the same vendor versions. Adding or
+bumping a vendordep JSON is all that is needed — there is no second list to update.
+
+Currently: WPILib New Commands, CTRE Phoenix 6, PathPlannerLib and PhotonLib.
