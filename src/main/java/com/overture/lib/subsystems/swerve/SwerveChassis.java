@@ -44,9 +44,14 @@ public abstract class SwerveChassis extends SwerveBase {
   private boolean acceptingVisionMeasurements = false;
   private boolean xModeEnabled = false;
 
+  // Routed through getTable, which prepends the leading slash. NetworkTableInstance.getStructTopic
+  // passes the name straight to JNI unnormalized, so the previous
+  // "SmartDashboard/SwerveChassis/Odometry/Pose" created a root level topic that sat beside
+  // /SmartDashboard rather than inside it, invisible to anything browsing that table.
   private final StructPublisher<Pose2d> posePublisher =
       NetworkTableInstance.getDefault()
-          .getStructTopic("SmartDashboard/SwerveChassis/Odometry/Pose", Pose2d.struct)
+          .getTable("SmartDashboard/SwerveChassis/Odometry")
+          .getStructTopic("Pose", Pose2d.struct)
           .publish();
 
   private boolean characterizing = false;

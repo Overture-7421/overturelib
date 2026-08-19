@@ -30,6 +30,7 @@ public final class SimPhotonVisionManager {
   private VisionSystemSim visionSim;
   private StructSubscriber<Pose2d> simulatedDriveTrainPoseEntry;
   private boolean warnedMissingPose = false;
+  private boolean initialized = false;
 
   private SimPhotonVisionManager() {}
 
@@ -68,16 +69,25 @@ public final class SimPhotonVisionManager {
    */
   public void init(AprilTagFieldLayout tagLayout) {
     visionSim().addAprilTags(tagLayout);
+    initialized = true;
   }
 
   /**
    * Moves the simulated cameras to follow the simulated robot. Call this periodically.
+   *
+   * <p>Does nothing until {@link #init(AprilTagFieldLayout)} has run, matching the other four
+   * simulation managers. Without that guard OverRobot's unconditional periodic call would build the
+   * VisionSystemSim on the first tick even when the robot never opted into vision simulation.
    *
    * <p>The missing-pose warning is printed once per outage rather than on every call. This runs at
    * the 5 ms simulation period, so warning unconditionally floods the console at 200 Hz and can
    * push the loop into overruns when the external physics simulation is not running.
    */
   public void update() {
+    if (!initialized) {
+      return;
+    }
+
     StructSubscriber<Pose2d> poseEntry = simulatedDriveTrainPoseEntry();
     if (poseEntry.exists()) {
       warnedMissingPose = false;
