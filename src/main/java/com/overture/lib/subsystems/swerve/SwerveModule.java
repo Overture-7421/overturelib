@@ -10,11 +10,11 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.overture.lib.motorcontrollers.ControllerNeutralMode;
 import com.overture.lib.motorcontrollers.OverTalonFX;
 import com.overture.lib.sensors.OverCANCoder;
+import com.overture.lib.utils.Logging;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 /** A single swerve module: one drive motor, one turn motor and one absolute encoder. */
@@ -145,18 +145,32 @@ public class SwerveModule extends SubsystemBase {
     setDriveNeutralMode(config.DriveMotorConfig.NeutralMode);
   }
 
-  /** Publishes module telemetry. */
+  /**
+   * Publishes module telemetry, recorded and live.
+   *
+   * <p>Speed and angle travel together as a SwerveModuleState rather than as four loose numbers,
+   * which halves the signal count and lets AdvantageScope draw the module instead of plotting it.
+   */
   public void shuffleboardPeriodic() {
-    String base = "SwerveChassis/Modules/" + config.ModuleName;
-    SmartDashboard.putNumber(base + "/TargetSpeed", targetState.speedMetersPerSecond);
-    SmartDashboard.putNumber(base + "/Speed", latestState.speedMetersPerSecond);
-    SmartDashboard.putNumber(base + "/TargetAngle", targetState.angle.getDegrees());
-    SmartDashboard.putNumber(base + "/Angle", latestState.angle.getDegrees());
-    SmartDashboard.putNumber(base + "/Distance", latestPosition.distanceMeters);
-    SmartDashboard.putNumber(
-        base + "/RequestedVoltage", feedForward.calculate(targetState.speedMetersPerSecond));
-    SmartDashboard.putNumber(
-        base + "/AppliedVoltage", driveMotor.getMotorVoltage().getValueAsDouble());
+    String base = "/Swerve/Modules/" + config.ModuleName;
+
+    Logging.logStruct(
+        base + "/TargetState", SwerveModuleState.struct, targetState, Logging.Destination.BOTH);
+    Logging.logStruct(
+        base + "/State", SwerveModuleState.struct, latestState, Logging.Destination.BOTH);
+
+    Logging.logDouble(
+        base + "/Distance", latestPosition.distanceMeters, "m", Logging.Destination.LOG_ONLY);
+    Logging.logDouble(
+        base + "/RequestedVoltage",
+        feedForward.calculate(targetState.speedMetersPerSecond),
+        "V",
+        Logging.Destination.LOG_ONLY);
+    Logging.logDouble(
+        base + "/AppliedVoltage",
+        driveMotor.getMotorVoltage().getValueAsDouble(),
+        "V",
+        Logging.Destination.LOG_ONLY);
   }
 
   @Override

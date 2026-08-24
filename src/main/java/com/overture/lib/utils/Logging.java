@@ -19,6 +19,8 @@ import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.util.struct.Struct;
+import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -52,15 +54,31 @@ import java.util.concurrent.ConcurrentHashMap;
  * values <i>your own code</i> computes are written.
  */
 public final class Logging {
-  /** Where a logged value should go. */
+  /**
+   * Where a logged value should go.
+   *
+   * <p>Note that nothing here is thrown away. Once {@link #startLogging()} has run, the data log
+   * manager mirrors NetworkTables to disk, so a value published live is recorded in the wpilog even
+   * if it never reaches the hoot file. The choice is about what appears on the dashboard and which
+   * log a value lands in, not about whether it is kept.
+   */
   public enum Destination {
-    /** Written to the log file only. Use for anything high rate you review afterwards. */
+    /**
+     * Written to the hoot log beside the CAN signals, and not published. Use for anything high rate
+     * you review afterwards rather than watch while driving.
+     */
     LOG_ONLY,
 
-    /** Published to NetworkTables only. Use for tuning values not worth keeping. */
+    /**
+     * Published live, and recorded in the wpilog by way of NetworkTables. Use for values worth
+     * watching that do not need to sit next to the CAN signals, such as tuning knobs.
+     */
     DASHBOARD_ONLY,
 
-    /** Written to the log and published live. Use for anything you watch while driving. */
+    /**
+     * Published live and written to the hoot log. Use for anything you watch while driving and want
+     * beside the motor signals afterwards.
+     */
     BOTH
   }
 
@@ -101,12 +119,43 @@ public final class Logging {
     return defaultDestination;
   }
 
-  /** Starts the signal logger, which also begins automatic capture of every CTRE device signal. */
+  /**
+   * Starts logging, including the driver station and every gamepad.
+   *
+   * <p>Two recorders run. Phoenix's signal logger captures every CTRE device signal into hoot
+   * files, one per CAN bus. WPILib's data log manager captures the driver station, every joystick
+   * axis, button and POV, the console, and all NetworkTables traffic into a single wpilog, which
+   * includes what other clients publish: a Limelight's raw botpose and tag data come along for
+   * free. AdvantageScope opens both formats and aligns their timestamps, so loading the pair gives
+   * one timeline.
+   */
   public static void startLogging() {
-    SignalLogger.start();
+    startLogging(true);
   }
 
-  /** Stops the signal logger. */
+  /**
+   * Starts logging.
+   *
+   * @param logDriverStation whether to record the driver station, gamepads and console to a wpilog,
+   *     which produces a second log file alongside the hoot files
+   */
+  public static void startLogging(boolean logDriverStation) {
+    SignalLogger.start();
+
+    if (logDriverStation) {
+      // NetworkTables mirroring is left on, which is the data log manager's default. It is
+      // tempting to switch off, because it records everything sent to BOTH a second time and means
+      // DASHBOARD_ONLY is not really ephemeral. It stays on because the switch is global and the
+      // traffic it captures is not only ours: a Limelight is a NetworkTables client, so its raw
+      // botpose, tag data and latency land in the wpilog for free, as does PathPlanner's state.
+      // Losing that to tidy up an enum would be a poor trade the first time a vision bug needs
+      // explaining after a match.
+      DataLogManager.start();
+      DriverStation.startDataLog(DataLogManager.getLog());
+    }
+  }
+
+  /** Stops the signal logger. The data log manager keeps running until the program exits. */
   public static void stopLogging() {
     SignalLogger.stop();
   }

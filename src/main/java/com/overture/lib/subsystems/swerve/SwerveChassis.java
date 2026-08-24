@@ -20,9 +20,6 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -43,16 +40,6 @@ public abstract class SwerveChassis extends SwerveBase {
   private Optional<SpeedsHelper> speedsHelper = Optional.empty();
   private boolean acceptingVisionMeasurements = false;
   private boolean xModeEnabled = false;
-
-  // Routed through getTable, which prepends the leading slash. NetworkTableInstance.getStructTopic
-  // passes the name straight to JNI unnormalized, so the previous
-  // "SmartDashboard/SwerveChassis/Odometry/Pose" created a root level topic that sat beside
-  // /SmartDashboard rather than inside it, invisible to anything browsing that table.
-  private final StructPublisher<Pose2d> posePublisher =
-      NetworkTableInstance.getDefault()
-          .getTable("SmartDashboard/SwerveChassis/Odometry")
-          .getStructTopic("Pose", Pose2d.struct)
-          .publish();
 
   private boolean characterizing = false;
 
@@ -279,36 +266,43 @@ public abstract class SwerveChassis extends SwerveBase {
     lastSpeeds = currentSpeeds;
   }
 
-  /** Publishes chassis telemetry. */
+  /**
+   * Publishes chassis telemetry, recorded and live.
+   *
+   * <p>Three separate sets of signals used to carry the same numbers: LinearX/Y/Angular,
+   * SpeedX/Y/Omega and the DesiredSpeeds array were all the requested speeds, spelled three ways.
+   * They are one ChassisSpeeds struct now, and the measured speeds are published beside them, which
+   * is what you actually want when the robot is not going where it was asked to.
+   */
   public void shuffleboardPeriodic() {
-    SmartDashboard.putNumber("SwerveChassis/Odometry/LinearX", desiredSpeeds.vxMetersPerSecond);
-    SmartDashboard.putNumber("SwerveChassis/Odometry/LinearY", desiredSpeeds.vyMetersPerSecond);
-    SmartDashboard.putNumber("SwerveChassis/Odometry/Angular", desiredSpeeds.omegaRadiansPerSecond);
+    Logging.logChassisSpeeds(
+        "/Swerve/Chassis/DesiredSpeeds", desiredSpeeds, Logging.Destination.BOTH);
+    Logging.logChassisSpeeds(
+        "/Swerve/Chassis/CurrentSpeeds", currentSpeeds, Logging.Destination.BOTH);
 
-    SmartDashboard.putNumber(
-        "SwerveChassis/Odometry/AccelX", currentAccels.axMetersPerSecondSquared);
-    SmartDashboard.putNumber(
-        "SwerveChassis/Odometry/AccelY", currentAccels.ayMetersPerSecondSquared);
-    SmartDashboard.putNumber(
-        "SwerveChassis/Odometry/AccelOmega", currentAccels.omegaRadiansPerSecondSquared);
+    Logging.logDouble(
+        "/Swerve/Chassis/Accel/X",
+        currentAccels.axMetersPerSecondSquared,
+        "m/s^2",
+        Logging.Destination.BOTH);
+    Logging.logDouble(
+        "/Swerve/Chassis/Accel/Y",
+        currentAccels.ayMetersPerSecondSquared,
+        "m/s^2",
+        Logging.Destination.BOTH);
+    Logging.logDouble(
+        "/Swerve/Chassis/Accel/Omega",
+        currentAccels.omegaRadiansPerSecondSquared,
+        "rad/s^2",
+        Logging.Destination.BOTH);
 
-    SmartDashboard.putNumber("SwerveChassis/Odometry/SpeedX", desiredSpeeds.vxMetersPerSecond);
-    SmartDashboard.putNumber("SwerveChassis/Odometry/SpeedY", desiredSpeeds.vyMetersPerSecond);
-    SmartDashboard.putNumber(
-        "SwerveChassis/Odometry/SpeedOmega", desiredSpeeds.omegaRadiansPerSecond);
+    Logging.logBoolean(
+        "/Swerve/Chassis/AcceptingVision", acceptingVisionMeasurements, Logging.Destination.BOTH);
 
-    SmartDashboard.putBoolean(
-        "SwerveChassis/Odometry/AcceptingVision", acceptingVisionMeasurements);
-
-    posePublisher.set(latestPose);
-
-    SmartDashboard.putNumberArray(
-        "SwerveChassis/Control/DesiredSpeeds",
-        new double[] {
-          desiredSpeeds.vxMetersPerSecond,
-          desiredSpeeds.vyMetersPerSecond,
-          desiredSpeeds.omegaRadiansPerSecond
-        });
+    // The array of measured states is what AdvantageScope's swerve view consumes.
+    Logging.logModuleStates("/Swerve/Modules/States", modulesStates, Logging.Destination.BOTH);
+    Logging.logModulePositions(
+        "/Swerve/Modules/Positions", modulesPositions, Logging.Destination.LOG_ONLY);
 
     getFrontLeftModule().shuffleboardPeriodic();
     getFrontRightModule().shuffleboardPeriodic();
@@ -353,7 +347,7 @@ public abstract class SwerveChassis extends SwerveBase {
 
     updateOdometry();
 
-    Logging.logPose("/Swerve/Chassis/Pose", latestPose);
+    Logging.logPose("/Swerve/Chassis/Pose", latestPose, Logging.Destination.BOTH);
 
     setModuleStates(desiredStates);
   }

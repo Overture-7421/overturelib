@@ -18,10 +18,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructArrayPublisher;
-import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
@@ -120,8 +116,7 @@ public class AprilTags extends SubsystemBase {
   private boolean enabled = true;
   private boolean lastRobotEnabled = false;
   private int yawErrorStreak = 0;
-  private final StructArrayPublisher<Pose3d> targetPosesPublisher;
-  private final StructPublisher<Pose2d> visionPose2dPublisher;
+  private final String logRoot;
 
   /**
    * Constructs an AprilTags subsystem.
@@ -135,10 +130,7 @@ public class AprilTags extends SubsystemBase {
     this.tagLayout = tagLayout;
     this.chassis = chassis;
 
-    NetworkTable cameraTable =
-        NetworkTableInstance.getDefault().getTable("AprilTags/" + config.cameraName);
-    targetPosesPublisher = cameraTable.getStructArrayTopic("TargetPoses", Pose3d.struct).publish();
-    visionPose2dPublisher = cameraTable.getStructTopic("VisionPose2d", Pose2d.struct).publish();
+    logRoot = "/Vision/" + config.cameraName;
 
     if (config.backend == VisionBackend.PhotonVision) {
       camera = new PhotonCamera(this.config.cameraName);
@@ -235,14 +227,9 @@ public class AprilTags extends SubsystemBase {
 
     // Vision lives at its own root rather than under Swerve: it feeds the drivetrain but is not
     // part of it, and a second camera on a non-drive subsystem would have nowhere sensible to go.
-    // LOG_ONLY because visionPose2dPublisher already puts this pose on NetworkTables just below;
-    // the two should be merged once the dashboard paths are settled.
+    // The log carries how stale the sample was; the dashboard shows it as current.
     Logging.logPose(
-        "/Vision/" + config.cameraName + "/Pose",
-        pose,
-        Timer.getFPGATimestamp() - timestamp,
-        Logging.Destination.LOG_ONLY);
-    visionPose2dPublisher.set(pose);
+        logRoot + "/Pose", pose, Timer.getFPGATimestamp() - timestamp, Logging.Destination.BOTH);
   }
 
   /**
@@ -325,11 +312,12 @@ public class AprilTags extends SubsystemBase {
                   .transformBy(config.cameraToRobotSupplier.get())
                   .transformBy(t.getBestCameraToTarget()));
         }
-        targetPosesPublisher.set(targetPoses.toArray(new Pose3d[0]));
+        Logging.logPoses(
+            logRoot + "/TargetPoses", targetPoses.toArray(new Pose3d[0]), Logging.Destination.BOTH);
 
         addMeasurementToChassis(poseTo2d, visionEst.get().timestampSeconds, numTags, avgDist);
       } else {
-        targetPosesPublisher.set(new Pose3d[0]);
+        Logging.logPoses(logRoot + "/TargetPoses", new Pose3d[0], Logging.Destination.BOTH);
       }
     }
   }
@@ -423,7 +411,7 @@ public class AprilTags extends SubsystemBase {
           LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(config.cameraName);
 
       if (estimate == null || estimate.tagCount == 0) {
-        targetPosesPublisher.set(new Pose3d[0]);
+        Logging.logPoses(logRoot + "/TargetPoses", new Pose3d[0], Logging.Destination.BOTH);
         return;
       }
 
@@ -436,7 +424,7 @@ public class AprilTags extends SubsystemBase {
           LimelightHelpers.getBotPoseEstimate_wpiBlue(config.cameraName);
 
       if (estimate == null || estimate.tagCount == 0) {
-        targetPosesPublisher.set(new Pose3d[0]);
+        Logging.logPoses(logRoot + "/TargetPoses", new Pose3d[0], Logging.Destination.BOTH);
         return;
       }
 
