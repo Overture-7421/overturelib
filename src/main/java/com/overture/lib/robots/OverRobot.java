@@ -4,13 +4,8 @@
 
 package com.overture.lib.robots;
 
-import com.overture.lib.simulation.SimCANCoderManager;
-import com.overture.lib.simulation.SimDutyCycleEncoderManager;
-import com.overture.lib.simulation.SimMotorManager;
 import com.overture.lib.simulation.SimPhotonVisionManager;
-import com.overture.lib.simulation.SimPigeonManager;
 import com.overture.lib.utils.Logging;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
 
@@ -18,24 +13,14 @@ import edu.wpi.first.wpilibj.TimedRobot;
  * Implementation of TimedRobot that allows to seamlessly change between simulation and a real
  * robot.
  *
- * <p>The C++ version selects the simulation bridge at compile time with {@code __FRC_ROBORIO__};
- * Java has no preprocessor, so the managers are always present and only driven when {@link
- * RobotBase#isSimulation()} is true.
+ * <p>The physics used to live in a second program, so this class turned the robot into a
+ * NetworkTables client of localhost and pumped every device's state across at 200 Hz. The physics
+ * now runs in this process: the drivetrain is stepped by SwerveBase and each mechanism by the
+ * subsystem that owns it, so the only thing still driven from here is PhotonVision's simulated
+ * cameras, which belong to no subsystem. The robot is the NetworkTables server again, the way
+ * WPILib expects, so a dashboard can connect to it directly.
  */
 public class OverRobot extends TimedRobot {
-  /** Bridges the TalonFXs to an external physics simulation. */
-  public final SimMotorManager simMotorManager = SimMotorManager.getInstance();
-
-  /** Bridges the Pigeon to an external physics simulation. */
-  public final SimPigeonManager simPigeonManager = SimPigeonManager.getInstance();
-
-  /** Bridges the CANcoders to an external physics simulation. */
-  public final SimCANCoderManager simCANCoderManager = SimCANCoderManager.getInstance();
-
-  /** Bridges the duty cycle encoders to an external physics simulation. */
-  public final SimDutyCycleEncoderManager simDutyCycleEncoderManager =
-      SimDutyCycleEncoderManager.getInstance();
-
   /** Drives PhotonVision's simulated cameras. */
   public final SimPhotonVisionManager simPhotonVisionManager = SimPhotonVisionManager.getInstance();
 
@@ -53,19 +38,7 @@ public class OverRobot extends TimedRobot {
     super(period);
 
     if (RobotBase.isSimulation()) {
-      NetworkTableInstance.getDefault().stopServer();
-      NetworkTableInstance.getDefault().startClient4("Offseason 2024");
-      NetworkTableInstance.getDefault().setServer("127.0.0.1");
-
-      addPeriodic(
-          () -> {
-            simPigeonManager.update();
-            simCANCoderManager.update();
-            simDutyCycleEncoderManager.update();
-            simMotorManager.update();
-            simPhotonVisionManager.update();
-          },
-          0.005);
+      addPeriodic(simPhotonVisionManager::update, 0.005);
     }
 
     Logging.startLogging();

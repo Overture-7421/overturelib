@@ -13,9 +13,7 @@ import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.overture.lib.simulation.SimMotorManager;
 import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.RobotBase;
 
 /** A TalonFX preconfigured from an {@link OverTalonFXConfig}. */
 public class OverTalonFX extends TalonFX {
@@ -77,10 +75,6 @@ public class OverTalonFX extends TalonFX {
     getConfigurator().apply(ctreConfig);
 
     isConnectedAlert.setText("Motor " + overConfig.MotorId + " is not connected");
-
-    if (RobotBase.isSimulation()) {
-      SimMotorManager.getInstance().addSimMotorCandidate(this);
-    }
   }
 
   /**

@@ -6,11 +6,9 @@ package com.overture.lib.sensors;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.hardware.Pigeon2;
-import com.overture.lib.simulation.SimPigeonManager;
 import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.RobotBase;
 
-/** A Pigeon 2 that registers itself with the simulation manager when running in simulation. */
+/** A Pigeon 2 that raises a driver station alert when it stops responding. */
 public class OverPigeon extends Pigeon2 {
   private final Alert isConnectedAlert =
       new Alert("Devices", "Pigeon is not connected", Alert.AlertType.kWarning);
@@ -32,10 +30,6 @@ public class OverPigeon extends Pigeon2 {
    */
   public OverPigeon(int deviceId, CANBus canbus) {
     super(deviceId, canbus);
-
-    if (RobotBase.isSimulation()) {
-      SimPigeonManager.getInstance().setSimPigeon(this);
-    }
 
     isConnectedAlert.setText("Pigeon " + deviceId + " is not connected");
   }

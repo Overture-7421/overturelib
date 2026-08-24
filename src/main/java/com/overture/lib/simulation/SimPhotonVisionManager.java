@@ -10,6 +10,8 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructSubscriber;
+import java.util.Optional;
+import java.util.function.Supplier;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.VisionSystemSim;
 
@@ -29,6 +31,7 @@ public final class SimPhotonVisionManager {
 
   private VisionSystemSim visionSim;
   private StructSubscriber<Pose2d> simulatedDriveTrainPoseEntry;
+  private Supplier<Optional<Pose2d>> poseSupplier;
   private boolean warnedMissingPose = false;
   private boolean initialized = false;
 
@@ -51,6 +54,20 @@ public final class SimPhotonVisionManager {
               .subscribe(new Pose2d());
     }
     return simulatedDriveTrainPoseEntry;
+  }
+
+  /**
+   * Tells the manager where the simulated robot is.
+   *
+   * <p>Pass {@code chassis::getSimulatedPose} when the physics runs in this process. The
+   * NetworkTables fallback below only exists for an external simulator publishing the AdvantageKit
+   * field pose, which is what this used to depend on; that path lags by roughly a tenth of a second
+   * and disappears entirely once the drivetrain simulates itself.
+   *
+   * @param poseSupplier supplies the true robot pose, empty when it is not known yet
+   */
+  public void setRobotPoseSupplier(Supplier<Optional<Pose2d>> poseSupplier) {
+    this.poseSupplier = poseSupplier;
   }
 
   /**
@@ -85,6 +102,19 @@ public final class SimPhotonVisionManager {
    */
   public void update() {
     if (!initialized) {
+      return;
+    }
+
+    if (poseSupplier != null) {
+      Optional<Pose2d> pose = poseSupplier.get();
+      if (pose.isPresent()) {
+        warnedMissingPose = false;
+        visionSim().update(pose.get());
+      } else if (!warnedMissingPose) {
+        System.err.println(
+            "Simulated robot pose is not available yet! Cannot update simulated cameras");
+        warnedMissingPose = true;
+      }
       return;
     }
 

@@ -7,9 +7,7 @@ package com.overture.lib.sensors;
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
-import com.overture.lib.simulation.SimCANCoderManager;
 import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.RobotBase;
 
 /** A CANcoder preconfigured from a {@link CanCoderConfig}. */
 public class OverCANCoder extends CANcoder {
@@ -33,10 +31,6 @@ public class OverCANCoder extends CANcoder {
     canCoderConfiguration.MagnetSensor.withSensorDirection(config.SensorDirection);
 
     getConfigurator().apply(canCoderConfiguration);
-
-    if (RobotBase.isSimulation()) {
-      SimCANCoderManager.getInstance().addSimCANCoderCandidate(this);
-    }
 
     isConnectedAlert.setText("CANCoder " + config.CanCoderId + " is not connected");
   }
