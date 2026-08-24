@@ -20,6 +20,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -33,6 +34,7 @@ public abstract class SwerveChassis extends SwerveBase {
   private Pose2d latestPose = new Pose2d();
 
   private ChassisSpeeds desiredSpeeds = new ChassisSpeeds();
+  private double lastPeriodicTimestamp = Timer.getFPGATimestamp();
   private ChassisSpeeds currentSpeeds = new ChassisSpeeds();
   private ChassisSpeeds lastSpeeds = new ChassisSpeeds();
   private ChassisAccels currentAccels = new ChassisAccels();
@@ -199,7 +201,31 @@ public abstract class SwerveChassis extends SwerveBase {
 
   @Override
   public void setTargetSpeeds(ChassisSpeeds speeds) {
-    desiredSpeeds = ChassisSpeeds.discretize(speeds, RobotConstants.kLoopTime);
+    // Copied rather than aliased. A caller usually owns one ChassisSpeeds it refills every loop,
+    // and periodic() hands a speeds helper something it may rewrite in place.
+    desiredSpeeds =
+        new ChassisSpeeds(
+            speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond);
+  }
+
+  /**
+   * Returns how long it has been since the last periodic call, for discretizing the speeds.
+   *
+   * <p>Measured rather than taken from {@link RobotConstants#kLoopTime}, because that constant only
+   * describes reality if robot code drives the CommandScheduler at exactly that rate. A robot that
+   * leaves the scheduler on the default TimedRobot period gets half the compensation it needs, and
+   * nothing says so.
+   *
+   * @return the elapsed time, in seconds
+   */
+  private double getPeriodicPeriod() {
+    double now = Timer.getFPGATimestamp();
+    double period = now - lastPeriodicTimestamp;
+    lastPeriodicTimestamp = now;
+
+    // First call, and the gap either side of a SysId routine, land outside anything plausible. Fall
+    // back to the configured period instead of discretizing by zero, which is a silent no-op.
+    return period > 0.0 && period < 0.5 ? period : RobotConstants.kLoopTime;
   }
 
   private void setModuleStates(SwerveModuleState[] desiredStates) {
@@ -323,7 +349,15 @@ public abstract class SwerveChassis extends SwerveBase {
       return;
     }
 
-    speedsHelper.ifPresent(helper -> helper.alterSpeed(desiredSpeeds));
+    // The helper gets a copy, so desiredSpeeds stays the request that came in. It is the signal
+    // that gets logged, and on a loop where nothing called setTargetSpeeds a helper would
+    // otherwise be reading back its own previous answer.
+    ChassisSpeeds targetSpeeds =
+        new ChassisSpeeds(
+            desiredSpeeds.vxMetersPerSecond,
+            desiredSpeeds.vyMetersPerSecond,
+            desiredSpeeds.omegaRadiansPerSecond);
+    speedsHelper.ifPresent(helper -> helper.alterSpeed(targetSpeeds));
 
     modulesPositions[0] = getFrontLeftModule().getPosition();
     modulesPositions[1] = getFrontRightModule().getPosition();
@@ -335,7 +369,14 @@ public abstract class SwerveChassis extends SwerveBase {
     modulesStates[2] = getBackLeftModule().getState();
     modulesStates[3] = getBackRightModule().getState();
 
-    SwerveModuleState[] desiredStates = getKinematics().toSwerveModuleStates(desiredSpeeds);
+    // Discretized here, last, rather than when the speeds arrived. discretize counter-rotates vx
+    // and vy to pay for the heading change across one period, so it has to see the omega that is
+    // actually about to be commanded. A heading helper replaces omega outright, so compensating
+    // for the driver's requested omega sent the robot sideways whenever it auto-aimed while
+    // translating: the correction was paying for a rotation that was not happening.
+    SwerveModuleState[] desiredStates =
+        getKinematics()
+            .toSwerveModuleStates(ChassisSpeeds.discretize(targetSpeeds, getPeriodicPeriod()));
     SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, getMaxModuleSpeed());
 
     if (xModeEnabled) {
