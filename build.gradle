@@ -102,6 +102,13 @@ dependencies {
     testNatives "edu.wpi.first.wpimath:wpimath-cpp:$wpilibVersion:$desktopClassifier@zip"
     testNatives "edu.wpi.first.ntcore:ntcore-cpp:$wpilibVersion:$desktopClassifier@zip"
     testNatives "edu.wpi.first.wpinet:wpinet-cpp:$wpilibVersion:$desktopClassifier@zip"
+
+    // Phoenix natives are deliberately NOT here. Adding them would let tests call SignalLogger or
+    // construct a CTRE device, but it costs a dozen more native zips on every build for coverage
+    // nothing currently needs. If a test ever wants a real TalonFX, pull in every
+    // com.ctre.phoenix6.sim artifact at once: CTRE_PhoenixTools_Sim links against the device
+    // libraries, so a partial set fails as "Can't find dependent libraries" rather than as a
+    // missing file, which is a confusing way to spend an afternoon.
 }
 
 def testNativesDir = layout.buildDirectory.dir('testNatives')

@@ -353,7 +353,7 @@ public abstract class SwerveChassis extends SwerveBase {
 
     updateOdometry();
 
-    Logging.logPose2d("/Swerve/Chassis/Pose", latestPose);
+    Logging.logPose("/Swerve/Chassis/Pose", latestPose);
 
     setModuleStates(desiredStates);
   }

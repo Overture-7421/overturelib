@@ -210,7 +210,7 @@ public class OverXboxController extends CommandXboxController {
   public void updateTelemetry() {
     isConnectedAlert.set(!isConnected());
 
-    Logging.writeBoolean(
-        "Controllers/XboxController-" + getHID().getPort() + "/IsConnected", isConnected());
+    Logging.logBoolean(
+        "/Controllers/XboxController-" + getHID().getPort() + "/IsConnected", isConnected());
   }
 }

@@ -233,8 +233,15 @@ public class AprilTags extends SubsystemBase {
     chassis.addVisionMeasurement(
         pose, timestamp, getEstimationStdDevs(tagCount, avgDist, pose, trustRotation));
 
-    Logging.logPose2d(
-        "/Swerve/Vision/" + config.cameraName, pose, Timer.getFPGATimestamp() - timestamp);
+    // Vision lives at its own root rather than under Swerve: it feeds the drivetrain but is not
+    // part of it, and a second camera on a non-drive subsystem would have nowhere sensible to go.
+    // LOG_ONLY because visionPose2dPublisher already puts this pose on NetworkTables just below;
+    // the two should be merged once the dashboard paths are settled.
+    Logging.logPose(
+        "/Vision/" + config.cameraName + "/Pose",
+        pose,
+        Timer.getFPGATimestamp() - timestamp,
+        Logging.Destination.LOG_ONLY);
     visionPose2dPublisher.set(pose);
   }
 

@@ -26,7 +26,7 @@ public class OverConsole extends CommandGenericHID {
   public void updateTelemetry() {
     isConnectedAlert.set(!isConnected());
 
-    Logging.writeBoolean(
-        "Controllers/ConsolePad-" + getHID().getPort() + "/IsConnected", isConnected());
+    Logging.logBoolean(
+        "/Controllers/ConsolePad-" + getHID().getPort() + "/IsConnected", isConnected());
   }
 }
