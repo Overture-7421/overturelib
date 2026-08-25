@@ -115,4 +115,17 @@ Java vendor dependencies are read directly out of `vendordeps/*.json` at configu
 time, so the Java and C++ builds always consume the same vendor versions. Adding or
 bumping a vendordep JSON is all that is needed — there is no second list to update.
 
-Currently: WPILib New Commands, CTRE Phoenix 6, PathPlannerLib and PhotonLib.
+Currently: WPILib New Commands, CTRE Phoenix 6, PathPlannerLib, PhotonLib and maple-sim.
+
+### Robot projects install these themselves
+
+`OvertureLib.json` declares only the OvertureLib artifact, so none of the vendor libraries
+above come along with it. That has always been true: a robot project already installs
+Phoenix 6, PathPlanner and PhotonLib of its own accord even though it reaches most of them
+through this library rather than directly.
+
+maple-sim is simply the newest entry on that list, and the one a robot set up before 2026
+will not have. Without it, simulation fails immediately. A real robot most likely runs
+anyway, because everything touching `org.ironmaple` sits behind a `RobotBase.isSimulation()`
+check and the JVM resolves classes lazily — but that is how HotSpot happens to behave
+rather than a guarantee, and it has not been tested.
