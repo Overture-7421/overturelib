@@ -1,6 +1,6 @@
 plugins {
     id 'cpp'
-    // id 'java'
+    id 'java'
     // id 'google-test'
     id 'com.diffplug.spotless' version '6.11.0'
     id 'edu.wpi.first.wpilib.repositories.WPILibRepositoriesPlugin' version '2025.0'
@@ -22,113 +22,225 @@ if (project.hasProperty('releaseMode')) {
     wpilibRepositories.addAllDevelopmentRepositories(project)
 }
 
-// Java configuration (commented out)
-// java {
-//     sourceCompatibility = JavaVersion.VERSION_17
-//     targetCompatibility = JavaVersion.VERSION_17
-// }
-// var javaVersion = "17"
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+var javaVersion = "17"
 
-// Java dependencies (commented out)
-// dependencies {
-//     implementation "edu.wpi.first.cscore:cscore-java:$wpilibVersion"
-//     implementation "edu.wpi.first.cameraserver:cameraserver-java:$wpilibVersion"
-//     implementation "edu.wpi.first.ntcore:ntcore-java:$wpilibVersion"
-//     implementation "edu.wpi.first.wpilibj:wpilibj-java:$wpilibVersion"
-//     implementation "edu.wpi.first.wpiutil:wpiutil-java:$wpilibVersion"
-//     implementation "edu.wpi.first.wpimath:wpimath-java:$wpilibVersion"
-//     implementation "edu.wpi.first.wpiunits:wpiunits-java:$wpilibVersion"
-//     implementation "edu.wpi.first.hal:hal-java:$wpilibVersion"
-//     implementation "edu.wpi.first.apriltag:apriltag-java:$wpilibVersion"
-//     implementation "edu.wpi.first.wpilibNewCommands:wpilibNewCommands-java:$wpilibVersion"
-//     implementation "org.ejml:ejml-simple:0.44.0"
-//     implementation "com.fasterxml.jackson.core:jackson-annotations:2.19.2"
-//     implementation "com.fasterxml.jackson.core:jackson-core:2.19.2"
-//     implementation "com.fasterxml.jackson.core:jackson-databind:2.19.2"
-//     implementation 'edu.wpi.first.thirdparty.frc2025.opencv:opencv-java:4.10.0-3'
-// }
+// Vendordep java artifacts are read straight out of vendordeps/*.json so that the
+// Java and C++ builds always consume the same vendor versions. A dependency whose
+// version is "wpilib" ships with WPILib itself and takes wpilibVersion.
+ext.vendordepJava = {
+    def repos = [] as LinkedHashSet
+    def deps = [] as LinkedHashSet
+    def slurper = new groovy.json.JsonSlurper()
+    file('vendordeps').listFiles().findAll {it.name.endsWith('.json')}.sort().each { vendordep ->
+        def json = slurper.parse(vendordep)
+        json.mavenUrls.each {repos.add(it)}
+        json.javaDependencies.each { dep ->
+            def version = dep.version == 'wpilib' ? wpilibVersion : dep.version
+            deps.add("${dep.groupId}:${dep.artifactId}:${version}".toString())
+        }
+    }
+    return [repos: repos, deps: deps]
+}()
 
-// tasks.withType(JavaCompile) {
-//     options.compilerArgs.add '-XDstringConcat=inline'
-//     options.encoding = 'UTF-8'
-// }
+repositories {
+    vendordepJava.repos.each { repoUrl ->
+        maven {url = repoUrl}
+    }
+}
 
-// javadoc {
-//     options {
-//         links "https://docs.oracle.com/en/java/javase/$javaVersion/docs/api/", 'https://github.wpilib.org/allwpilib/docs/release/java/'
-//     }
-// }
+// Maven classifier for this machine's desktop natives, used only by the test runtime.
+ext.desktopClassifier = {
+    def os = org.gradle.internal.os.OperatingSystem.current()
+    def arch = System.getProperty('os.arch') in ['aarch64', 'arm64'] ? 'arm64' : 'x86-64'
+    if (os.isWindows()) {
+        return 'windows' + arch
+    }
+    if (os.isMacOsX()) {
+        // Not 'osx' + arch. WPILib ships one fat binary for macOS under 'osxuniversal' and
+        // publishes neither osxarm64 nor osxx86-64, so deriving this the way the other two
+        // platforms derive it asks for an artifact that does not exist and the tests will not run
+        // on any Mac.
+        return 'osxuniversal'
+    }
+    return 'linux' + arch
+}()
+
+configurations {
+    testNatives
+}
+
+dependencies {
+    implementation "edu.wpi.first.cscore:cscore-java:$wpilibVersion"
+    implementation "edu.wpi.first.cameraserver:cameraserver-java:$wpilibVersion"
+    implementation "edu.wpi.first.ntcore:ntcore-java:$wpilibVersion"
+    implementation "edu.wpi.first.wpinet:wpinet-java:$wpilibVersion"
+    implementation "edu.wpi.first.wpilibj:wpilibj-java:$wpilibVersion"
+    implementation "edu.wpi.first.wpiutil:wpiutil-java:$wpilibVersion"
+    implementation "edu.wpi.first.wpimath:wpimath-java:$wpilibVersion"
+    implementation "edu.wpi.first.wpiunits:wpiunits-java:$wpilibVersion"
+    implementation "edu.wpi.first.hal:hal-java:$wpilibVersion"
+    implementation "edu.wpi.first.apriltag:apriltag-java:$wpilibVersion"
+    implementation "org.ejml:ejml-simple:0.44.0"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:2.19.2"
+    implementation "com.fasterxml.jackson.core:jackson-core:2.19.2"
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.19.2"
+    implementation 'edu.wpi.first.thirdparty.frc2025.opencv:opencv-java:4.10.0-3'
+
+    // WPILibNewCommands, Phoenix 6, PathPlannerLib and PhotonLib
+    vendordepJava.deps.each {implementation it}
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testRuntimeOnly 'us.hebi.quickbuf:quickbuf-runtime:1.4'
+
+    // Desktop natives for the test JVM, so tests can bring the HAL up and drive classes that touch
+    // real WPILib devices instead of leaving them with no coverage at all. WPILib 2026 publishes no
+    // -jni jars; the JNI shims live inside these -cpp zips, which is why GradleRIO extracts them to
+    // build/jni/release before running a simulation. extractTestNatives does the same thing here.
+    testNatives "edu.wpi.first.hal:hal-cpp:$wpilibVersion:$desktopClassifier@zip"
+    testNatives "edu.wpi.first.wpiutil:wpiutil-cpp:$wpilibVersion:$desktopClassifier@zip"
+    testNatives "edu.wpi.first.wpimath:wpimath-cpp:$wpilibVersion:$desktopClassifier@zip"
+    testNatives "edu.wpi.first.ntcore:ntcore-cpp:$wpilibVersion:$desktopClassifier@zip"
+    testNatives "edu.wpi.first.wpinet:wpinet-cpp:$wpilibVersion:$desktopClassifier@zip"
+
+    // Phoenix natives are deliberately NOT here. Adding them would let tests call SignalLogger or
+    // construct a CTRE device, but it costs a dozen more native zips on every build for coverage
+    // nothing currently needs. If a test ever wants a real TalonFX, pull in every
+    // com.ctre.phoenix6.sim artifact at once: CTRE_PhoenixTools_Sim links against the device
+    // libraries, so a partial set fails as "Can't find dependent libraries" rather than as a
+    // missing file, which is a confusing way to spend an afternoon.
+}
+
+def testNativesDir = layout.buildDirectory.dir('testNatives')
+
+tasks.register('extractTestNatives', Copy) {
+    from {configurations.testNatives.collect {zipTree(it)}}
+    into testNativesDir
+    include '**/*.dll', '**/*.so', '**/*.so.*', '**/*.dylib'
+    // Flatten: the zips nest the libraries under <platform>/shared, and java.library.path wants
+    // them all in one directory.
+    eachFile {it.relativePath = new RelativePath(true, it.relativePath.lastName)}
+    includeEmptyDirs = false
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Set up java tests
+test {
+    useJUnitPlatform()
+    systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
+    dependsOn 'extractTestNatives'
+    systemProperty 'java.library.path', testNativesDir.get().asFile.absolutePath
+    testLogging {
+        events "failed"
+        exceptionFormat = "full"
+    }
+}
+
+if (project.hasProperty('onlylinuxathena') || project.hasProperty('onlylinuxarm32') || project.hasProperty('onlylinuxarm64') || project.hasProperty('onlywindowsarm64') || project.hasProperty('onlylinuxsystemcore')) {
+    test.enabled = false
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs.add '-XDstringConcat=inline'
+    options.encoding = 'UTF-8'
+}
+
+javadoc {
+    options {
+        links "https://docs.oracle.com/en/java/javase/$javaVersion/docs/api/", 'https://github.wpilib.org/allwpilib/docs/release/java/'
+    }
+}
 
 // Apply C++ configuration
-apply from: 'config.gradle'
+// Java-only is the default, set in gradle.properties, because the library is being
+// phased over to Java. Build the C++ too with -PjavaOnly=false. The C++ sources and
+// build config are untouched either way.
+//
+// The value is read, not just the presence of the property: hasProperty alone is true
+// for javaOnly=false as well, and a property set in gradle.properties cannot be unset
+// from the command line, so there would be no way back to a C++ build without editing
+// the file. Bare -PjavaOnly still works, since Gradle gives it an empty value.
+ext.javaOnly =
+        project.hasProperty('javaOnly') && project.property('javaOnly').toString() != 'false'
 
-// Set up exports properly
-nativeUtils {
-    exportsConfigs {
-        // Main library is just default empty. This will export everything
-        OvertureLib {
+if (!javaOnly) {
+    apply from: 'config.gradle'
+
+    // Set up exports properly
+    nativeUtils {
+        exportsConfigs {
+            // Main library is just default empty. This will export everything
+            OvertureLib {
+            }
         }
     }
-}
 
-// Set up exports properly
-nativeUtils {
-    exportsConfigs {
-        // Main library is just default empty. This will export everything
-        Vendor {
+    // Set up exports properly
+    nativeUtils {
+        exportsConfigs {
+            // Main library is just default empty. This will export everything
+            Vendor {
+            }
         }
     }
-}
 
-model {
-    components {
-        OvertureLib(NativeLibrarySpec) {
-            sources {
-                cpp {
-                    source {
-                        srcDirs 'src/main/native/cpp'
-                        include '**/*.cpp'
-                    }
-                    exportedHeaders {
-                        srcDirs 'src/main/native/include'
+    model {
+        components {
+            OvertureLib(NativeLibrarySpec) {
+                sources {
+                    cpp {
+                        source {
+                            srcDirs 'src/main/native/cpp'
+                            include '**/*.cpp'
+                        }
+                        exportedHeaders {
+                            srcDirs 'src/main/native/include'
+                        }
                     }
                 }
-            }
 
-            binaries.all {
-                cppCompiler.define('_USE_MATH_DEFINES')
-            }
+                binaries.all {
+                    cppCompiler.define('_USE_MATH_DEFINES')
+                }
 
-            nativeUtils.useRequiredLibrary(it, "cscore_shared")
-            nativeUtils.useRequiredLibrary(it, "cameraserver_shared")
-            nativeUtils.useRequiredLibrary(it, "wpilib_shared")
-            nativeUtils.useRequiredLibrary(it, "apriltag_shared")
-            nativeUtils.useRequiredLibrary(it, "opencv_shared")
+                nativeUtils.useRequiredLibrary(it, "cscore_shared")
+                nativeUtils.useRequiredLibrary(it, "cameraserver_shared")
+                nativeUtils.useRequiredLibrary(it, "wpilib_shared")
+                nativeUtils.useRequiredLibrary(it, "apriltag_shared")
+                nativeUtils.useRequiredLibrary(it, "opencv_shared")
+            }
         }
-
     }
-    // testSuites {
-    // OvertureLibTest {
-    //     sources.cpp {
-    //         source {
-    //             srcDir 'src/test/native/cpp'
-    //             include '**/*.cpp'
-    //         }
-    //     }
-
-    //     binaries.all {
-    //         cppCompiler.define('_USE_MATH_DEFINES')
-    //     }
-
-    //     nativeUtils.useRequiredLibrary(it, "cscore_shared")
-    //     nativeUtils.useRequiredLibrary(it, "cameraserver_shared")
-    //     nativeUtils.useRequiredLibrary(it, "wpilib_executable_shared")
-    //     nativeUtils.useRequiredLibrary(it, "googletest_static")
-    //     nativeUtils.useRequiredLibrary(it, "apriltag_shared")
-    //     nativeUtils.useRequiredLibrary(it, "opencv_shared")
-    // }
-    // }
 }
+
+// Commented-out C++ test suite, kept for reference.
+// model {
+// testSuites {
+// OvertureLibTest {
+//     sources.cpp {
+//         source {
+//             srcDir 'src/test/native/cpp'
+//             include '**/*.cpp'
+//         }
+//     }
+
+//     binaries.all {
+//         cppCompiler.define('_USE_MATH_DEFINES')
+//     }
+
+//     nativeUtils.useRequiredLibrary(it, "cscore_shared")
+//     nativeUtils.useRequiredLibrary(it, "cameraserver_shared")
+//     nativeUtils.useRequiredLibrary(it, "wpilib_executable_shared")
+//     nativeUtils.useRequiredLibrary(it, "googletest_static")
+//     nativeUtils.useRequiredLibrary(it, "apriltag_shared")
+//     nativeUtils.useRequiredLibrary(it, "opencv_shared")
+// }
+// }
+// }
 
 spotless {
     cpp {
@@ -149,17 +261,17 @@ spotless {
         trimTrailingWhitespace()
         endWithNewline()
     }
-    // java {
-    //     target fileTree('.') {
-    //         include '**/*.java'
-    //         exclude '**/build/**', '**/build-*/**'
-    //     }
-    //     toggleOffOn()
-    //     googleJavaFormat()
-    //     removeUnusedImports()
-    //     trimTrailingWhitespace()
-    //     endWithNewline()
-    // }
+    java {
+        target fileTree('.') {
+            include '**/*.java'
+            exclude '**/build/**', '**/build-*/**'
+        }
+        toggleOffOn()
+        googleJavaFormat()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
     format 'misc', {
         target fileTree('.') {
             include '**/*.md', '**/.gitignore'
@@ -174,5 +286,5 @@ spotless {
 apply from: 'publish.gradle'
 
 wrapper {
-    gradleVersion '8.11'
+    gradleVersion '8.14.3'
 }

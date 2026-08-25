@@ -1,37 +1,32 @@
 name: Build Check
 
-on: 
+on:
   push:
     branches:
       - master
   pull_request:
 
 jobs:
-  build-docker:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - container: wpilib/roborio-cross-ubuntu:2025-22.04
-            artifact-name: Athena
-            build-options: "-Ponlylinuxathena"
-          # - container: wpilib/raspbian-cross-ubuntu:bookworm-22.04
-          #   artifact-name: Arm32
-          #   build-options: "-Ponlylinuxarm32"
-          # - container: wpilib/aarch64-cross-ubuntu:bookworm-22.04
-          #   artifact-name: Arm64
-          #   build-options: "-Ponlylinuxarm64"
-          - container: wpilib/ubuntu-base:22.04
-            artifact-name: Linux
-            build-options: ""
-    name: "Build - ${{ matrix.artifact-name }}"
+  # From the 2026 wpilibsuite/vendor-template CI. Cheap, and catches a tampered
+  # or mismatched gradle wrapper before anything else runs.
+  validation:
+    name: "Validation"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/actions/wrapper-validation@v4
+
+  build-java:
+    needs: [validation]
+    name: "Build - Java"
     runs-on: ubuntu-22.04
-    container: ${{ matrix.container }}
+    container: wpilib/ubuntu-base:22.04
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
           fetch-depth: 0
+
       - name: Fetch all history and metadata
         run: |
           git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
@@ -40,35 +35,86 @@ jobs:
         run: ./gradlew spotlessApply
 
       - name: Build with Gradle
-        run: ./gradlew build -PreleaseMode ${{ matrix.build-options }}
+        run: ./gradlew build -PjavaOnly -PreleaseMode
 
-  build-host:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-2022
-            artifact-name: Win64
-            architecture: x64
-          - os: macos-15
-            artifact-name: macOS
-            architecture: x64
-    name: "Build - ${{ matrix.artifact-name }}"
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
         with:
-          submodules: true
-      - name: Fetch all history and metadata
-        run: git fetch --prune --unshallow
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: 17
-          architecture: ${{ matrix.architecture }}
+          name: Java
+          path: build/allOutputs
 
-      - name: Spotless Apply
-        run : ./gradlew spotlessApply
-
-      - name: Build with Gradle
-        run: ./gradlew build -Pbuildalldesktop -PreleaseMode 
+# ---------------------------------------------------------------------------
+# C++ builds, disabled while the library migrates to Java for 2026.
+#
+# The C++ sources still live in src/main/native and still build locally with a
+# plain `./gradlew build` (no -PjavaOnly). Only CI is switched off. To bring
+# them back, uncomment the two jobs below and drop -PjavaOnly above.
+#
+# Note the roborio container really is the 2025 image for a 2026 build; the
+# 2026 wpilibsuite/vendor-template pins the same one.
+#
+# Note also that while these are disabled no C++ artifacts are published, so
+# OvertureLib.json must not advertise cppDependencies for those releases.
+# ---------------------------------------------------------------------------
+#  build-docker:
+#    needs: [validation]
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        include:
+#          - container: wpilib/roborio-cross-ubuntu:2025-22.04
+#            artifact-name: Athena
+#            build-options: "-Ponlylinuxathena"
+#          # - container: wpilib/raspbian-cross-ubuntu:bookworm-22.04
+#          #   artifact-name: Arm32
+#          #   build-options: "-Ponlylinuxarm32"
+#          # - container: wpilib/aarch64-cross-ubuntu:bookworm-22.04
+#          #   artifact-name: Arm64
+#          #   build-options: "-Ponlylinuxarm64"
+#          - container: wpilib/ubuntu-base:22.04
+#            artifact-name: Linux
+#            build-options: ""
+#    name: "Build - ${{ matrix.artifact-name }}"
+#    runs-on: ubuntu-22.04
+#    container: ${{ matrix.container }}
+#    steps:
+#      - uses: actions/checkout@v4
+#        with:
+#          submodules: true
+#          fetch-depth: 0
+#      - name: Fetch all history and metadata
+#        run: |
+#          git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
+#      - name: Ensure spotless is applied
+#        run: ./gradlew spotlessApply
+#      - name: Build with Gradle
+#        run: ./gradlew build -PreleaseMode ${{ matrix.build-options }}
+#
+#  build-host:
+#    needs: [validation]
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        include:
+#          - os: windows-2022
+#            artifact-name: Win64
+#            architecture: x64
+#          - os: macos-15
+#            artifact-name: macOS
+#            architecture: x64
+#    name: "Build - ${{ matrix.artifact-name }}"
+#    runs-on: ${{ matrix.os }}
+#    steps:
+#      - uses: actions/checkout@v4
+#        with:
+#          submodules: true
+#      - name: Fetch all history and metadata
+#        run: git fetch --prune --unshallow
+#      - uses: actions/setup-java@v4
+#        with:
+#          distribution: 'temurin'
+#          java-version: 17
+#          architecture: ${{ matrix.architecture }}
+#      - name: Spotless Apply
+#        run: ./gradlew spotlessApply
+#      - name: Build with Gradle
+#        run: ./gradlew build -Pbuildalldesktop -PreleaseMode
