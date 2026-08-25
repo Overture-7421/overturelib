@@ -14,7 +14,27 @@ on:
         default: false
 
 jobs:
+  # The version string is typed by hand into the dispatch form and is substituted
+  # into publish.gradle, the maven coordinates, the vendordep JSON and the git tag.
+  # A malformed value used to sail through every one of those and only fail at the
+  # very last step, after the broken artifact was already public on Pages.
+  # Fail in five seconds instead.
+  validate-version:
+    name: "Validate Version"
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check version format
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+        run: |
+          if ! printf '%s' "$VERSION" | grep -Eq '^[0-9]{4}\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)*$'; then
+            echo "::error::Invalid version '$VERSION'. Expected 2026.4.0 or 2026.4.0-beta-1 (no spaces)."
+            exit 1
+          fi
+          echo "Version '$VERSION' looks well-formed."
+
   build-java:
+    needs: [validate-version]
     name: "Build - Java"
     runs-on: ubuntu-22.04
     container: wpilib/ubuntu-base:22.04
@@ -155,12 +175,15 @@ jobs:
         with:
           repository: wpilibsuite/build-tools
 
+      # One merged directory instead of one per artifact, which is the layout the
+      # combiner expects. Replaces a `rsync --delete` flatten step whose source
+      # globbed a subdirectory of its own destination: rsync deleted the source
+      # mid-transfer and exited 23.
       - uses: actions/download-artifact@v8
         with:
           path: combiner/products/build/allOutputs
+          merge-multiple: true
 
-      - name: Flatten Artifacts
-        run: rsync -a --delete combiner/products/build/allOutputs/*/* combiner/products/build/allOutputs/
       - uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
@@ -246,7 +269,7 @@ jobs:
           git commit -m "Upgrade to ${{ github.event.inputs.version }}"
       
       - name: Push changes
-        uses: ad-m/github-push-action@master
+        uses: ad-m/github-push-action@v1.3.0
         with:
           repository: overture-7421/overture-7421.github.io
           github_token: ${{ secrets.ACCESS_TOKEN }}
@@ -267,7 +290,7 @@ jobs:
         
       - name: Create Release
         if: github.event.inputs.prerelease == 'false'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: OvertureLib ${{ github.event.inputs.version }}
           files: OvertureLib-${{ github.event.inputs.version }}.zip
@@ -278,7 +301,7 @@ jobs:
         
       - name: Create Pre-Release
         if: github.event.inputs.prerelease == 'true'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: OvertureLib ${{ github.event.inputs.version }}
           files: OvertureLib-${{ github.event.inputs.version }}.zip
