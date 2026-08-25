@@ -36,6 +36,15 @@ public class SwerveModuleConfig {
   /** Gear ratio between the drive rotor and the wheel. */
   public double DriveGearRatio = 1.0;
 
+  /**
+   * How close the azimuth has to be, in degrees, before the turn motor is left alone.
+   *
+   * <p>Inside this band the module is commanded zero volts instead of holding a position loop, so
+   * it stops chasing encoder noise while the robot is standing still. Zero disables it and restores
+   * a loop that is always active.
+   */
+  public double TurnDeadbandDegrees = 0.5;
+
   /** Drive feedforward, in volts per meter per second. */
   public SimpleMotorFeedforward FeedForward;
 
@@ -68,6 +77,7 @@ public class SwerveModuleConfig {
     WheelDiameter = other.WheelDiameter;
     TurnGearRatio = other.TurnGearRatio;
     DriveGearRatio = other.DriveGearRatio;
+    TurnDeadbandDegrees = other.TurnDeadbandDegrees;
     FeedForward =
         new SimpleMotorFeedforward(
             other.FeedForward.getKs(),

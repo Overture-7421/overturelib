@@ -53,11 +53,27 @@ public class HeadingSpeedsHelper implements SpeedsHelper {
 
   @Override
   public void alterSpeed(ChassisSpeeds inputSpeed) {
-    double out =
+    double feedback =
         headingController.calculate(
             chassis.getEstimatedPose().getRotation().getRadians(), targetAngleRadians);
 
-    if (headingController.atSetpoint()) {
+    // ProfiledPIDController.calculate returns the feedback term only: it advances the profile and
+    // then reports how far the robot is from the profile's position, and never mentions the
+    // velocity the profile asked for. What we command here IS a velocity, so that velocity is the
+    // feedforward, and without it the constraints are decorative -- reaching the profile's 9 rad/s
+    // cruise on feedback alone needs 9/kP of error, which at kP 6 is 86 degrees. The robot instead
+    // saturates out of the gate and coasts in, and the profile shapes nothing.
+    double feedforward = headingController.getSetpoint().velocity;
+
+    double out = feedback + feedforward;
+
+    // atGoal, not atSetpoint. atSetpoint compares against the profile's current position, which is
+    // a moving value, so it goes true whenever the robot is momentarily tracking well -- including
+    // halfway through the motion. atGoal also requires the profile to have arrived. The difference
+    // matters most when aiming at something that moves, where the goal is rewritten every loop and
+    // the profile never arrives: on atSetpoint the correction kept switching itself off inside the
+    // tolerance band instead of tracking.
+    if (headingController.atGoal()) {
       out = 0;
     }
 

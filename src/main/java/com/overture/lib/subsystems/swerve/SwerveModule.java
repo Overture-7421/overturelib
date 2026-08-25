@@ -5,6 +5,7 @@
 package com.overture.lib.subsystems.swerve;
 
 import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.ChassisReference;
@@ -41,7 +42,12 @@ public class SwerveModule extends SubsystemBase {
   private final SwerveModulePosition latestPosition = new SwerveModulePosition();
 
   private final PositionVoltage turnVoltage = new PositionVoltage(0);
+  private final VelocityVoltage driveVelocity = new VelocityVoltage(0);
+
+  // Both still used: driveVoltage by setVoltageDrive, which SysId drives directly, and
+  // turnVoltageOut to park the azimuth inside the deadband.
   private final VoltageOut driveVoltage = new VoltageOut(0);
+  private final VoltageOut turnVoltageOut = new VoltageOut(0);
 
   /**
    * Constructs a SwerveModule.
@@ -86,6 +92,13 @@ public class SwerveModule extends SubsystemBase {
   /**
    * Sets the state of the module.
    *
+   * <p>The drive motor runs a closed velocity loop with the feedforward on top, rather than the
+   * feedforward alone. Open loop meant carpet, a sagging battery and the robot's own weight all
+   * came out as speed error that nothing corrected, and the four modules erred by different
+   * amounts, so the chassis translated slower than asked and pulled off heading. Gains live in
+   * {@code DriveMotorConfig.PIDConfigs}; leaving them at zero reproduces the old behaviour exactly,
+   * because the feedforward term is unchanged.
+   *
    * @param state the desired state of the module
    */
   public void setState(SwerveModuleState state) {
@@ -94,15 +107,32 @@ public class SwerveModule extends SubsystemBase {
 
     targetState = state;
 
-    turnMotor.setControl(
-        turnVoltage
-            .withPosition(targetState.angle.getRotations())
-            .withEnableFOC(config.TurnMotorConfig.useFOC)
-            .withSlot(0));
+    // Close enough is left alone. Holding a position loop against the last fraction of a degree
+    // only feeds encoder noise back into the azimuth, which is what is heard as the modules
+    // buzzing while the robot stands still.
+    double azimuthErrorDegrees = Math.abs(targetState.angle.minus(latestState.angle).getDegrees());
+
+    if (azimuthErrorDegrees <= config.TurnDeadbandDegrees) {
+      turnMotor.setControl(turnVoltageOut.withOutput(0.0));
+    } else {
+      turnMotor.setControl(
+          turnVoltage
+              .withPosition(targetState.angle.getRotations())
+              .withEnableFOC(config.TurnMotorConfig.useFOC)
+              .withSlot(0));
+    }
+
+    // The drive motor's sensor is scaled to the mechanism, so its velocity is wheel rotations per
+    // second, not rotor.
+    double wheelRotationsPerSecond =
+        targetState.speedMetersPerSecond / (Math.PI * config.WheelDiameter);
+
     driveMotor.setControl(
-        driveVoltage
-            .withOutput(feedForward.calculate(targetState.speedMetersPerSecond))
-            .withEnableFOC(config.DriveMotorConfig.useFOC));
+        driveVelocity
+            .withVelocity(wheelRotationsPerSecond)
+            .withFeedForward(feedForward.calculate(targetState.speedMetersPerSecond))
+            .withEnableFOC(config.DriveMotorConfig.useFOC)
+            .withSlot(0));
   }
 
   /**
@@ -241,8 +271,15 @@ public class SwerveModule extends SubsystemBase {
         Logging.Destination.LOG_ONLY);
   }
 
-  @Override
-  public void periodic() {
+  /**
+   * Reads the sensors into the cached state that {@link #getState()} and {@link #getPosition()}
+   * serve.
+   *
+   * <p>The chassis calls this first thing in its own periodic. Doing it here rather than only in
+   * {@link #periodic()} is what keeps the ordering explicit: a module registers with the scheduler
+   * after the chassis does, so left to itself it would update after everything had already read it.
+   */
+  public void updateInputs() {
     Rotation2d angle = Rotation2d.fromRotations(canCoder.getAbsolutePosition().getValueAsDouble());
 
     latestState.speedMetersPerSecond =
@@ -252,5 +289,13 @@ public class SwerveModule extends SubsystemBase {
     latestPosition.distanceMeters =
         driveMotor.getPosition().getValueAsDouble() * config.WheelDiameter * Math.PI;
     latestPosition.angle = angle;
+  }
+
+  @Override
+  public void periodic() {
+    // Harmless second read on a loop the chassis already served: these are cached signal values,
+    // not
+    // bus traffic. It is here so a module built outside a chassis still updates itself.
+    updateInputs();
   }
 }
