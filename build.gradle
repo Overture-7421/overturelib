@@ -60,7 +60,11 @@ ext.desktopClassifier = {
         return 'windows' + arch
     }
     if (os.isMacOsX()) {
-        return 'osx' + arch
+        // Not 'osx' + arch. WPILib ships one fat binary for macOS under 'osxuniversal' and
+        // publishes neither osxarm64 nor osxx86-64, so deriving this the way the other two
+        // platforms derive it asks for an artifact that does not exist and the tests will not run
+        // on any Mac.
+        return 'osxuniversal'
     }
     return 'linux' + arch
 }()
