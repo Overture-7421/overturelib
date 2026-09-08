@@ -143,69 +143,6 @@ public class OverXboxController extends CommandXboxController {
     return Commands.runOnce(() -> setRumble(GenericHID.RumbleType.kBothRumble, intensity));
   }
 
-  /**
-   * Returns a trigger for the left stick being pushed past a threshold on the y axis.
-   *
-   * @param triggerThreshold the threshold to exceed
-   * @return the trigger
-   */
-  public Trigger leftYTrigger(double triggerThreshold) {
-    return new Trigger(() -> Math.abs(getLeftY()) >= triggerThreshold);
-  }
-
-  /**
-   * Returns a trigger for the left stick being pushed past a threshold on the x axis.
-   *
-   * @param triggerThreshold the threshold to exceed
-   * @return the trigger
-   */
-  public Trigger leftXTrigger(double triggerThreshold) {
-    return new Trigger(() -> Math.abs(getLeftX()) >= triggerThreshold);
-  }
-
-  /**
-   * Returns a trigger for the right stick being pushed past a threshold on the y axis.
-   *
-   * @param triggerThreshold the threshold to exceed
-   * @return the trigger
-   */
-  public Trigger rightYTrigger(double triggerThreshold) {
-    return new Trigger(() -> Math.abs(getRightY()) >= triggerThreshold);
-  }
-
-  /**
-   * Returns a trigger for the right stick being pushed past a threshold on the x axis.
-   *
-   * @param triggerThreshold the threshold to exceed
-   * @return the trigger
-   */
-  public Trigger rightXTrigger(double triggerThreshold) {
-    return new Trigger(() -> Math.abs(getRightX()) >= triggerThreshold);
-  }
-
-  /**
-   * Returns a trigger for the right stick being pushed past a threshold on either axis.
-   *
-   * @param triggerThreshold the threshold to exceed
-   * @return the trigger
-   */
-  public Trigger rightStick(double triggerThreshold) {
-    return new Trigger(
-        () ->
-            Math.abs(getRightX()) >= triggerThreshold || Math.abs(getRightY()) >= triggerThreshold);
-  }
-
-  /**
-   * Returns a trigger for the left stick being pushed past a threshold on either axis.
-   *
-   * @param triggerThreshold the threshold to exceed
-   * @return the trigger
-   */
-  public Trigger leftStick(double triggerThreshold) {
-    return new Trigger(
-        () -> Math.abs(getLeftX()) >= triggerThreshold || Math.abs(getLeftY()) >= triggerThreshold);
-  }
-
   /** Publishes the connection state of the controller. */
   public void updateTelemetry() {
     isConnectedAlert.set(!isConnected());

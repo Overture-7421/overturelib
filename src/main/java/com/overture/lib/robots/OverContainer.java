@@ -12,9 +12,6 @@ public interface OverContainer {
   /** Configures the operator's button bindings. */
   void configOperatorBindings();
 
-  /** Configures the default commands of every subsystem. */
-  void configDefaultCommands();
-
   /** Configures the bindings used for characterization routines. */
   void configCharacterizationBindings();
 
