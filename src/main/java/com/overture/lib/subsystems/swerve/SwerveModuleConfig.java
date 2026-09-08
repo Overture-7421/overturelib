@@ -5,18 +5,23 @@
 package com.overture.lib.subsystems.swerve;
 
 import com.ctre.phoenix6.CANBus;
-import com.overture.lib.motorcontrollers.ControllerNeutralMode;
-import com.overture.lib.motorcontrollers.OverTalonFXConfig;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.OpenLoopRampsConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.configs.VoltageConfigs;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.overture.lib.sensors.CanCoderConfig;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 
 /** Configuration bundle for a {@link SwerveModule}. */
 public class SwerveModuleConfig {
   /** Configuration of the drive motor. */
-  public OverTalonFXConfig DriveMotorConfig = driveInit();
+  public TalonFXConfiguration DriveMotorConfig = driveInit();
 
   /** Configuration of the turn motor. */
-  public OverTalonFXConfig TurnMotorConfig = turnInit();
+  public TalonFXConfiguration TurnMotorConfig = turnInit();
 
   /** Configuration of the absolute encoder. */
   public CanCoderConfig EncoderConfig = new CanCoderConfig();
@@ -36,6 +41,18 @@ public class SwerveModuleConfig {
   /** Gear ratio between the drive rotor and the wheel. */
   public double DriveGearRatio = 1.0;
 
+  /** CAN id of the drive motor. */
+  public int driveMotorId;
+
+  /** CAN id of the turn motor. */
+  public int turnMotorId;
+
+  /** Whether the drive motor's control requests use Field Oriented Control. */
+  public boolean useFOCDrive = false;
+
+  /** Whether the turn motor's control requests use Field Oriented Control. */
+  public boolean useFOCTurn = false;
+
   /**
    * How close the azimuth has to be, in degrees, before the turn motor is left alone.
    *
@@ -52,9 +69,13 @@ public class SwerveModuleConfig {
    * Constructs a SwerveModuleConfig.
    *
    * @param feedForward the drive feedforward
+   * @param driveMotorId the CAN id of the drive motor
+   * @param turnMotorId the CAN id of the turn motor
    */
-  public SwerveModuleConfig(SimpleMotorFeedforward feedForward) {
+  public SwerveModuleConfig(SimpleMotorFeedforward feedForward, int driveMotorId, int turnMotorId) {
     this.FeedForward = feedForward;
+    this.driveMotorId = driveMotorId;
+    this.turnMotorId = turnMotorId;
   }
 
   /**
@@ -69,8 +90,8 @@ public class SwerveModuleConfig {
    * @param other the configuration to copy
    */
   public SwerveModuleConfig(SwerveModuleConfig other) {
-    DriveMotorConfig = new OverTalonFXConfig(other.DriveMotorConfig);
-    TurnMotorConfig = new OverTalonFXConfig(other.TurnMotorConfig);
+    DriveMotorConfig = other.DriveMotorConfig.clone();
+    TurnMotorConfig = other.TurnMotorConfig.clone();
     EncoderConfig = new CanCoderConfig(other.EncoderConfig);
     ModuleName = other.ModuleName;
     CanBus = other.CanBus;
@@ -84,6 +105,10 @@ public class SwerveModuleConfig {
             other.FeedForward.getKv(),
             other.FeedForward.getKa(),
             other.FeedForward.getDt());
+    this.driveMotorId = other.driveMotorId;
+    this.turnMotorId = other.turnMotorId;
+    this.useFOCDrive = other.useFOCDrive;
+    this.useFOCTurn = other.useFOCTurn;
   }
 
   /**
@@ -91,18 +116,25 @@ public class SwerveModuleConfig {
    *
    * @return the drive motor configuration
    */
-  public static OverTalonFXConfig driveInit() {
-    OverTalonFXConfig config = new OverTalonFXConfig();
-
-    config.NeutralMode = ControllerNeutralMode.Brake;
-
-    config.CurrentLimit = 40.0;
-    config.StatorCurrentLimit = 120.0;
-    config.TriggerThreshold = 70.0;
-    config.TriggerThresholdTime = 0.5;
-    config.ClosedLoopRampRate = 0.0;
-    config.OpenLoopRampRate = 0.25;
-    return config;
+  public static TalonFXConfiguration driveInit() {
+    return new TalonFXConfiguration()
+        .withCurrentLimits(
+            new CurrentLimitsConfigs()
+                .withStatorCurrentLimitEnable(true)
+                .withStatorCurrentLimit(120.0)
+                .withSupplyCurrentLimitEnable(true)
+                .withSupplyCurrentLimit(70.0)
+                .withSupplyCurrentLowerLimit(40)
+                .withSupplyCurrentLowerTime(0.5))
+        .withVoltage(
+            new VoltageConfigs().withPeakForwardVoltage(12.0).withPeakReverseVoltage(-12.0))
+        // Open loop only, so it softens setVoltageDrive and SysId without slowing the closed
+        // velocity loop that setState drives.
+        .withOpenLoopRamps(new OpenLoopRampsConfigs().withVoltageOpenLoopRampPeriod(0.25))
+        .withMotorOutput(
+            new MotorOutputConfigs()
+                .withInverted(InvertedValue.CounterClockwise_Positive)
+                .withNeutralMode(NeutralModeValue.Brake));
   }
 
   /**
@@ -110,17 +142,21 @@ public class SwerveModuleConfig {
    *
    * @return the turn motor configuration
    */
-  public static OverTalonFXConfig turnInit() {
-    OverTalonFXConfig config = new OverTalonFXConfig();
-
-    config.NeutralMode = ControllerNeutralMode.Coast;
-
-    config.CurrentLimit = 40.0;
-    config.StatorCurrentLimit = 80.0;
-    config.TriggerThreshold = 80.0;
-    config.TriggerThresholdTime = 0.2;
-    config.ClosedLoopRampRate = 0.0;
-    config.OpenLoopRampRate = 0.0;
-    return config;
+  public static TalonFXConfiguration turnInit() {
+    return new TalonFXConfiguration()
+        .withCurrentLimits(
+            new CurrentLimitsConfigs()
+                .withStatorCurrentLimitEnable(true)
+                .withStatorCurrentLimit(80.0)
+                .withSupplyCurrentLimitEnable(true)
+                .withSupplyCurrentLimit(80.0)
+                .withSupplyCurrentLowerLimit(40)
+                .withSupplyCurrentLowerTime(0.2))
+        .withVoltage(
+            new VoltageConfigs().withPeakForwardVoltage(12.0).withPeakReverseVoltage(-12.0))
+        .withMotorOutput(
+            new MotorOutputConfigs()
+                .withInverted(InvertedValue.CounterClockwise_Positive)
+                .withNeutralMode(NeutralModeValue.Coast));
   }
 }

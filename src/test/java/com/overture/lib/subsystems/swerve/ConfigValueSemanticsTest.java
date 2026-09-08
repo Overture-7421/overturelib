@@ -6,9 +6,10 @@ package com.overture.lib.subsystems.swerve;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.overture.lib.motorcontrollers.ControllerNeutralMode;
-import com.overture.lib.motorcontrollers.OverTalonFXConfig;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.overture.lib.sensors.CanCoderConfig;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import org.junit.jupiter.api.Test;
@@ -24,14 +25,15 @@ class ConfigValueSemanticsTest {
   /** The classic four-module pattern: build one config, re-stamp it between modules. */
   @Test
   void swerveModuleConfigCopyIsIndependent() {
-    SwerveModuleConfig original = new SwerveModuleConfig(new SimpleMotorFeedforward(0, 2.0, 0.1));
+    SwerveModuleConfig original =
+        new SwerveModuleConfig(new SimpleMotorFeedforward(0, 2.0, 0.1), 6, 5);
     original.WheelDiameter = 0.1016;
     original.DriveGearRatio = 7.03;
     original.ModuleName = "Front Left";
-    original.DriveMotorConfig.MotorId = 6;
-    original.TurnMotorConfig.MotorId = 5;
     original.EncoderConfig.CanCoderId = 10;
-    original.TurnMotorConfig.PIDConfigs.withKP(40);
+    original.TurnMotorConfig.Slot0.withKP(40);
+    original.useFOCDrive = true;
+    original.useFOCTurn = true;
 
     SwerveModuleConfig copy = new SwerveModuleConfig(original);
 
@@ -39,50 +41,60 @@ class ConfigValueSemanticsTest {
     original.WheelDiameter = 0.2;
     original.DriveGearRatio = 1.0;
     original.ModuleName = "Back Right";
-    original.DriveMotorConfig.MotorId = 4;
-    original.TurnMotorConfig.MotorId = 3;
+    original.driveMotorId = 4;
+    original.turnMotorId = 3;
     original.EncoderConfig.CanCoderId = 12;
-    original.TurnMotorConfig.PIDConfigs.withKP(12);
+    original.TurnMotorConfig.Slot0.withKP(12);
+    original.useFOCDrive = false;
+    original.useFOCTurn = false;
 
     assertEquals(0.1016, copy.WheelDiameter, kEpsilon);
     assertEquals(7.03, copy.DriveGearRatio, kEpsilon);
     assertEquals("Front Left", copy.ModuleName);
-    assertEquals(6, copy.DriveMotorConfig.MotorId);
-    assertEquals(5, copy.TurnMotorConfig.MotorId);
+    assertEquals(6, copy.driveMotorId);
+    assertEquals(5, copy.turnMotorId);
     assertEquals(10, copy.EncoderConfig.CanCoderId);
-    assertEquals(40.0, copy.TurnMotorConfig.PIDConfigs.kP, kEpsilon);
+    assertEquals(40.0, copy.TurnMotorConfig.Slot0.kP, kEpsilon);
+
+    // Dropped in an earlier pass of this refactor, which silently ran every module non-FOC.
+    assertTrue(copy.useFOCDrive);
+    assertTrue(copy.useFOCTurn);
 
     // The nested objects must be distinct instances, not shared references.
     assertNotSame(original.DriveMotorConfig, copy.DriveMotorConfig);
     assertNotSame(original.TurnMotorConfig, copy.TurnMotorConfig);
     assertNotSame(original.EncoderConfig, copy.EncoderConfig);
-    assertNotSame(original.TurnMotorConfig.PIDConfigs, copy.TurnMotorConfig.PIDConfigs);
+    assertNotSame(original.TurnMotorConfig.Slot0, copy.TurnMotorConfig.Slot0);
     assertNotSame(original.FeedForward, copy.FeedForward);
   }
 
+  /**
+   * OverTalonFX and SwerveModuleConfig both snapshot a TalonFXConfiguration with {@code clone()}
+   * rather than copying it field by field. That is only safe while the clone reaches the nested
+   * config objects too; a shallow one would leave every motor built from a re-stamped config
+   * sharing one set of gains.
+   */
   @Test
-  void overTalonFXConfigCopyIsIndependent() {
-    OverTalonFXConfig original = new OverTalonFXConfig();
-    original.MotorId = 1;
-    original.NeutralMode = ControllerNeutralMode.Brake;
-    original.useFOC = true;
-    original.CurrentLimit = 30.0;
-    original.PIDConfigs.withKP(40).withKS(0.15);
+  void talonFXConfigurationCloneIsDeep() {
+    TalonFXConfiguration original = new TalonFXConfiguration();
+    original.MotorOutput.withNeutralMode(NeutralModeValue.Brake);
+    original.Slot0.withKP(40).withKS(0.15);
+    original.CurrentLimits.withStatorCurrentLimit(30.0);
 
-    OverTalonFXConfig copy = new OverTalonFXConfig(original);
+    TalonFXConfiguration copy = original.clone();
 
-    original.MotorId = 2;
-    original.NeutralMode = ControllerNeutralMode.Coast;
-    original.useFOC = false;
-    original.CurrentLimit = 60.0;
-    original.PIDConfigs.withKP(12).withKS(0.0);
+    original.MotorOutput.withNeutralMode(NeutralModeValue.Coast);
+    original.Slot0.withKP(12).withKS(0.0);
+    original.CurrentLimits.withStatorCurrentLimit(60.0);
 
-    assertEquals(1, copy.MotorId);
-    assertEquals(ControllerNeutralMode.Brake, copy.NeutralMode);
-    assertEquals(true, copy.useFOC);
-    assertEquals(30.0, copy.CurrentLimit, kEpsilon);
-    assertEquals(40.0, copy.PIDConfigs.kP, kEpsilon);
-    assertEquals(0.15, copy.PIDConfigs.kS, kEpsilon);
+    assertEquals(NeutralModeValue.Brake, copy.MotorOutput.NeutralMode);
+    assertEquals(40.0, copy.Slot0.kP, kEpsilon);
+    assertEquals(0.15, copy.Slot0.kS, kEpsilon);
+    assertEquals(30.0, copy.CurrentLimits.StatorCurrentLimit, kEpsilon);
+
+    assertNotSame(original.MotorOutput, copy.MotorOutput);
+    assertNotSame(original.Slot0, copy.Slot0);
+    assertNotSame(original.CurrentLimits, copy.CurrentLimits);
   }
 
   @Test
@@ -104,7 +116,7 @@ class ConfigValueSemanticsTest {
   @Test
   void feedForwardGainsSurviveTheCopy() {
     SwerveModuleConfig original =
-        new SwerveModuleConfig(new SimpleMotorFeedforward(0.1, 2.0879, 0.098433));
+        new SwerveModuleConfig(new SimpleMotorFeedforward(0.1, 2.0879, 0.098433), 1, 2);
     SwerveModuleConfig copy = new SwerveModuleConfig(original);
 
     assertEquals(0.1, copy.FeedForward.getKs(), kEpsilon);

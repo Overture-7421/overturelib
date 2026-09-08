@@ -7,6 +7,7 @@ package com.overture.lib.subsystems.swerve;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.overture.lib.motorcontrollers.ControllerNeutralMode;
@@ -59,15 +60,16 @@ public class SwerveModule extends SubsystemBase {
     // ModuleName, useFOC and NeutralMode are all read live every loop, so four modules built from
     // one re-stamped config must not end up sharing it.
     this.config = new SwerveModuleConfig(config);
-    this.driveMotor = new OverTalonFX(this.config.DriveMotorConfig, this.config.CanBus);
-    this.turnMotor = new OverTalonFX(this.config.TurnMotorConfig, this.config.CanBus);
+    this.driveMotor =
+        new OverTalonFX(this.config.DriveMotorConfig, this.config.driveMotorId, this.config.CanBus);
+    this.turnMotor =
+        new OverTalonFX(this.config.TurnMotorConfig, this.config.turnMotorId, this.config.CanBus);
     this.canCoder = new OverCANCoder(this.config.EncoderConfig, this.config.CanBus);
     this.feedForward = this.config.FeedForward;
 
     turnMotor.setContinuousWrap();
     turnMotor.setFusedCANCoder(this.config.EncoderConfig.CanCoderId);
-    turnMotor.setControl(
-        turnVoltage.withPosition(0).withEnableFOC(this.config.TurnMotorConfig.useFOC));
+    turnMotor.setControl(turnVoltage.withPosition(0).withEnableFOC(this.config.useFOCTurn));
 
     driveMotor.setPosition(0);
 
@@ -96,7 +98,7 @@ public class SwerveModule extends SubsystemBase {
    * feedforward alone. Open loop meant carpet, a sagging battery and the robot's own weight all
    * came out as speed error that nothing corrected, and the four modules erred by different
    * amounts, so the chassis translated slower than asked and pulled off heading. Gains live in
-   * {@code DriveMotorConfig.PIDConfigs}; leaving them at zero reproduces the old behaviour exactly,
+   * {@code DriveMotorConfig.Slot0}; leaving them at zero reproduces the old behaviour exactly,
    * because the feedforward term is unchanged.
    *
    * @param state the desired state of the module
@@ -118,7 +120,7 @@ public class SwerveModule extends SubsystemBase {
       turnMotor.setControl(
           turnVoltage
               .withPosition(targetState.angle.getRotations())
-              .withEnableFOC(config.TurnMotorConfig.useFOC)
+              .withEnableFOC(config.useFOCTurn)
               .withSlot(0));
     }
 
@@ -131,7 +133,7 @@ public class SwerveModule extends SubsystemBase {
         driveVelocity
             .withVelocity(wheelRotationsPerSecond)
             .withFeedForward(feedForward.calculate(targetState.speedMetersPerSecond))
-            .withEnableFOC(config.DriveMotorConfig.useFOC)
+            .withEnableFOC(config.useFOCDrive)
             .withSlot(0));
   }
 
@@ -150,8 +152,7 @@ public class SwerveModule extends SubsystemBase {
    * @param volts the voltage to apply
    */
   public void setVoltageDrive(double volts) {
-    driveMotor.setControl(
-        driveVoltage.withOutput(volts).withEnableFOC(config.DriveMotorConfig.useFOC));
+    driveMotor.setControl(driveVoltage.withOutput(volts).withEnableFOC(config.useFOCDrive));
   }
 
   /**
@@ -175,7 +176,7 @@ public class SwerveModule extends SubsystemBase {
 
   /** Restores the drive motor to the neutral mode it was configured with. */
   public void restoreDriveNeutralMode() {
-    setDriveNeutralMode(config.DriveMotorConfig.NeutralMode);
+    driveMotor.setNeutralMode(config.DriveMotorConfig.MotorOutput.NeutralMode);
   }
 
   /**
@@ -194,8 +195,10 @@ public class SwerveModule extends SubsystemBase {
    * @param moduleSim the simulated module to attach to
    */
   public void attachSimulation(SwerveModuleSimulation moduleSim) {
-    driveMotor.getSimState().Orientation = simOrientation(config.DriveMotorConfig.Inverted);
-    turnMotor.getSimState().Orientation = simOrientation(config.TurnMotorConfig.Inverted);
+    driveMotor.getSimState().Orientation =
+        simOrientation(config.DriveMotorConfig.MotorOutput.Inverted);
+    turnMotor.getSimState().Orientation =
+        simOrientation(config.TurnMotorConfig.MotorOutput.Inverted);
 
     // Phoenix subtracts this from whatever we hand setRawPosition below, cancelling the magnet
     // offset the encoder applies on the way out. Without it every module reads its true angle plus
@@ -236,9 +239,12 @@ public class SwerveModule extends SubsystemBase {
    * it from the invert. The two are the same fact on a robot configured the usual way: a module is
    * marked inverted precisely because its motor drives the wheel backwards. Tying them together
    * beats asking for the same fact twice, which is how the two answers end up disagreeing.
+   *
+   * @param inverted the motor's configured output inversion
+   * @return the matching simulation orientation
    */
-  private static ChassisReference simOrientation(boolean inverted) {
-    return inverted
+  private static ChassisReference simOrientation(InvertedValue inverted) {
+    return inverted == InvertedValue.Clockwise_Positive
         ? ChassisReference.Clockwise_Positive
         : ChassisReference.CounterClockwise_Positive;
   }
