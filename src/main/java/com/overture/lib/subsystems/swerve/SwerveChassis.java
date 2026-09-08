@@ -8,8 +8,8 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.overture.lib.math.ChassisAccels;
-import com.overture.lib.motorcontrollers.ControllerNeutralMode;
 import com.overture.lib.robots.RobotConstants;
 import com.overture.lib.utils.Logging;
 import edu.wpi.first.math.Matrix;
@@ -253,10 +253,10 @@ public abstract class SwerveChassis extends SwerveBase {
     xModeEnabled = enabled;
 
     if (enabled) {
-      getFrontLeftModule().setDriveNeutralMode(ControllerNeutralMode.Brake);
-      getFrontRightModule().setDriveNeutralMode(ControllerNeutralMode.Brake);
-      getBackLeftModule().setDriveNeutralMode(ControllerNeutralMode.Brake);
-      getBackRightModule().setDriveNeutralMode(ControllerNeutralMode.Brake);
+      getFrontLeftModule().setDriveNeutralMode(NeutralModeValue.Brake);
+      getFrontRightModule().setDriveNeutralMode(NeutralModeValue.Brake);
+      getBackLeftModule().setDriveNeutralMode(NeutralModeValue.Brake);
+      getBackRightModule().setDriveNeutralMode(NeutralModeValue.Brake);
     } else {
       getFrontLeftModule().restoreDriveNeutralMode();
       getFrontRightModule().restoreDriveNeutralMode();

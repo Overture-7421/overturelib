@@ -11,6 +11,7 @@ import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj.Alert;
 
 /** A TalonFX preconfigured from a {@link TalonFXConfiguration}. */
@@ -175,6 +176,16 @@ public class OverTalonFX extends TalonFX {
     // by value.
     ctreConfig.withSoftwareLimitSwitch(configs.clone());
     getConfigurator().apply(ctreConfig);
+  }
+
+  /**
+   * Sets the neutral mode, keeping the stored configuration in step with the device.
+   * 
+   * @param mode the neutral mode to apply
+   */
+  public void configureNeutralMode(NeutralModeValue mode) {
+    ctreConfig.MotorOutput.withNeutralMode(mode);
+    getConfigurator().apply(ctreConfig.MotorOutput);
   }
 
   /** Makes the closed loop take the shortest path across the rotation wrap point. */

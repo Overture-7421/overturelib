@@ -7,10 +7,10 @@ package com.overture.lib.subsystems.swerve;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.ChassisReference;
-import com.overture.lib.motorcontrollers.ControllerNeutralMode;
 import com.overture.lib.motorcontrollers.OverTalonFX;
 import com.overture.lib.sensors.OverCANCoder;
 import com.overture.lib.utils.Logging;
@@ -56,10 +56,16 @@ public class SwerveModule extends SubsystemBase {
    * @param config the configuration of the module
    */
   public SwerveModule(SwerveModuleConfig config) {
-    // Snapshot, matching the C++ which took and stored this struct by value. WheelDiameter,
-    // ModuleName, useFOC and NeutralMode are all read live every loop, so four modules built from
-    // one re-stamped config must not end up sharing it.
+
     this.config = new SwerveModuleConfig(config);
+
+    this.config.TurnMotorConfig.ClosedLoopGeneral.withContinuousWrap(true);
+    this.config.TurnMotorConfig.Feedback.withFeedbackRemoteSensorID(
+            this.config.EncoderConfig.CanCoderId)
+        .withFeedbackSensorSource(FeedbackSensorSourceValue.FusedCANcoder)
+        .withRotorToSensorRatio(this.config.TurnGearRatio);
+    this.config.DriveMotorConfig.Feedback.withSensorToMechanismRatio(this.config.DriveGearRatio);
+
     this.driveMotor =
         new OverTalonFX(this.config.DriveMotorConfig, this.config.driveMotorId, this.config.CanBus);
     this.turnMotor =
@@ -67,8 +73,6 @@ public class SwerveModule extends SubsystemBase {
     this.canCoder = new OverCANCoder(this.config.EncoderConfig, this.config.CanBus);
     this.feedForward = this.config.FeedForward;
 
-    turnMotor.setContinuousWrap();
-    turnMotor.setFusedCANCoder(this.config.EncoderConfig.CanCoderId);
     turnMotor.setControl(turnVoltage.withPosition(0).withEnableFOC(this.config.useFOCTurn));
 
     driveMotor.setPosition(0);
@@ -76,10 +80,6 @@ public class SwerveModule extends SubsystemBase {
     turnMotor.setPositionUpdateFrequency(200);
     canCoder.getPosition().setUpdateFrequency(200);
     driveMotor.setVelocityUpdateFrequency(200);
-
-    // Set Gear Ratios
-    turnMotor.setRotorToSensorRatio(this.config.TurnGearRatio);
-    driveMotor.setSensorToMechanism(this.config.DriveGearRatio);
   }
 
   /**
@@ -169,14 +169,13 @@ public class SwerveModule extends SubsystemBase {
    *
    * @param mode the neutral mode to apply
    */
-  public void setDriveNeutralMode(ControllerNeutralMode mode) {
-    driveMotor.setNeutralMode(
-        mode == ControllerNeutralMode.Brake ? NeutralModeValue.Brake : NeutralModeValue.Coast);
+  public void setDriveNeutralMode(NeutralModeValue mode) {
+    driveMotor.configureNeutralMode(mode);
   }
 
   /** Restores the drive motor to the neutral mode it was configured with. */
   public void restoreDriveNeutralMode() {
-    driveMotor.setNeutralMode(config.DriveMotorConfig.MotorOutput.NeutralMode);
+    driveMotor.configureNeutralMode(config.DriveMotorConfig.MotorOutput.NeutralMode);
   }
 
   /**
@@ -196,9 +195,9 @@ public class SwerveModule extends SubsystemBase {
    */
   public void attachSimulation(SwerveModuleSimulation moduleSim) {
     driveMotor.getSimState().Orientation =
-        simOrientation(config.DriveMotorConfig.MotorOutput.Inverted);
+        simOrientation(driveMotor.getCTREConfig().MotorOutput.Inverted);
     turnMotor.getSimState().Orientation =
-        simOrientation(config.TurnMotorConfig.MotorOutput.Inverted);
+        simOrientation(turnMotor.getCTREConfig().MotorOutput.Inverted);
 
     // Phoenix subtracts this from whatever we hand setRawPosition below, cancelling the magnet
     // offset the encoder applies on the way out. Without it every module reads its true angle plus
