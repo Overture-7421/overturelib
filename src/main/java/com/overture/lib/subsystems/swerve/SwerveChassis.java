@@ -12,6 +12,7 @@ import com.overture.lib.math.ChassisAccels;
 import com.overture.lib.motorcontrollers.ControllerNeutralMode;
 import com.overture.lib.robots.RobotConstants;
 import com.overture.lib.utils.Logging;
+import com.overture.lib.utils.UtilityFunctions;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -39,14 +40,18 @@ public abstract class SwerveChassis extends SwerveBase {
   private ChassisSpeeds lastSpeeds = new ChassisSpeeds();
   private ChassisAccels currentAccels = new ChassisAccels();
 
-  // Thresholds are a starting point, not a tuned value: 1.3 means the fastest module may read 30%
-  // above the slowest before anyone is accused, and below 0.3 m/s of translation there is not
+  // Thresholds are a starting point, not a tuned value: 1.3 means the fastest
+  // module may read 30%
+  // above the slowest before anyone is accused, and below 0.3 m/s of translation
+  // there is not
   // enough motion for the ratio to mean anything.
   private final SkidDetector skidDetector = new SkidDetector(1.3, 0.3);
   private SkidDetector.Result skidResult = SkidDetector.Result.none();
 
-  // 1.5 g is above what a swerve pulls on its own and below the Pigeon 2 rail at 2 g. Held for a
-  // quarter second, because a hit is over in a loop or two and nothing downstream samples that
+  // 1.5 g is above what a swerve pulls on its own and below the Pigeon 2 rail at
+  // 2 g. Held for a
+  // quarter second, because a hit is over in a loop or two and nothing downstream
+  // samples that
   // fast.
   private final CollisionDetector collisionDetector = new CollisionDetector(1.5, 0.25);
 
@@ -150,9 +155,9 @@ public abstract class SwerveChassis extends SwerveBase {
    * <pre>
    * &#64;Override
    * protected double getMeasuredAccelerationGs() {
-   *   return Math.hypot(
-   *       pigeon.getAccelerationX().getValueAsDouble(),
-   *       pigeon.getAccelerationY().getValueAsDouble());
+   * 	return Math.hypot(
+   * 			pigeon.getAccelerationX().getValueAsDouble(),
+   * 			pigeon.getAccelerationY().getValueAsDouble());
    * }
    * </pre>
    *
@@ -182,11 +187,16 @@ public abstract class SwerveChassis extends SwerveBase {
   @Override
   public void resetOdometry(Pose2d initPose) {
     odometry.resetPosition(getRotation2d(), modulesPositions, initPose);
-    // Refresh the cache getEstimatedPose() serves. Without this the estimator knows the new pose
-    // but every reader keeps seeing the old one until the next periodic(), and CommandScheduler
-    // runs subsystem periodics BEFORE it initializes commands. PathPlanner registers
-    // resetOdometry as its reset consumer and getEstimatedPose as its pose supplier, so a
-    // reset-then-follow scheduled from a trigger would start the path from the pre-reset pose.
+    // Refresh the cache getEstimatedPose() serves. Without this the estimator knows
+    // the new pose
+    // but every reader keeps seeing the old one until the next periodic(), and
+    // CommandScheduler
+    // runs subsystem periodics BEFORE it initializes commands. PathPlanner
+    // registers
+    // resetOdometry as its reset consumer and getEstimatedPose as its pose
+    // supplier, so a
+    // reset-then-follow scheduled from a trigger would start the path from the
+    // pre-reset pose.
     latestPose = odometry.getEstimatedPosition();
   }
 
@@ -241,6 +251,11 @@ public abstract class SwerveChassis extends SwerveBase {
     resetOdometry(newOdometry);
   }
 
+  public Command resetHeadingCommand() {
+    double headingDegrees = UtilityFunctions.isRedAlliance() ? 180.0 : 0.0;
+    return Commands.runOnce(() -> this.resetHeading(headingDegrees));
+  }
+
   /**
    * Points the wheels into an X so the robot resists being pushed.
    *
@@ -267,7 +282,8 @@ public abstract class SwerveChassis extends SwerveBase {
 
   @Override
   public void setTargetSpeeds(ChassisSpeeds speeds) {
-    // Copied rather than aliased. A caller usually owns one ChassisSpeeds it refills every loop,
+    // Copied rather than aliased. A caller usually owns one ChassisSpeeds it
+    // refills every loop,
     // and periodic() hands a speeds helper something it may rewrite in place.
     desiredSpeeds =
         new ChassisSpeeds(
@@ -289,8 +305,10 @@ public abstract class SwerveChassis extends SwerveBase {
     double period = now - lastPeriodicTimestamp;
     lastPeriodicTimestamp = now;
 
-    // First call, and the gap either side of a SysId routine, land outside anything plausible. Fall
-    // back to the configured period instead of discretizing by zero, which is a silent no-op.
+    // First call, and the gap either side of a SysId routine, land outside anything
+    // plausible. Fall
+    // back to the configured period instead of discretizing by zero, which is a
+    // silent no-op.
     return period > 0.0 && period < 0.5 ? period : RobotConstants.kLoopTime;
   }
 
@@ -354,15 +372,21 @@ public abstract class SwerveChassis extends SwerveBase {
     latestPose = odometry.getEstimatedPosition();
     currentSpeeds = getKinematics().toChassisSpeeds(modulesStates);
 
-    // Differentiated over the period actually measured. The two argument constructor assumes 20 ms,
-    // so on a robot scheduling its loop faster every reported acceleration came out scaled by the
-    // ratio -- half, at a 10 ms loop -- and TargetingWhileMoving under-corrected by the same
+    // Differentiated over the period actually measured. The two argument
+    // constructor assumes 20 ms,
+    // so on a robot scheduling its loop faster every reported acceleration came out
+    // scaled by the
+    // ratio -- half, at a 10 ms loop -- and TargetingWhileMoving under-corrected by
+    // the same
     // factor.
     currentAccels = new ChassisAccels(currentSpeeds, lastSpeeds, periodSeconds);
 
-    // Measured only, for now: nothing downstream acts on it. Watch /Swerve/Chassis/SkidRatio on a
-    // real log first, because the threshold that separates a slipping wheel from a carpet seam is
-    // a property of your carpet and your wheels, not something to guess in a library.
+    // Measured only, for now: nothing downstream acts on it. Watch
+    // /Swerve/Chassis/SkidRatio on a
+    // real log first, because the threshold that separates a slipping wheel from a
+    // carpet seam is
+    // a property of your carpet and your wheels, not something to guess in a
+    // library.
     skidResult =
         skidDetector.detect(
             modulesStates, getKinematics().getModules(), getAngularVelocityRadiansPerSecond());
@@ -424,16 +448,6 @@ public abstract class SwerveChassis extends SwerveBase {
       throw new IllegalStateException("Have not called SwerveBase.configureSwerveBase!!!");
     }
 
-    // Read the modules here, first, rather than leaving it to their own periodic. They register
-    // with the CommandScheduler after this class does -- a subclass's fields are initialised after
-    // its super constructor runs, and the scheduler keeps subsystems in insertion order -- so their
-    // periodic runs after this one. Everything below was therefore working from module data one
-    // full loop old, which is invisible in the odometry error because the wheels are what odometry
-    // measures: the pose was self consistent and simply late, and vision fused against it with an
-    // honest timestamp and a stale baseline.
-    //
-    // Above the characterizing check on purpose. SysId logs module position and velocity, so the
-    // modules have to be current even on the loops where the rest of this is skipped.
     getFrontLeftModule().updateInputs();
     getFrontRightModule().updateInputs();
     getBackLeftModule().updateInputs();
@@ -443,13 +457,8 @@ public abstract class SwerveChassis extends SwerveBase {
       return;
     }
 
-    // Measured once and shared. Reading it twice would hand the second caller the time since the
-    // first read, which is almost nothing.
     double periodSeconds = getPeriodicPeriod();
 
-    // The helper gets a copy, so desiredSpeeds stays the request that came in. It is the signal
-    // that gets logged, and on a loop where nothing called setTargetSpeeds a helper would
-    // otherwise be reading back its own previous answer.
     ChassisSpeeds targetSpeeds =
         new ChassisSpeeds(
             desiredSpeeds.vxMetersPerSecond,
@@ -467,11 +476,6 @@ public abstract class SwerveChassis extends SwerveBase {
     modulesStates[2] = getBackLeftModule().getState();
     modulesStates[3] = getBackRightModule().getState();
 
-    // Discretized here, last, rather than when the speeds arrived. discretize counter-rotates vx
-    // and vy to pay for the heading change across one period, so it has to see the omega that is
-    // actually about to be commanded. A heading helper replaces omega outright, so compensating
-    // for the driver's requested omega sent the robot sideways whenever it auto-aimed while
-    // translating: the correction was paying for a rotation that was not happening.
     SwerveModuleState[] desiredStates =
         getKinematics().toSwerveModuleStates(ChassisSpeeds.discretize(targetSpeeds, periodSeconds));
     SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, getMaxModuleSpeed());
