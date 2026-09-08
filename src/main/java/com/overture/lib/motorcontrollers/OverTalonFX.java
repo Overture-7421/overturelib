@@ -10,15 +10,13 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.wpilibj.Alert;
 
-/** A TalonFX preconfigured from an {@link OverTalonFXConfig}. */
+/** A TalonFX preconfigured from a {@link TalonFXConfiguration}. */
 public class OverTalonFX extends TalonFX {
-  private final TalonFXConfiguration ctreConfig = new TalonFXConfiguration();
-  private final OverTalonFXConfig overConfig;
+  private final TalonFXConfiguration ctreConfig;
 
   private final Alert isConnectedAlert =
       new Alert("Devices", "TalonFX is not connected", Alert.AlertType.kError);
@@ -26,55 +24,23 @@ public class OverTalonFX extends TalonFX {
   /**
    * Constructs an OverTalonFX and applies the given configuration.
    *
-   * @param overConfig the configuration of the TalonFX
+   * <p>The configuration is cloned, matching the C++ which took and stored this struct by value.
+   * {@link TalonFXConfiguration#clone()} is a deep copy down to the gain slots, so one
+   * configuration may be re-stamped across several motors without a later edit reaching back into
+   * an already built one.
+   *
+   * @param config the configuration to apply
+   * @param id the CAN id of the TalonFX
    * @param bus the CAN bus the TalonFX lives on
    */
-  public OverTalonFX(OverTalonFXConfig overConfig, CANBus bus) {
-    super(overConfig.MotorId, bus);
-    // Snapshot, matching the C++ which took and stored this struct by value. Fields such as
-    // NeutralMode and useFOC are read live long after construction, so an aliased config would
-    // let a later edit by the caller change how an already built motor behaves.
-    this.overConfig = new OverTalonFXConfig(overConfig);
-
-    // Configuracion en modo neutral
-    ctreConfig.MotorOutput.withNeutralMode(
-        overConfig.NeutralMode == ControllerNeutralMode.Brake
-            ? NeutralModeValue.Brake
-            : NeutralModeValue.Coast);
-
-    ctreConfig.Voltage.withPeakForwardVoltage(12.0).withPeakReverseVoltage(-12.0);
-
-    // Configuracion de inversion
-    ctreConfig.MotorOutput.withInverted(
-        overConfig.Inverted
-            ? InvertedValue.Clockwise_Positive
-            : InvertedValue.CounterClockwise_Positive);
-
-    // Configuracion de rampas
-    ctreConfig.OpenLoopRamps.withVoltageOpenLoopRampPeriod(overConfig.OpenLoopRampRate);
-    ctreConfig.ClosedLoopRamps.withVoltageClosedLoopRampPeriod(overConfig.ClosedLoopRampRate);
-
-    // Configuracion de corriente
-    ctreConfig
-        .CurrentLimits
-        .withStatorCurrentLimitEnable(true)
-        .withStatorCurrentLimit(overConfig.StatorCurrentLimit);
-
-    ctreConfig
-        .CurrentLimits
-        .withSupplyCurrentLimitEnable(true)
-        .withSupplyCurrentLowerLimit(overConfig.CurrentLimit)
-        .withSupplyCurrentLimit(overConfig.TriggerThreshold)
-        .withSupplyCurrentLowerTime(overConfig.TriggerThresholdTime);
-
-    // Configuracion de PID. Reads from our snapshot, whose PIDConfigs is already an independent
-    // clone, so later edits to the caller's config cannot leak onto this motor at the next apply.
-    ctreConfig.withSlot0(this.overConfig.PIDConfigs.clone());
+  public OverTalonFX(TalonFXConfiguration config, int id, CANBus bus) {
+    super(id, bus);
+    this.ctreConfig = config.clone();
 
     // Aplicar la configuracion
     getConfigurator().apply(ctreConfig);
 
-    isConnectedAlert.setText("Motor " + overConfig.MotorId + " is not connected");
+    isConnectedAlert.setText("Motor " + id + " is not connected");
   }
 
   /**
@@ -184,15 +150,6 @@ public class OverTalonFX extends TalonFX {
   }
 
   /**
-   * Returns the configuration this motor was built from.
-   *
-   * @return the OverTalonFX configuration
-   */
-  public OverTalonFXConfig getOverConfig() {
-    return overConfig;
-  }
-
-  /**
    * Configures the Motion Magic profile of the TalonFX.
    *
    * @param cruiseVelocity the cruise velocity, in rotations per second
@@ -215,9 +172,20 @@ public class OverTalonFX extends TalonFX {
    * @param configs the software limit switch configuration
    */
   public void configureSoftwareLimitSwitch(SoftwareLimitSwitchConfigs configs) {
-    // Cloned for the same reason as the slot 0 gains: the C++ took this parameter by value.
+    // Cloned for the same reason as the slot 0 gains: the C++ took this parameter
+    // by value.
     ctreConfig.withSoftwareLimitSwitch(configs.clone());
     getConfigurator().apply(ctreConfig);
+  }
+
+  /**
+   * Sets the neutral mode, keeping the stored configuration in step with the device.
+   * 
+   * @param mode the neutral mode to apply
+   */
+  public void configureNeutralMode(NeutralModeValue mode) {
+    ctreConfig.MotorOutput.withNeutralMode(mode);
+    getConfigurator().apply(ctreConfig.MotorOutput);
   }
 
   /** Makes the closed loop take the shortest path across the rotation wrap point. */

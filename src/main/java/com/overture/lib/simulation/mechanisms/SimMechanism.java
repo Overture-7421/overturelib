@@ -4,6 +4,7 @@
 
 package com.overture.lib.simulation.mechanisms;
 
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.sim.ChassisReference;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 import com.overture.lib.motorcontrollers.OverTalonFX;
@@ -59,7 +60,7 @@ public abstract class SimMechanism {
     // simulates falling when it should rise, this is the line -- the invert was set for some reason
     // other than the mounting.
     motor.getSimState().Orientation =
-        motor.getOverConfig().Inverted
+        motor.getCTREConfig().MotorOutput.Inverted == InvertedValue.Clockwise_Positive
             ? ChassisReference.Clockwise_Positive
             : ChassisReference.CounterClockwise_Positive;
   }

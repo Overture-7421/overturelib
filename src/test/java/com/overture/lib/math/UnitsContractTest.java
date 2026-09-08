@@ -6,7 +6,7 @@ package com.overture.lib.math;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.overture.lib.motorcontrollers.ControllerNeutralMode;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.overture.lib.subsystems.swerve.SwerveModuleConfig;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -57,7 +57,7 @@ class UnitsContractTest {
    */
   @Test
   void swerveModuleConfigDefaults() {
-    SwerveModuleConfig config = new SwerveModuleConfig(new SimpleMotorFeedforward(0, 0, 0));
+    SwerveModuleConfig config = new SwerveModuleConfig(new SimpleMotorFeedforward(0, 0, 0), 1, 2);
 
     // 4 inch wheel, expressed in meters.
     assertEquals(0.1016, config.WheelDiameter, 1e-12);
@@ -65,29 +65,38 @@ class UnitsContractTest {
     assertEquals(1.0, config.TurnGearRatio, 1e-12);
 
     // Drive brakes and is current limited harder than turn; turn coasts.
-    assertEquals(ControllerNeutralMode.Brake, config.DriveMotorConfig.NeutralMode);
-    assertEquals(ControllerNeutralMode.Coast, config.TurnMotorConfig.NeutralMode);
-    assertEquals(40.0, config.DriveMotorConfig.CurrentLimit, 1e-12);
-    assertEquals(120.0, config.DriveMotorConfig.StatorCurrentLimit, 1e-12);
-    assertEquals(80.0, config.TurnMotorConfig.StatorCurrentLimit, 1e-12);
-    assertEquals(0.25, config.DriveMotorConfig.OpenLoopRampRate, 1e-12);
+    assertEquals(NeutralModeValue.Brake, config.DriveMotorConfig.MotorOutput.NeutralMode);
+    assertEquals(NeutralModeValue.Coast, config.TurnMotorConfig.MotorOutput.NeutralMode);
+    assertEquals(40.0, config.DriveMotorConfig.CurrentLimits.SupplyCurrentLowerLimit, 1e-12);
+    assertEquals(120.0, config.DriveMotorConfig.CurrentLimits.StatorCurrentLimit, 1e-12);
+    assertEquals(80.0, config.TurnMotorConfig.CurrentLimits.StatorCurrentLimit, 1e-12);
+
+    // Open loop only, so it softens setVoltageDrive and SysId without slowing the closed
+    // velocity loop setState drives.
+    assertEquals(0.25, config.DriveMotorConfig.OpenLoopRamps.VoltageOpenLoopRampPeriod, 1e-12);
+    assertEquals(0.0, config.DriveMotorConfig.ClosedLoopRamps.VoltageClosedLoopRampPeriod, 1e-12);
+
+    // Phoenix defaults the peak to 16 V; the modules have always been clamped to a battery.
+    assertEquals(12.0, config.DriveMotorConfig.Voltage.PeakForwardVoltage, 1e-12);
+    assertEquals(-12.0, config.DriveMotorConfig.Voltage.PeakReverseVoltage, 1e-12);
   }
 
   /**
-   * OverTalonFX clones the gains it is handed, because the Java withSlot0 stores the reference
-   * where the C++ member was held by value. Two modules built from one config must not share gains.
+   * OverTalonFX clones the configuration it is handed, because the Java configs are references
+   * where the C++ members were held by value. Two modules built from one config must not share
+   * gains.
    */
   @Test
   void moduleConfigsDoNotShareGainObjects() {
     SimpleMotorFeedforward ff = new SimpleMotorFeedforward(0, 0, 0);
-    SwerveModuleConfig a = new SwerveModuleConfig(ff);
-    SwerveModuleConfig b = new SwerveModuleConfig(ff);
+    SwerveModuleConfig a = new SwerveModuleConfig(ff, 1, 2);
+    SwerveModuleConfig b = new SwerveModuleConfig(ff, 3, 4);
 
-    a.TurnMotorConfig.PIDConfigs.withKP(40);
-    b.TurnMotorConfig.PIDConfigs.withKP(12);
+    a.TurnMotorConfig.Slot0.withKP(40);
+    b.TurnMotorConfig.Slot0.withKP(12);
 
-    assertEquals(40.0, a.TurnMotorConfig.PIDConfigs.kP, 1e-12);
-    assertEquals(12.0, b.TurnMotorConfig.PIDConfigs.kP, 1e-12);
+    assertEquals(40.0, a.TurnMotorConfig.Slot0.kP, 1e-12);
+    assertEquals(12.0, b.TurnMotorConfig.Slot0.kP, 1e-12);
   }
 
   /**
