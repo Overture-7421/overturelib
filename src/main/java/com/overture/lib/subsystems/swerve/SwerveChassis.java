@@ -27,10 +27,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import java.util.Optional;
 
-/**
- * A swerve drivetrain. Concrete robots extend this and supply the modules, kinematics and
- * PathPlanner gains.
- */
+/** A swerve drivetrain. Concrete robots extend this and supply the modules and kinematics. */
 public abstract class SwerveChassis extends SwerveBase {
   private Pose2d latestPose = new Pose2d();
 
@@ -187,15 +184,11 @@ public abstract class SwerveChassis extends SwerveBase {
   @Override
   public void resetOdometry(Pose2d initPose) {
     odometry.resetPosition(getRotation2d(), modulesPositions, initPose);
-    // Refresh the cache getEstimatedPose() serves. Without this the estimator knows
-    // the new pose
-    // but every reader keeps seeing the old one until the next periodic(), and
-    // CommandScheduler
-    // runs subsystem periodics BEFORE it initializes commands. PathPlanner
-    // registers
-    // resetOdometry as its reset consumer and getEstimatedPose as its pose
-    // supplier, so a
-    // reset-then-follow scheduled from a trigger would start the path from the
+    // Refresh the cache getEstimatedPose() serves. Without this the estimator knows the new pose
+    // but every reader keeps seeing the old one until the next periodic(), and CommandScheduler
+    // runs subsystem periodics BEFORE it initializes commands. A path follower is handed
+    // resetPose, which lands here, as its reset consumer and getEstimatedPose as its pose
+    // supplier, so a reset-then-follow scheduled from a trigger would start the path from the
     // pre-reset pose.
     latestPose = odometry.getEstimatedPosition();
   }
