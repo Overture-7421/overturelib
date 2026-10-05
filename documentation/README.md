@@ -5,6 +5,7 @@ Guides for using the library from a robot project, with the example code they re
 | Guide | What it covers |
 | ----- | -------------- |
 | [swerve](swerve/README.md) | Building a drivetrain on `SwerveChassis` and following paths with it, using PathPlanner or BLine |
+| [alliance-flip](alliance-flip/README.md) | Writing field positions once, in blue coordinates, and getting the red ones from them |
 
 ## About the examples
 
