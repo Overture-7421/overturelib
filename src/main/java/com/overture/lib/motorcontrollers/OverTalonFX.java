@@ -180,7 +180,7 @@ public class OverTalonFX extends TalonFX {
 
   /**
    * Sets the neutral mode, keeping the stored configuration in step with the device.
-   * 
+   *
    * @param mode the neutral mode to apply
    */
   public void configureNeutralMode(NeutralModeValue mode) {
