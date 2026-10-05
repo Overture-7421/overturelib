@@ -41,10 +41,10 @@ directories, lowercased:
 - **`SwerveBase` extends `SubsystemBase`.** C++ mixes the two in via multiple inheritance,
   which Java does not have, so the hierarchy is `SubsystemBase` → `SwerveBase` →
   `SwerveChassis` → your drivetrain.
-- **Path following is wired up in the robot project.** The C++ `SwerveBase` configures
-  PathPlanner's `AutoBuilder` itself. The Java one does not, and has no PathPlanner
-  dependency at all, so a robot can follow paths with PathPlanner, BLine or anything else.
-  [documentation/swerve](documentation/swerve/README.md) has a worked example of each.
+- **Path following is wired up in the robot project.** The library does not configure a
+  path follower or depend on one, in either language, so a robot can follow paths with
+  PathPlanner, BLine or anything else.
+  [documentation/swerve](documentation/swerve/README.md) has a worked Java example of each.
 - **Standard deviations are `Matrix<N3, N1>`** (built with `VecBuilder.fill`) rather than
   the C++ `wpi::array<double, 3>`, because that is what the WPILib pose estimator takes.
 - `LimelightHelpers.java` is vendored from
@@ -126,11 +126,6 @@ bumping a vendordep JSON is all that is needed — there is no second list to up
 
 Currently: WPILib New Commands, CTRE Phoenix 6, PhotonLib and maple-sim.
 
-`vendordeps/PathplannerLib.json` is the one exception to "no second list". Only the C++
-sources still use PathPlanner, so `build.gradle` names that file as C++ only and keeps it
-off the Java classpath. That is what stops a PathPlanner import from compiling in
-`src/main/java`.
-
 ### Robot projects install these themselves
 
 `OvertureLib.json` declares only the OvertureLib artifact, so none of the vendor libraries
@@ -139,8 +134,8 @@ Phoenix 6 and PhotonLib of its own accord even though it reaches most of them th
 library rather than directly.
 
 A path following library is the robot's own choice and its own vendordep. Nothing in the
-Java library needs one, so a robot that follows paths with BLine does not install
-PathPlanner, and the other way round.
+library needs one, so a robot that follows paths with BLine does not install PathPlanner,
+and the other way round.
 
 maple-sim is simply the newest entry on that list, and the one a robot set up before 2026
 will not have. Without it, simulation fails immediately. A real robot most likely runs

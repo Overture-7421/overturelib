@@ -36,7 +36,7 @@ public abstract class SwerveBase extends SubsystemBase {
   /** Pose estimator fusing odometry and vision. */
   protected SwerveDrivePoseEstimator odometry;
 
-  /** Latest module positions, in front-left, front-right, back-`left, back-right order. */
+  /** Latest module positions, in front-left, front-right, back-left, back-right order. */
   protected SwerveModulePosition[] modulesPositions =
       new SwerveModulePosition[] {
         new SwerveModulePosition(),
@@ -123,12 +123,9 @@ public abstract class SwerveBase extends SubsystemBase {
    * @param pose where the robot is
    */
   public void resetPose(Pose2d pose) {
-    // Deliberately not done inside resetOdometry itself, tempting as that is.
-    // resetHeading
-    // routes through it, and the MegaTag1 watchdog routes through resetHeading, so
-    // teleport
-    // there would let a vision correction shove the physics robot to match its own
-    // estimate
+    // Deliberately not done inside resetOdometry itself, tempting as that is. resetHeading
+    // routes through it, and the MegaTag1 watchdog routes through resetHeading, so teleport
+    // there would let a vision correction shove the physics robot to match its own estimate
     // and the watchdog could never be caught being wrong.
     resetSimulatedPose(pose);
     resetOdometry(pose);
@@ -178,10 +175,8 @@ public abstract class SwerveBase extends SubsystemBase {
     }
   }
 
-  // Guarded so the maple-sim classes are never touched on the roboRIO. Java has
-  // no preprocessor,
-  // so they are linked either way; what matters is that nothing constructs or
-  // steps them.
+  // Guarded so the maple-sim classes are never touched on the roboRIO. Java has no preprocessor,
+  // so they are linked either way; what matters is that nothing constructs or steps them.
   private void startSimulation() {
     if (!RobotBase.isSimulation() || getSimulationConfig() == null) {
       return;

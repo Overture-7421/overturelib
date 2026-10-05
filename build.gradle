@@ -31,21 +31,11 @@ var javaVersion = "17"
 // Vendordep java artifacts are read straight out of vendordeps/*.json so that the
 // Java and C++ builds always consume the same vendor versions. A dependency whose
 // version is "wpilib" ships with WPILib itself and takes wpilibVersion.
-//
-// PathplannerLib is the exception. Only the C++ sources still use it, so its json
-// stays in vendordeps/ for a -PjavaOnly=false build and is kept off the Java
-// classpath. Path following is wired up in the robot project (see
-// documentation/swerve), and a PathPlanner that is still importable from here is
-// how it would grow back in without anyone deciding it should.
-def cppOnlyVendordeps = ['PathplannerLib.json']
-
 ext.vendordepJava = {
     def repos = [] as LinkedHashSet
     def deps = [] as LinkedHashSet
     def slurper = new groovy.json.JsonSlurper()
-    file('vendordeps').listFiles().findAll {
-        it.name.endsWith('.json') && !(it.name in cppOnlyVendordeps)
-    }.sort().each { vendordep ->
+    file('vendordeps').listFiles().findAll {it.name.endsWith('.json')}.sort().each { vendordep ->
         def json = slurper.parse(vendordep)
         json.mavenUrls.each {repos.add(it)}
         json.javaDependencies.each { dep ->
