@@ -8,7 +8,7 @@
 /**
  * @brief Builds an object of swerve chassis
  */
-SwerveChassis::SwerveChassis() : SwerveBase(this) {
+SwerveChassis::SwerveChassis() {
 	// auto config = pathplanner::RobotConfig::fromGUISettings();
 
 	// m_setpointGenerator = pathplanner::SwerveSetpointGenerator(config,

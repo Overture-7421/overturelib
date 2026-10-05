@@ -6,20 +6,25 @@
 #include <frc/kinematics/SwerveDriveKinematics.h>
 #include <frc/DriverStation.h>
 #include <frc/estimator/SwerveDrivePoseEstimator.h>
+#include <frc/geometry/Pose2d.h>
+#include <frc/geometry/Rotation2d.h>
+#include <frc/geometry/Rotation3d.h>
+#include <frc/kinematics/ChassisSpeeds.h>
+#include <frc/kinematics/SwerveModulePosition.h>
+#include <frc/kinematics/SwerveModuleState.h>
+#include <networktables/NetworkTableInstance.h>
+#include <networktables/StructTopic.h>
 #include <units/length.h>
-
-#include <pathplanner/lib/auto/AutoBuilder.h>
-#include <pathplanner/lib/config/RobotConfig.h>
-#include <pathplanner/lib/controllers/PPHolonomicDriveController.h>
-using namespace pathplanner;
+#include <units/velocity.h>
+#include <wpi/array.h>
+#include <memory>
 
 // spotless:off
+// Path following is not wired here. Whether a robot follows paths with PathPlanner, BLine or
+// something else is the robot project's call, and all any of them need is already public:
+// getEstimatedPose, resetPose, getCurrentSpeeds and setTargetSpeeds.
 class SwerveBase {
 public:
-	SwerveBase(frc2::Subsystem* driveSubsystem) : driveSubsystem(driveSubsystem) {
-
-	}
-
 	virtual const frc::Pose2d& getEstimatedPose() = 0;
 	virtual void resetOdometry(frc::Pose2d initPose) = 0;
 	virtual frc::ChassisSpeeds getCurrentSpeeds() = 0;
@@ -31,34 +36,17 @@ public:
 	virtual frc::Rotation2d getRotation2d() = 0;
 	virtual frc::Rotation3d getRotation3d() = 0;
 
+	// Places the robot at a known pose. This is the reset to hand a path follower: it also tells
+	// the simulator where the robot was put, on the topic it listens to. resetOdometry only
+	// corrects the estimate.
+	void resetPose(frc::Pose2d pose) {
+		resetOdometryPosePublisher.Set(pose);
+		resetOdometry(pose);
+	}
+
 protected:
 	void configureSwerveBase() {
-
-		pathplanner::RobotConfig robotConfig = RobotConfig::fromGUISettings();
-
 		configuredChassis = true;
-		AutoBuilder::configure(
-			[this]() {return getEstimatedPose();},
-			[this](frc::Pose2d pose) {
-			resetOdometryPosePublisher.Set(pose);
-			resetOdometry(pose);
-		},
-			[this]() {return getCurrentSpeeds();},
-			[this](frc::ChassisSpeeds speeds) {setTargetSpeeds(speeds);},
-			std::make_shared<PPHolonomicDriveController>(
-				getTranslationPID(),
-				getRotationPID()
-			),
-			robotConfig,
-			[]() {
-			auto alliance = frc::DriverStation::GetAlliance();
-			if (alliance) {
-				return alliance.value() == frc::DriverStation::Alliance::kRed;
-			}
-			return false;
-		},
-			driveSubsystem
-		);
 
 		odometry = std::make_unique<frc::SwerveDrivePoseEstimator<4>>(getKinematics(), frc::Rotation2d{}, modulesPositions, frc::Pose2d{});
 	}
@@ -69,9 +57,6 @@ protected:
 	virtual SwerveModule& getBackRightModule() = 0;
 
 	virtual frc::SwerveDriveKinematics<4>& getKinematics() = 0;
-
-	virtual PIDConstants getTranslationPID() = 0;
-	virtual PIDConstants getRotationPID() = 0;
 
 	bool configuredChassis = false;
 
@@ -84,8 +69,6 @@ protected:
 			frc::SwerveModuleState(), frc::SwerveModuleState() };
 
 private:
-	frc2::Subsystem* driveSubsystem;
-
 	nt::StructPublisher<frc::Pose2d> resetOdometryPosePublisher =
 		nt::NetworkTableInstance::GetDefault().GetStructTopic < frc::Pose2d
 		>("/PathPlanner/ResetPose").Publish();

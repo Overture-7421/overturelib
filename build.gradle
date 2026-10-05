@@ -90,7 +90,7 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-databind:2.19.2"
     implementation 'edu.wpi.first.thirdparty.frc2025.opencv:opencv-java:4.10.0-3'
 
-    // WPILibNewCommands, Phoenix 6, PathPlannerLib and PhotonLib
+    // WPILibNewCommands, Phoenix 6, PhotonLib and maple-sim
     vendordepJava.deps.each {implementation it}
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'

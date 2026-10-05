@@ -6,10 +6,6 @@ package com.overture.lib.subsystems.swerve;
 
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.overture.lib.simulation.swerve.SimSwerveDrivetrain;
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.config.RobotConfig;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -17,17 +13,18 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.Optional;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 
 /**
- * Wiring shared by every swerve drivetrain: the pose estimator and the PathPlanner AutoBuilder
- * hookup.
+ * Wiring shared by every swerve drivetrain: the pose estimator and the physics simulation hookup.
+ *
+ * <p>Path following is deliberately not wired here. Whether a robot follows paths with PathPlanner,
+ * BLine or something else is the robot project's call, and all any of them need is already public:
+ * {@link #getEstimatedPose()}, {@link #resetPose(Pose2d)}, {@link #getCurrentSpeeds()} and {@link
+ * #setTargetSpeeds(ChassisSpeeds)}. Worked examples of both live in documentation/swerve.
  *
  * <p>The C++ version mixes this in alongside SubsystemBase; Java has no multiple inheritance, so
  * this class extends SubsystemBase directly and {@link SwerveChassis} extends it.
@@ -56,11 +53,6 @@ public abstract class SwerveBase extends SubsystemBase {
         new SwerveModuleState(),
         new SwerveModuleState()
       };
-
-  private final StructPublisher<Pose2d> resetOdometryPosePublisher =
-      NetworkTableInstance.getDefault()
-          .getStructTopic("/PathPlanner/ResetPose", Pose2d.struct)
-          .publish();
 
   /**
    * Returns the latest estimated pose.
@@ -108,49 +100,35 @@ public abstract class SwerveBase extends SubsystemBase {
   private SimSwerveDrivetrain simDrivetrain;
 
   /**
-   * Wires up PathPlanner and builds the pose estimator. Call this from the constructor of the
+   * Builds the pose estimator and starts the simulation. Call this from the constructor of the
    * concrete drivetrain, once its modules exist.
    */
   protected void configureSwerveBase() {
-    RobotConfig robotConfig;
-    try {
-      robotConfig = RobotConfig.fromGUISettings();
-    } catch (Exception e) {
-      throw new RuntimeException("Failed to load the PathPlanner RobotConfig from GUI settings", e);
-    }
-
     configuredChassis = true;
-    AutoBuilder.configure(
-        this::getEstimatedPose,
-        pose -> {
-          // PathPlanner resetting the pose means "the robot is here now", so the simulated robot
-          // is placed there too. This replaces the /PathPlanner/ResetPose topic the external
-          // simulator listened on, and with it the trap that republishing an identical pose
-          // silently did nothing, because NetworkTables only notified on change.
-          //
-          // Deliberately not done inside resetOdometry itself, tempting as that is. resetHeading
-          // routes through it, and the MegaTag1 watchdog routes through resetHeading, so teleport
-          // there would let a vision correction shove the physics robot to match its own estimate
-          // and the watchdog could never be caught being wrong.
-          resetOdometryPosePublisher.set(pose);
-          resetSimulatedPose(pose);
-          resetOdometry(pose);
-        },
-        this::getCurrentSpeeds,
-        (ChassisSpeeds speeds) -> setTargetSpeeds(speeds),
-        new PPHolonomicDriveController(getTranslationPID(), getRotationPID()),
-        robotConfig,
-        () ->
-            DriverStation.getAlliance()
-                .map(alliance -> alliance == DriverStation.Alliance.Red)
-                .orElse(false),
-        this);
 
     odometry =
         new SwerveDrivePoseEstimator(
             getKinematics(), new Rotation2d(), modulesPositions, new Pose2d());
 
     startSimulation();
+  }
+
+  /**
+   * Places the robot at a known pose. This is the reset to hand a path follower.
+   *
+   * <p>A path follower resetting the pose means "the robot is here now", so the simulated robot is
+   * placed there too. {@link #resetOdometry(Pose2d)} only corrects the estimate, and stays the one
+   * for anything that is a correction rather than a placement.
+   *
+   * @param pose where the robot is
+   */
+  public void resetPose(Pose2d pose) {
+    // Deliberately not done inside resetOdometry itself, tempting as that is. resetHeading
+    // routes through it, and the MegaTag1 watchdog routes through resetHeading, so teleport
+    // there would let a vision correction shove the physics robot to match its own estimate
+    // and the watchdog could never be caught being wrong.
+    resetSimulatedPose(pose);
+    resetOdometry(pose);
   }
 
   /**
@@ -255,18 +233,4 @@ public abstract class SwerveBase extends SubsystemBase {
    * @return the kinematics
    */
   protected abstract SwerveDriveKinematics getKinematics();
-
-  /**
-   * Returns the PathPlanner translation gains.
-   *
-   * @return the translation PID constants
-   */
-  protected abstract PIDConstants getTranslationPID();
-
-  /**
-   * Returns the PathPlanner rotation gains.
-   *
-   * @return the rotation PID constants
-   */
-  protected abstract PIDConstants getRotationPID();
 }
