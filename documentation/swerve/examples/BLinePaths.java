@@ -68,7 +68,7 @@ public final class BLinePaths {
    * @return the command
    */
   public Command resetAndFollow(String pathName) {
-    // resetPose rather than resetOdometry: it places the simulated robot there as well.
+    // resetPose rather than resetOdometry: placing the robot is a reset, not a correction.
     return builder.withPoseReset(chassis::resetPose).build(new Path(pathName));
   }
 }

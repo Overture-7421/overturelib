@@ -44,27 +44,27 @@ public class OverTalonFX extends TalonFX {
   }
 
   /**
-   * Sets the sensor to mechanism ratio of the TalonFX.
+   * Sets the sensor to mechanism ratio of the TalonFX. Writes the feedback configs.
    *
    * @param gearRatio the gear ratio between the sensor and the mechanism
    */
   public void setSensorToMechanism(double gearRatio) {
     ctreConfig.Feedback.withSensorToMechanismRatio(gearRatio);
-    getConfigurator().apply(ctreConfig);
+    getConfigurator().apply(ctreConfig.Feedback);
   }
 
   /**
-   * Sets the rotor to sensor ratio of the TalonFX.
+   * Sets the rotor to sensor ratio of the TalonFX. Writes the feedback configs.
    *
    * @param gearRatio the gear ratio between the rotor and the sensor
    */
   public void setRotorToSensorRatio(double gearRatio) {
     ctreConfig.Feedback.withRotorToSensorRatio(gearRatio);
-    getConfigurator().apply(ctreConfig);
+    getConfigurator().apply(ctreConfig.Feedback);
   }
 
   /**
-   * Uses a remote CANcoder as the feedback source.
+   * Uses a remote CANcoder as the feedback source. Writes the feedback configs.
    *
    * @param id the device id of the remote CANcoder
    */
@@ -73,11 +73,11 @@ public class OverTalonFX extends TalonFX {
         .Feedback
         .withFeedbackRemoteSensorID(id)
         .withFeedbackSensorSource(FeedbackSensorSourceValue.RemoteCANcoder);
-    getConfigurator().apply(ctreConfig);
+    getConfigurator().apply(ctreConfig.Feedback);
   }
 
   /**
-   * Uses a fused CANcoder as the feedback source.
+   * Uses a fused CANcoder as the feedback source. Writes the feedback configs.
    *
    * @param id the device id of the fused CANcoder
    */
@@ -86,11 +86,11 @@ public class OverTalonFX extends TalonFX {
         .Feedback
         .withFeedbackRemoteSensorID(id)
         .withFeedbackSensorSource(FeedbackSensorSourceValue.FusedCANcoder);
-    getConfigurator().apply(ctreConfig);
+    getConfigurator().apply(ctreConfig.Feedback);
   }
 
   /**
-   * Uses a synced CANcoder as the feedback source.
+   * Uses a synced CANcoder as the feedback source. Writes the feedback configs.
    *
    * @param id the device id of the sync CANcoder
    */
@@ -99,21 +99,21 @@ public class OverTalonFX extends TalonFX {
         .Feedback
         .withFeedbackRemoteSensorID(id)
         .withFeedbackSensorSource(FeedbackSensorSourceValue.SyncCANcoder);
-    getConfigurator().apply(ctreConfig);
+    getConfigurator().apply(ctreConfig.Feedback);
   }
 
   /**
-   * Sets the closed loop torque ramp rate of the TalonFX.
+   * Sets the closed loop torque ramp rate of the TalonFX. Writes the closed loop ramp configs.
    *
    * @param rampSeconds the ramp period, in seconds
    */
   public void setClosedLoopTorqueRamp(double rampSeconds) {
     ctreConfig.ClosedLoopRamps.withTorqueClosedLoopRampPeriod(rampSeconds);
-    getConfigurator().apply(ctreConfig);
+    getConfigurator().apply(ctreConfig.ClosedLoopRamps);
   }
 
   /**
-   * Sets the torque current limits of the TalonFX.
+   * Sets the torque current limits of the TalonFX. Writes the torque current configs.
    *
    * @param peakForward the peak forward torque current, in amps
    * @param peakBackward the peak reverse torque current, in amps
@@ -125,7 +125,7 @@ public class OverTalonFX extends TalonFX {
         .withPeakForwardTorqueCurrent(peakForward)
         .withPeakReverseTorqueCurrent(peakBackward)
         .withTorqueNeutralDeadband(deadband);
-    getConfigurator().apply(ctreConfig);
+    getConfigurator().apply(ctreConfig.TorqueCurrent);
   }
 
   /**
@@ -163,11 +163,12 @@ public class OverTalonFX extends TalonFX {
         .withMotionMagicAcceleration(acceleration)
         .withMotionMagicJerk(jerk);
 
-    getConfigurator().apply(ctreConfig);
+    getConfigurator().apply(ctreConfig.MotionMagic);
   }
 
   /**
-   * Configures the software limit switches of the TalonFX.
+   * Configures the software limit switches of the TalonFX. Writes the software limit switch
+   * configs.
    *
    * @param configs the software limit switch configuration
    */
@@ -175,11 +176,12 @@ public class OverTalonFX extends TalonFX {
     // Cloned for the same reason as the slot 0 gains: the C++ took this parameter
     // by value.
     ctreConfig.withSoftwareLimitSwitch(configs.clone());
-    getConfigurator().apply(ctreConfig);
+    getConfigurator().apply(ctreConfig.SoftwareLimitSwitch);
   }
 
   /**
-   * Sets the neutral mode, keeping the stored configuration in step with the device.
+   * Sets the neutral mode, keeping the stored configuration in step with the device. Writes the
+   * motor output configs.
    *
    * @param mode the neutral mode to apply
    */
@@ -188,10 +190,13 @@ public class OverTalonFX extends TalonFX {
     getConfigurator().apply(ctreConfig.MotorOutput);
   }
 
-  /** Makes the closed loop take the shortest path across the rotation wrap point. */
+  /**
+   * Makes the closed loop take the shortest path across the rotation wrap point. Writes the closed
+   * loop general configs.
+   */
   public void setContinuousWrap() {
     ctreConfig.ClosedLoopGeneral.ContinuousWrap = true;
-    getConfigurator().apply(ctreConfig);
+    getConfigurator().apply(ctreConfig.ClosedLoopGeneral);
   }
 
   /**

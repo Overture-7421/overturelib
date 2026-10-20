@@ -4,8 +4,7 @@
 
 package com.overture.lib.subsystems.swerve;
 
-import com.ctre.phoenix6.hardware.Pigeon2;
-import com.overture.lib.simulation.swerve.SimSwerveDrivetrain;
+import com.ctre.phoenix6.BaseStatusSignal;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -13,18 +12,20 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import java.util.Optional;
-import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
+import java.util.Arrays;
 
 /**
- * Wiring shared by every swerve drivetrain: the pose estimator and the physics simulation hookup.
+ * Wiring shared by every swerve drivetrain: the pose estimator and the batched sensor reads.
  *
  * <p>Path following is deliberately not wired here. Whether a robot follows paths with PathPlanner,
  * BLine or something else is the robot project's call, and all any of them need is already public:
  * {@link #getEstimatedPose()}, {@link #resetPose(Pose2d)}, {@link #getCurrentSpeeds()} and {@link
  * #setTargetSpeeds(ChassisSpeeds)}. Worked examples of both live in documentation/swerve.
+ *
+ * <p>Nor is the drivetrain simulated here. A simulator that drives the devices themselves, such as
+ * WPI Emulator, runs the unmodified robot code; a second simulation in here would fight it over the
+ * same motor and gyro states.
  *
  * <p>The C++ version mixes this in alongside SubsystemBase; Java has no multiple inheritance, so
  * this class extends SubsystemBase directly and {@link SwerveChassis} extends it.
@@ -53,6 +54,13 @@ public abstract class SwerveBase extends SubsystemBase {
         new SwerveModuleState(),
         new SwerveModuleState()
       };
+
+  /**
+   * The sensors of all four modules, refreshed once a loop: one group when the modules share a CAN
+   * bus, one per module when they do not, because refreshAll refreshes nothing at all when handed
+   * signals from two buses.
+   */
+  private BaseStatusSignal[][] moduleSignalGroups = new BaseStatusSignal[0][];
 
   /**
    * Returns the latest estimated pose.
@@ -96,107 +104,68 @@ public abstract class SwerveBase extends SubsystemBase {
    */
   public abstract Rotation2d getRotation2d();
 
-  /** The physics simulation, or null on a real robot or when no simulation config was given. */
-  private SimSwerveDrivetrain simDrivetrain;
-
   /**
-   * Builds the pose estimator and starts the simulation. Call this from the constructor of the
-   * concrete drivetrain, once its modules exist.
+   * Builds the pose estimator and takes over reading the modules' sensors. Call this from the
+   * constructor of the concrete drivetrain, once its modules exist.
    */
   protected void configureSwerveBase() {
+    if (!configuredChassis) {
+      SwerveModule[] modules = {
+        getFrontLeftModule(), getFrontRightModule(), getBackLeftModule(), getBackRightModule()
+      };
+      moduleSignalGroups = new BaseStatusSignal[modules.length][];
+      boolean oneBus = true;
+      for (int i = 0; i < modules.length; i++) {
+        moduleSignalGroups[i] = modules[i].handInputsToChassis();
+        oneBus &= modules[i].getCanBus().equals(modules[0].getCanBus());
+      }
+      if (oneBus) {
+        moduleSignalGroups =
+            new BaseStatusSignal[][] {
+              Arrays.stream(moduleSignalGroups)
+                  .flatMap(Arrays::stream)
+                  .toArray(BaseStatusSignal[]::new)
+            };
+      }
+    }
     configuredChassis = true;
 
     odometry =
         new SwerveDrivePoseEstimator(
             getKinematics(), new Rotation2d(), modulesPositions, new Pose2d());
+  }
 
-    startSimulation();
+  /**
+   * Refreshes the sensors of all four modules and reads them into their cached states and
+   * positions.
+   *
+   * <p>With every module on one bus, a single non-blocking native call covers them all, where
+   * reading each signal on its own took one call per signal. Modules split across buses take one
+   * call each.
+   */
+  protected void updateModuleInputs() {
+    for (BaseStatusSignal[] group : moduleSignalGroups) {
+      BaseStatusSignal.refreshAll(group);
+    }
+
+    getFrontLeftModule().readInputs();
+    getFrontRightModule().readInputs();
+    getBackLeftModule().readInputs();
+    getBackRightModule().readInputs();
   }
 
   /**
    * Places the robot at a known pose. This is the reset to hand a path follower.
    *
-   * <p>A path follower resetting the pose means "the robot is here now", so the simulated robot is
-   * placed there too. {@link #resetOdometry(Pose2d)} only corrects the estimate, and stays the one
-   * for anything that is a correction rather than a placement.
+   * <p>Today this is {@link #resetOdometry(Pose2d)} by another name. It stays separate because the
+   * two calls mean different things: a path follower resetting the pose says "the robot is here
+   * now", while heading resets and vision corrections also go through resetOdometry. Anything that
+   * has to happen on a placement but not on a correction belongs here.
    *
    * @param pose where the robot is
    */
   public void resetPose(Pose2d pose) {
-    // Deliberately not done inside resetOdometry itself, tempting as that is. resetHeading
-    // routes through it, and the MegaTag1 watchdog routes through resetHeading, so teleport
-    // there would let a vision correction shove the physics robot to match its own estimate
-    // and the watchdog could never be caught being wrong.
-    resetSimulatedPose(pose);
     resetOdometry(pose);
-  }
-
-  /**
-   * Describes this drivetrain to the physics simulation, or returns null to run without one.
-   *
-   * <p>This is the only thing a robot has to write to get a simulated drivetrain, and it lives in
-   * the robot project on purpose. Gear ratios and module positions belong next to the {@link
-   * SwerveModuleConfig} values they have to agree with: keeping them in a separate simulation
-   * project is how a drive ratio of 6.03 sat beside a real robot geared 7.03 for a whole season
-   * without anyone noticing.
-   *
-   * @return the simulation config, or null for no simulation
-   */
-  protected DriveTrainSimulationConfig getSimulationConfig() {
-    return null;
-  }
-
-  /**
-   * Returns the gyro the simulation should drive, or null to leave it alone.
-   *
-   * @return the Pigeon to simulate
-   */
-  protected Pigeon2 getSimulationPigeon() {
-    return null;
-  }
-
-  /**
-   * Returns where the physics says the robot really is, for comparing odometry against.
-   *
-   * @return the true pose, or empty on a real robot or without a simulation config
-   */
-  public Optional<Pose2d> getSimulatedPose() {
-    return Optional.ofNullable(simDrivetrain).map(SimSwerveDrivetrain::getPose);
-  }
-
-  /**
-   * Teleports the simulated robot. Does nothing on a real one.
-   *
-   * @param pose where to place it
-   */
-  public void resetSimulatedPose(Pose2d pose) {
-    if (simDrivetrain != null) {
-      simDrivetrain.resetPose(pose);
-    }
-  }
-
-  // Guarded so the maple-sim classes are never touched on the roboRIO. Java has no preprocessor,
-  // so they are linked either way; what matters is that nothing constructs or steps them.
-  private void startSimulation() {
-    if (!RobotBase.isSimulation() || getSimulationConfig() == null) {
-      return;
-    }
-
-    simDrivetrain =
-        new SimSwerveDrivetrain(getSimulationConfig(), new Pose2d(), getSimulationPigeon());
-
-    // Same order as the module translations and the kinematics.
-    getFrontLeftModule().attachSimulation(simDrivetrain.getModule(0));
-    getFrontRightModule().attachSimulation(simDrivetrain.getModule(1));
-    getBackLeftModule().attachSimulation(simDrivetrain.getModule(2));
-    getBackRightModule().attachSimulation(simDrivetrain.getModule(3));
-  }
-
-  @Override
-  public void simulationPeriodic() {
-    if (simDrivetrain != null) {
-      simDrivetrain.update();
-    }
   }
 
   /**

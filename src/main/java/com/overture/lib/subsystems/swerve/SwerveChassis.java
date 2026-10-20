@@ -8,7 +8,6 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
-import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.overture.lib.math.ChassisAccels;
 import com.overture.lib.robots.RobotConstants;
 import com.overture.lib.utils.Logging;
@@ -36,6 +35,10 @@ public abstract class SwerveChassis extends SwerveBase {
   private ChassisSpeeds currentSpeeds = new ChassisSpeeds();
   private ChassisSpeeds lastSpeeds = new ChassisSpeeds();
   private ChassisAccels currentAccels = new ChassisAccels();
+
+  // Reused every loop for the TargetStates log, in front-left, front-right, back-left, back-right
+  // order like every other list of four.
+  private final SwerveModuleState[] targetStates = new SwerveModuleState[4];
 
   // Thresholds are a starting point, not a tuned value: 1.3 means the fastest
   // module may read 30%
@@ -260,17 +263,12 @@ public abstract class SwerveChassis extends SwerveBase {
     }
     xModeEnabled = enabled;
 
-    if (enabled) {
-      getFrontLeftModule().setDriveNeutralMode(NeutralModeValue.Brake);
-      getFrontRightModule().setDriveNeutralMode(NeutralModeValue.Brake);
-      getBackLeftModule().setDriveNeutralMode(NeutralModeValue.Brake);
-      getBackRightModule().setDriveNeutralMode(NeutralModeValue.Brake);
-    } else {
-      getFrontLeftModule().restoreDriveNeutralMode();
-      getFrontRightModule().restoreDriveNeutralMode();
-      getBackLeftModule().restoreDriveNeutralMode();
-      getBackRightModule().restoreDriveNeutralMode();
-    }
+    // Braked through the drive requests rather than the neutral mode config. Writing the config
+    // blocked the loop on four motor acknowledgements every time X mode toggled.
+    getFrontLeftModule().setDriveBrakeOverride(enabled);
+    getFrontRightModule().setDriveBrakeOverride(enabled);
+    getBackLeftModule().setDriveBrakeOverride(enabled);
+    getBackRightModule().setDriveBrakeOverride(enabled);
   }
 
   @Override
@@ -424,8 +422,13 @@ public abstract class SwerveChassis extends SwerveBase {
     Logging.logBoolean(
         "/Swerve/Chassis/AcceptingVision", acceptingVisionMeasurements, Logging.Destination.BOTH);
 
-    // The array of measured states is what AdvantageScope's swerve view consumes.
+    // The arrays of measured and target states are what AdvantageScope's swerve view consumes.
     Logging.logModuleStates("/Swerve/Modules/States", modulesStates, Logging.Destination.BOTH);
+    targetStates[0] = getFrontLeftModule().getTargetState();
+    targetStates[1] = getFrontRightModule().getTargetState();
+    targetStates[2] = getBackLeftModule().getTargetState();
+    targetStates[3] = getBackRightModule().getTargetState();
+    Logging.logModuleStates("/Swerve/Modules/TargetStates", targetStates, Logging.Destination.BOTH);
     Logging.logModulePositions(
         "/Swerve/Modules/Positions", modulesPositions, Logging.Destination.LOG_ONLY);
 
@@ -441,10 +444,7 @@ public abstract class SwerveChassis extends SwerveBase {
       throw new IllegalStateException("Have not called SwerveBase.configureSwerveBase!!!");
     }
 
-    getFrontLeftModule().updateInputs();
-    getFrontRightModule().updateInputs();
-    getBackLeftModule().updateInputs();
-    getBackRightModule().updateInputs();
+    updateModuleInputs();
 
     if (characterizing) {
       return;

@@ -46,7 +46,7 @@ public final class PathPlannerConfig {
     AutoBuilder.configure(
         chassis::getEstimatedPose,
         // resetPose rather than resetOdometry. An auto resetting the pose means "the robot is
-        // here now", and resetPose places the simulated robot there as well.
+        // here now", which is a placement, not a correction.
         chassis::resetPose,
         chassis::getCurrentSpeeds,
         // Robot relative. The parameter type is spelled out to pick the overload that takes the

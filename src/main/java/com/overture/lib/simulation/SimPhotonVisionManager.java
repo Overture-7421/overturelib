@@ -59,10 +59,9 @@ public final class SimPhotonVisionManager {
   /**
    * Tells the manager where the simulated robot is.
    *
-   * <p>Pass {@code chassis::getSimulatedPose} when the physics runs in this process. The
-   * NetworkTables fallback below only exists for an external simulator publishing the AdvantageKit
-   * field pose, which is what this used to depend on; that path lags by roughly a tenth of a second
-   * and disappears entirely once the drivetrain simulates itself.
+   * <p>Pass a supplier of the true pose when something in this process knows it. The NetworkTables
+   * fallback below only exists for an external simulator publishing the AdvantageKit field pose,
+   * which is what this used to depend on; that path lags by roughly a tenth of a second.
    *
    * @param poseSupplier supplies the true robot pose, empty when it is not known yet
    */

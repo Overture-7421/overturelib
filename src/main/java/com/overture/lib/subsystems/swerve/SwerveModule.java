@@ -4,13 +4,14 @@
 
 package com.overture.lib.subsystems.swerve;
 
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.CANBus;
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.ctre.phoenix6.sim.ChassisReference;
 import com.overture.lib.motorcontrollers.OverTalonFX;
 import com.overture.lib.sensors.OverCANCoder;
 import com.overture.lib.utils.Logging;
@@ -18,9 +19,10 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
-import org.ironmaple.simulation.motorsims.SimulatedBattery;
 
 /** A single swerve module: one drive motor, one turn motor and one absolute encoder. */
 public class SwerveModule extends SubsystemBase {
@@ -32,6 +34,20 @@ public class SwerveModule extends SubsystemBase {
 
   // Declaration of sensors
   private final OverCANCoder canCoder;
+
+  // Sensor signals, looked up once. A device getter such as getPosition() looks its signal up again
+  // and refreshes it with a native call every time it is called; these are refreshed in one batch
+  // instead, by the chassis or by updateInputs().
+  private final StatusSignal<Angle> drivePositionSignal;
+  private final StatusSignal<AngularVelocity> driveVelocitySignal;
+  private final StatusSignal<Voltage> driveVoltageSignal;
+  private final StatusSignal<Angle> turnAngleSignal;
+
+  // The four above, for BaseStatusSignal.refreshAll. All on config.CanBus, as refreshAll requires.
+  private final BaseStatusSignal[] inputSignals;
+
+  // Set once a chassis has taken over refreshing this module's sensors.
+  private boolean updatedByChassis = false;
 
   // FeedForward
   private final SimpleMotorFeedforward feedForward;
@@ -49,6 +65,16 @@ public class SwerveModule extends SubsystemBase {
   // turnVoltageOut to park the azimuth inside the deadband.
   private final VoltageOut driveVoltage = new VoltageOut(0);
   private final VoltageOut turnVoltageOut = new VoltageOut(0);
+
+  // Static-brakes the drive motor while its output is neutral, whatever its neutral mode config.
+  private boolean driveBrakeOverride = false;
+
+  // The feedforward of the latest setState, kept for telemetry so it is computed once a loop.
+  private double requestedVolts = 0.0;
+
+  // Telemetry paths, built once instead of concatenated every loop.
+  private final String requestedVoltagePath;
+  private final String appliedVoltagePath;
 
   /**
    * Constructs a SwerveModule.
@@ -80,6 +106,19 @@ public class SwerveModule extends SubsystemBase {
     turnMotor.setPositionUpdateFrequency(200);
     canCoder.getPosition().setUpdateFrequency(200);
     driveMotor.setVelocityUpdateFrequency(200);
+
+    drivePositionSignal = driveMotor.getPosition(false);
+    driveVelocitySignal = driveMotor.getVelocity(false);
+    driveVoltageSignal = driveMotor.getMotorVoltage(false);
+    turnAngleSignal = canCoder.getAbsolutePosition(false);
+    inputSignals =
+        new BaseStatusSignal[] {
+          drivePositionSignal, driveVelocitySignal, driveVoltageSignal, turnAngleSignal
+        };
+
+    String base = "/Swerve/Modules/" + this.config.ModuleName;
+    requestedVoltagePath = base + "/RequestedVoltage";
+    appliedVoltagePath = base + "/AppliedVoltage";
   }
 
   /**
@@ -128,12 +167,14 @@ public class SwerveModule extends SubsystemBase {
     // second, not rotor.
     double wheelRotationsPerSecond =
         targetState.speedMetersPerSecond / (Math.PI * config.WheelDiameter);
+    requestedVolts = feedForward.calculate(targetState.speedMetersPerSecond);
 
     driveMotor.setControl(
         driveVelocity
             .withVelocity(wheelRotationsPerSecond)
-            .withFeedForward(feedForward.calculate(targetState.speedMetersPerSecond))
+            .withFeedForward(requestedVolts)
             .withEnableFOC(config.useFOCDrive)
+            .withOverrideBrakeDurNeutral(driveBrakeOverride)
             .withSlot(0));
   }
 
@@ -156,16 +197,20 @@ public class SwerveModule extends SubsystemBase {
   }
 
   /**
-   * Returns the voltage currently applied to the drive motor.
+   * Returns the voltage applied to the drive motor as of the last sensor refresh, which a chassis
+   * does at the start of every loop.
    *
    * @return the drive voltage, in volts
    */
   public double getVoltageDrive() {
-    return driveMotor.getMotorVoltage().getValueAsDouble();
+    return driveVoltageSignal.getValueAsDouble();
   }
 
   /**
    * Sets the neutral mode of the drive motor.
+   *
+   * <p>This writes the motor's configuration, which blocks until the motor acknowledges it. Keep it
+   * out of anything that runs every loop.
    *
    * @param mode the neutral mode to apply
    */
@@ -173,134 +218,106 @@ public class SwerveModule extends SubsystemBase {
     driveMotor.configureNeutralMode(mode);
   }
 
-  /** Restores the drive motor to the neutral mode it was configured with. */
+  /**
+   * Restores the drive motor to the neutral mode it was configured with. Blocks like {@link
+   * #setDriveNeutralMode(NeutralModeValue)}.
+   */
   public void restoreDriveNeutralMode() {
     driveMotor.configureNeutralMode(config.DriveMotorConfig.MotorOutput.NeutralMode);
   }
 
   /**
-   * Wires this module's motors to a simulated one, so the physics drives the encoders and the
-   * motors' own closed loops drive the physics.
+   * Static-brakes the drive motor whenever its output is neutral, whatever its neutral mode is
+   * configured to.
    *
-   * <p>maple-sim asks a controller for the voltage it is commanding and hands back where the
-   * mechanism actually ended up. Answering with the real {@link
-   * com.ctre.phoenix6.sim.TalonFXSimState} means the control loops under test are the ones that run
-   * on the robot, rather than a stand-in PID controller that only behaves similarly.
+   * <p>This is how X mode holds the robot. It used to switch the neutral mode config on all four
+   * drive motors, and a config write blocks the loop until the motor acknowledges it, so every
+   * toggle cost four of those. This rides on the drive request instead and takes effect with the
+   * next {@link #setState(SwerveModuleState)}.
    *
-   * <p>Every value crossing this boundary is a unit-carrying Measure, not a bare double. The
-   * Phoenix simulation setters take rotations in some places and degrees in others, and passing
-   * doubles is how a heading ends up multiplied by 360.
-   *
-   * @param moduleSim the simulated module to attach to
+   * @param brake whether to brake while the output is neutral
    */
-  public void attachSimulation(SwerveModuleSimulation moduleSim) {
-    driveMotor.getSimState().Orientation =
-        simOrientation(driveMotor.getCTREConfig().MotorOutput.Inverted);
-    turnMotor.getSimState().Orientation =
-        simOrientation(turnMotor.getCTREConfig().MotorOutput.Inverted);
-
-    // Phoenix subtracts this from whatever we hand setRawPosition below, cancelling the magnet
-    // offset the encoder applies on the way out. Without it every module reads its true angle plus
-    // its calibration, so the modules point wrong by the four numbers a team measured on the real
-    // robot -- in simulation only, which invites zeroing the offsets for simulation and calling it
-    // fixed.
-    canCoder.getSimState().SensorOffset = canCoder.getConfiguration().MagnetSensor.MagnetOffset;
-
-    moduleSim.useDriveMotorController(
-        (mechanismAngle, mechanismVelocity, encoderAngle, encoderVelocity) -> {
-          var sim = driveMotor.getSimState();
-          sim.setSupplyVoltage(SimulatedBattery.getBatteryVoltage());
-          sim.setRawRotorPosition(encoderAngle);
-          sim.setRotorVelocity(encoderVelocity);
-          return sim.getMotorVoltageMeasure();
-        });
-
-    moduleSim.useSteerMotorController(
-        (mechanismAngle, mechanismVelocity, encoderAngle, encoderVelocity) -> {
-          // The CANcoder is fused to the turn motor and reads the module's true facing, so it gets
-          // the mechanism side of the gearbox while the motor gets the rotor side.
-          var encoderSim = canCoder.getSimState();
-          encoderSim.setRawPosition(mechanismAngle);
-          encoderSim.setVelocity(mechanismVelocity);
-
-          var sim = turnMotor.getSimState();
-          sim.setSupplyVoltage(SimulatedBattery.getBatteryVoltage());
-          sim.setRawRotorPosition(encoderAngle);
-          sim.setRotorVelocity(encoderVelocity);
-          return sim.getMotorVoltageMeasure();
-        });
+  void setDriveBrakeOverride(boolean brake) {
+    driveBrakeOverride = brake;
   }
 
   /**
-   * Maps a motor's software inversion onto its physical orientation for the simulation.
+   * Returns the state the module was last asked for, after optimizing and cosine scaling.
    *
-   * <p>Phoenix documents Orientation as describing the mechanical linkage and warns against setting
-   * it from the invert. The two are the same fact on a robot configured the usual way: a module is
-   * marked inverted precisely because its motor drives the wheel backwards. Tying them together
-   * beats asking for the same fact twice, which is how the two answers end up disagreeing.
-   *
-   * @param inverted the motor's configured output inversion
-   * @return the matching simulation orientation
+   * @return the target state
    */
-  private static ChassisReference simOrientation(InvertedValue inverted) {
-    return inverted == InvertedValue.Clockwise_Positive
-        ? ChassisReference.Clockwise_Positive
-        : ChassisReference.CounterClockwise_Positive;
+  public SwerveModuleState getTargetState() {
+    return targetState;
   }
 
   /**
-   * Publishes module telemetry, recorded and live.
+   * Publishes what only this module knows: the feedforward it asked for and the voltage applied.
    *
-   * <p>Speed and angle travel together as a SwerveModuleState rather than as four loose numbers,
-   * which halves the signal count and lets AdvantageScope draw the module instead of plotting it.
+   * <p>Its measured and target states and its distance are logged by the chassis, as the
+   * /Swerve/Modules/States, TargetStates and Positions arrays (front left, front right, back left,
+   * back right). Logging them here as well wrote every value twice.
    */
   public void shuffleboardPeriodic() {
-    String base = "/Swerve/Modules/" + config.ModuleName;
-
-    Logging.logStruct(
-        base + "/TargetState", SwerveModuleState.struct, targetState, Logging.Destination.BOTH);
-    Logging.logStruct(
-        base + "/State", SwerveModuleState.struct, latestState, Logging.Destination.BOTH);
-
-    Logging.logDouble(
-        base + "/Distance", latestPosition.distanceMeters, "m", Logging.Destination.LOG_ONLY);
-    Logging.logDouble(
-        base + "/RequestedVoltage",
-        feedForward.calculate(targetState.speedMetersPerSecond),
-        "V",
-        Logging.Destination.LOG_ONLY);
-    Logging.logDouble(
-        base + "/AppliedVoltage",
-        driveMotor.getMotorVoltage().getValueAsDouble(),
-        "V",
-        Logging.Destination.LOG_ONLY);
+    Logging.logDouble(requestedVoltagePath, requestedVolts, "V", Logging.Destination.LOG_ONLY);
+    Logging.logDouble(appliedVoltagePath, getVoltageDrive(), "V", Logging.Destination.LOG_ONLY);
   }
 
   /**
-   * Reads the sensors into the cached state that {@link #getState()} and {@link #getPosition()}
-   * serve.
+   * Refreshes this module's sensors and reads them into the cached state that {@link #getState()}
+   * and {@link #getPosition()} serve.
    *
-   * <p>The chassis calls this first thing in its own periodic. Doing it here rather than only in
-   * {@link #periodic()} is what keeps the ordering explicit: a module registers with the scheduler
-   * after the chassis does, so left to itself it would update after everything had already read it.
+   * <p>A chassis does not call this. It refreshes all four modules in one batch and then reads each
+   * one, which is the same work in one native call instead of one per signal.
    */
   public void updateInputs() {
-    Rotation2d angle = Rotation2d.fromRotations(canCoder.getAbsolutePosition().getValueAsDouble());
+    BaseStatusSignal.refreshAll(inputSignals);
+    readInputs();
+  }
+
+  /**
+   * Hands this module's sensors to a chassis, which refreshes them along with every other module's
+   * and then calls {@link #readInputs()}. From then on {@link #periodic()} leaves them alone.
+   *
+   * @return the signals to refresh, all on {@link #getCanBus()}
+   */
+  BaseStatusSignal[] handInputsToChassis() {
+    updatedByChassis = true;
+    return inputSignals;
+  }
+
+  /**
+   * Returns the CAN bus all of this module's devices are on.
+   *
+   * @return the module's CAN bus
+   */
+  CANBus getCanBus() {
+    return config.CanBus;
+  }
+
+  /**
+   * Reads the already refreshed sensors into the cached state and position. No native calls: a
+   * signal's value is a plain field once it has been refreshed.
+   */
+  void readInputs() {
+    Rotation2d angle = Rotation2d.fromRotations(turnAngleSignal.getValueAsDouble());
 
     latestState.speedMetersPerSecond =
-        driveMotor.getVelocity().getValueAsDouble() * config.WheelDiameter * Math.PI;
+        driveVelocitySignal.getValueAsDouble() * config.WheelDiameter * Math.PI;
     latestState.angle = angle;
 
     latestPosition.distanceMeters =
-        driveMotor.getPosition().getValueAsDouble() * config.WheelDiameter * Math.PI;
+        drivePositionSignal.getValueAsDouble() * config.WheelDiameter * Math.PI;
     latestPosition.angle = angle;
   }
 
   @Override
   public void periodic() {
-    // Harmless second read on a loop the chassis already served: these are cached signal values,
-    // not
-    // bus traffic. It is here so a module built outside a chassis still updates itself.
-    updateInputs();
+    // A chassis has already refreshed and read this module by the time this runs, as its first
+    // step every loop. Reading again here used to cost three more native calls per module per loop
+    // for the values the chassis had just read. A module built outside a chassis still updates
+    // itself.
+    if (!updatedByChassis) {
+      updateInputs();
+    }
   }
 }

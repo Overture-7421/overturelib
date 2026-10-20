@@ -17,11 +17,11 @@ them as public methods:
 | Somewhere to send speeds | `chassis::setTargetSpeeds` | Robot relative |
 | The subsystem it requires | `chassis` | |
 
-**`resetPose` or `resetOdometry`?** A path follower resetting the pose means "the robot is
-here now", so `resetPose` also places the simulated robot there. `resetOdometry` only
-corrects the estimate, which is what a heading reset or a vision correction wants. Hand a
-follower `resetOdometry` and autos still run on the real robot, but in simulation the
-physics robot stays where it was while odometry jumps to the start of the auto.
+**`resetPose` or `resetOdometry`?** Today they do the same thing, but they mean different
+things. A path follower resetting the pose says "the robot is here now", while
+`resetOdometry` is also what heading resets and vision corrections go through. Hand a
+follower `resetPose`, so that anything that should happen on a placement and not on a
+correction has one place to live.
 
 Speeds sent to `setTargetSpeeds` go through the same path as the driver's: an active
 `SpeedsHelper` still rewrites them, and they are discretized and desaturated before
@@ -57,7 +57,7 @@ They were compiled against PathPlannerLib 2026.1.2 and BLine-Lib v0.9.2.
 
     | `settings.json` | Value | Same number in `Chassis.java` |
     | --------------- | ----- | ----------------------------- |
-    | `robotMass` | 61.235 | `withRobotMass(Kilograms.of(61.235))` |
+    | `robotMass` | 61.235 | None: the chassis does not need the mass. Weigh the robot |
     | `driveGearing` | 7.03 | `kDriveGearRatio` |
     | `driveWheelRadius` | 0.0508 | `kWheelRadiusInches` (2 in) |
     | `maxDriveSpeed` | 4.541 | `getMaxModuleSpeed()` |
@@ -153,7 +153,36 @@ robot written against those versions needs three changes when it updates:
 2. **Add `PathPlannerConfig` and call `PathPlannerConfig.configure(chassis)`.** Without it
    `AutoBuilder` is never configured, and PathPlanner refuses to build autos.
 3. **Stop relying on `/PathPlanner/ResetPose`.** The library no longer publishes that
-   NetworkTables topic. It existed for the old external simulator; the built in simulation
-   is moved by `resetPose` directly.
+   NetworkTables topic. It existed for the old external simulator.
 
 Robots that never ran an auto need only the first.
+
+## Updating a robot from 2026.4.0-beta-4
+
+2026.4.0-beta-4 simulated the drivetrain with maple-sim. That is gone: a simulator that
+drives the devices themselves, such as WPI Emulator, runs the unmodified robot code, and a
+second simulation inside the library fought it over the same motor and gyro states. A
+robot written against beta-4 needs these changes:
+
+1. **Delete `getSimulationConfig()` and `getSimulationPigeon()` from the chassis,** with
+   their `org.ironmaple` imports. They no longer override anything, so the `@Override` on
+   them stops compiling.
+2. **Stop calling `getSimulatedPose()` and `resetSimulatedPose()`.** They are gone with the
+   simulation. `resetPose` stays, and is still the reset to hand a path follower.
+3. **Remove the maple-sim vendordep,** unless the robot uses maple-sim on its own.
+
+Outside a simulator the drivetrain no longer moves in simulation, because nothing feeds
+the motors' simulated sensors.
+
+Nothing else changes for the robot, but the drivetrain reads its sensors differently. The
+chassis refreshes all four modules in one batched call per CAN bus at the start of its
+`periodic()`, and a module owned by a chassis no longer reads its sensors again in its own
+`periodic()`. A module's `getVoltageDrive()` returns the voltage as of that refresh. X mode
+brakes through the drive requests rather than by rewriting the neutral mode config.
+
+Telemetry moved, with no values lost. The per-module `/Swerve/Modules/<name>/State`,
+`/TargetState` and `/Distance` topics are gone; the same values are in the
+`/Swerve/Modules/States`, `/Swerve/Modules/TargetStates` and `/Swerve/Modules/Positions`
+arrays, indexed front left, front right, back left, back right. Point any dashboard or
+AdvantageScope layout that used the old names at the arrays. `RequestedVoltage` and
+`AppliedVoltage` stay per module.
