@@ -124,7 +124,7 @@ Java vendor dependencies are read directly out of `vendordeps/*.json` at configu
 time, so the Java and C++ builds always consume the same vendor versions. Adding or
 bumping a vendordep JSON is all that is needed — there is no second list to update.
 
-Currently: WPILib New Commands, CTRE Phoenix 6, PhotonLib and maple-sim.
+Currently: WPILib New Commands, CTRE Phoenix 6 and PhotonLib.
 
 ### Robot projects install these themselves
 
@@ -137,8 +137,8 @@ A path following library is the robot's own choice and its own vendordep. Nothin
 library needs one, so a robot that follows paths with BLine does not install PathPlanner,
 and the other way round.
 
-maple-sim is simply the newest entry on that list, and the one a robot set up before 2026
-will not have. Without it, simulation fails immediately. A real robot most likely runs
-anyway, because everything touching `org.ironmaple` sits behind a `RobotBase.isSimulation()`
-check and the JVM resolves classes lazily — but that is how HotSpot happens to behave
-rather than a guarantee, and it has not been tested.
+maple-sim used to be on that list and no longer is: the library does not simulate the
+drivetrain any more. A simulator that drives the devices themselves, such as WPI Emulator,
+runs the unmodified robot code, and a second simulation inside the library would fight it
+over the same motor and gyro states. A robot that still wants maple-sim installs it and
+wires it up in its own project.

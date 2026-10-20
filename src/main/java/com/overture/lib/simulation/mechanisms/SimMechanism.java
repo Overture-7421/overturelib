@@ -14,10 +14,10 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import java.util.ArrayList;
 import java.util.List;
-import org.ironmaple.simulation.motorsims.SimulatedBattery;
 
 /**
  * A simulated mechanism bolted to the robot.
@@ -88,10 +88,9 @@ public abstract class SimMechanism {
    */
   protected final double getAppliedVolts() {
     TalonFXSimState sim = motor.getSimState();
-    // maple-sim owns the battery model, and asking it directly works before the arena has stepped
-    // even once. The arena does mirror its result onto RoboRIO input voltage every sub-tick, but
-    // only once it is running, and a mechanism can be spinning before then.
-    sim.setSupplyVoltage(SimulatedBattery.getBatteryVoltage());
+    // The robot's own battery reading: a steady 12 V in a plain simulation, and the sagging battery
+    // of whatever simulator drives the HAL, so a mechanism slows with the rest of the robot.
+    sim.setSupplyVoltage(RobotController.getBatteryVoltage());
     return sim.getMotorVoltage();
   }
 

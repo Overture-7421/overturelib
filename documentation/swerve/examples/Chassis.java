@@ -4,13 +4,7 @@
 
 package frc.robot.Subsystems.Chassis;
 
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.KilogramSquareMeters;
-import static edu.wpi.first.units.Units.Kilograms;
-import static edu.wpi.first.units.Units.Volts;
-
 import com.ctre.phoenix6.CANBus;
-import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.overture.lib.sensors.OverPigeon;
 import com.overture.lib.subsystems.swerve.SwerveChassis;
@@ -20,11 +14,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
-import org.ironmaple.simulation.drivesims.COTS;
-import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
-import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 
 /**
  * Shelby's drivetrain, from FRC-Shelby-2026OS, as an example of a concrete {@link SwerveChassis}.
@@ -37,7 +27,7 @@ public class Chassis extends SwerveChassis {
   /** The CANivore carrying the drivetrain. */
   private static final CANBus kCanBus = new CANBus("OverCANivore");
 
-  /** Drive reduction, shared by the real module config and the simulated drivetrain below. */
+  /** Drive reduction, shared by the four module configs below. */
   private static final double kDriveGearRatio = 7.03;
 
   /** Steer reduction, likewise shared. */
@@ -84,46 +74,6 @@ public class Chassis extends SwerveChassis {
     configureSwerveBase();
     setAcceptingVisionMeasurements(true);
     resetHeading();
-  }
-
-  /**
-   * Describes this drivetrain to the physics simulation.
-   *
-   * <p>The gearing constants are the same ones the module configs use below. That is the entire
-   * point: kept anywhere else, a drive ratio can sit at 6.03 against a robot geared 7.03 without
-   * anyone noticing.
-   */
-  @Override
-  protected DriveTrainSimulationConfig getSimulationConfig() {
-    return DriveTrainSimulationConfig.Default()
-        .withRobotMass(Kilograms.of(61.235))
-        .withGyro(COTS.ofPigeon2())
-        .withSwerveModule(
-            new SwerveModuleSimulationConfig(
-                DCMotor.getKrakenX60(1),
-                DCMotor.getFalcon500(1),
-                kDriveGearRatio,
-                kTurnGearRatio,
-                Volts.of(0.01),
-                Volts.of(0.01),
-                Inches.of(kWheelRadiusInches),
-                KilogramSquareMeters.of(0.03),
-                // Conservative tyre friction. The COTS value was flagged as abnormal by the
-                // simulation (~2.106); 0.9 is realistic for rubber on carpet.
-                0.9))
-        .withCustomModuleTranslations(
-            new Translation2d[] {
-              new Translation2d(Inches.of(kTrackXInches), Inches.of(kTrackYInches)),
-              new Translation2d(Inches.of(kTrackXInches), Inches.of(-kTrackYInches)),
-              new Translation2d(Inches.of(-kTrackXInches), Inches.of(kTrackYInches)),
-              new Translation2d(Inches.of(-kTrackXInches), Inches.of(-kTrackYInches))
-            })
-        .withBumperSize(Inches.of(30.5), Inches.of(31.5));
-  }
-
-  @Override
-  protected Pigeon2 getSimulationPigeon() {
-    return pigeon;
   }
 
   @Override
