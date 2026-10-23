@@ -10,7 +10,6 @@ import com.overture.lib.sensors.OverPigeon;
 import com.overture.lib.subsystems.swerve.SwerveChassis;
 import com.overture.lib.subsystems.swerve.SwerveModule;
 import com.overture.lib.subsystems.swerve.SwerveModuleConfig;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -57,17 +56,6 @@ public class Chassis extends SwerveChassis {
           new Translation2d(
               Units.inchesToMeters(-kTrackXInches), Units.inchesToMeters(-kTrackYInches)));
 
-  /**
-   * Drive feedforward: ks volts, kv volts per m/s, ka volts per m/s^2.
-   *
-   * <p>One factory for the four modules, so tuning it cannot end up tuning a single wheel.
-   *
-   * @return the drive feedforward
-   */
-  private static SimpleMotorFeedforward driveFeedForward() {
-    return new SimpleMotorFeedforward(0.0, 2.0879, 0.098433);
-  }
-
   /** Builds the drivetrain. */
   public Chassis() {
     super();
@@ -112,13 +100,17 @@ public class Chassis extends SwerveChassis {
   }
 
   private static SwerveModuleConfig baseModuleConfig() {
-    SwerveModuleConfig config = new SwerveModuleConfig(driveFeedForward(), 0, 0);
+    SwerveModuleConfig config = new SwerveModuleConfig(0, 0);
     config.CanBus = kCanBus;
     config.DriveGearRatio = kDriveGearRatio;
     config.TurnGearRatio = kTurnGearRatio;
     config.WheelDiameter = Units.inchesToMeters(2.0 * kWheelRadiusInches);
     config.DriveMotorConfig.CurrentLimits.SupplyCurrentLowerLimit = 30.0;
     config.DriveMotorConfig.CurrentLimits.SupplyCurrentLimit = 60.0;
+    // Drive gains, on the Talon, in volts per wheel rotation per second. The kV of 2.0879 V per
+    // m/s and kA of 0.098 V per m/s^2 this robot was characterized with, times the 0.319 m wheel
+    // circumference. kP is what makes the wheel chase the request; tune it from the logs.
+    config.DriveMotorConfig.Slot0.withKS(0.0).withKV(0.666).withKA(0.0314).withKP(0.3);
     config.TurnMotorConfig.Slot0.withKP(40).withKS(0.15);
     config.TurnMotorConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
     config.DriveMotorConfig.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;

@@ -13,11 +13,19 @@ import com.ctre.phoenix6.configs.VoltageConfigs;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.overture.lib.sensors.CanCoderConfig;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 
 /** Configuration bundle for a {@link SwerveModule}. */
 public class SwerveModuleConfig {
-  /** Configuration of the drive motor. */
+  /**
+   * Configuration of the drive motor.
+   *
+   * <p>The drive gains live in its {@code Slot0}, in the Talon's own units: wheel rotations per
+   * second, because {@link SwerveModule} scales the drive sensor to the wheel by {@link
+   * #DriveGearRatio}. A gain tuned in meters per second converts by multiplying by the wheel
+   * circumference, {@code Math.PI * WheelDiameter}. kS and kV are what makes the wheel turn at all,
+   * kP corrects the speed error the Talon measures, and kA acts on the acceleration of the request,
+   * which {@link SwerveModule#setState} derives from one loop to the next.
+   */
   public TalonFXConfiguration DriveMotorConfig = driveInit();
 
   /** Configuration of the turn motor. */
@@ -62,18 +70,13 @@ public class SwerveModuleConfig {
    */
   public double TurnDeadbandDegrees = 0.5;
 
-  /** Drive feedforward, in volts per meter per second. */
-  public SimpleMotorFeedforward FeedForward;
-
   /**
    * Constructs a SwerveModuleConfig.
    *
-   * @param feedForward the drive feedforward
    * @param driveMotorId the CAN id of the drive motor
    * @param turnMotorId the CAN id of the turn motor
    */
-  public SwerveModuleConfig(SimpleMotorFeedforward feedForward, int driveMotorId, int turnMotorId) {
-    this.FeedForward = feedForward;
+  public SwerveModuleConfig(int driveMotorId, int turnMotorId) {
     this.driveMotorId = driveMotorId;
     this.turnMotorId = turnMotorId;
   }
@@ -99,12 +102,6 @@ public class SwerveModuleConfig {
     TurnGearRatio = other.TurnGearRatio;
     DriveGearRatio = other.DriveGearRatio;
     TurnDeadbandDegrees = other.TurnDeadbandDegrees;
-    FeedForward =
-        new SimpleMotorFeedforward(
-            other.FeedForward.getKs(),
-            other.FeedForward.getKv(),
-            other.FeedForward.getKa(),
-            other.FeedForward.getDt());
     this.driveMotorId = other.driveMotorId;
     this.turnMotorId = other.turnMotorId;
     this.useFOCDrive = other.useFOCDrive;

@@ -186,3 +186,32 @@ Telemetry moved, with no values lost. The per-module `/Swerve/Modules/<name>/Sta
 arrays, indexed front left, front right, back left, back right. Point any dashboard or
 AdvantageScope layout that used the old names at the arrays. `RequestedVoltage` and
 `AppliedVoltage` stay per module.
+
+## Updating a robot from 2026.4.0-beta-5
+
+Up to 2026.4.0-beta-5 the module config carried a WPILib `SimpleMotorFeedforward`, in
+volts per meter per second, which the library computed every loop and handed to the Talon
+on top of its velocity request. The gains now live on the Talon itself, in
+`DriveMotorConfig.Slot0`, and the library sends only the speed and its acceleration. A
+robot written against beta-5 needs these changes:
+
+1. **Build the module config with ids only:** `new SwerveModuleConfig(driveId, turnId)`.
+   The feedforward argument is gone, and so is the `FeedForward` field.
+2. **Move the gains into `DriveMotorConfig.Slot0`, in wheel rotations per second.** The
+   Talon's units are the mechanism's, because the drive sensor is scaled by
+   `DriveGearRatio`. Multiply each meters-per-second gain by the wheel circumference,
+   `Math.PI * WheelDiameter`: for a 4 inch wheel that is 0.319, so a kV of 2.0879 V per m/s
+   becomes 0.666 V per rotation per second. Converted like this the robot drives exactly as
+   before.
+3. **Set a kP.** Without one the drive is open loop, as it always was. kP is in volts per
+   rotation per second of error; 0.3 is a sane start, and a log of
+   `/Swerve/Modules/States` against `/Swerve/Modules/TargetStates` tunes it from there.
+
+kA now does something. The library derives the acceleration of the request from one loop
+to the next and sends it with the speed, so the Talon applies kA to it. A request that
+steps shows up as a voltage spike for one loop, so leave kA at zero if the drive command
+does not limit its own acceleration.
+
+The per-module `/Swerve/Modules/<name>/RequestedVoltage` topic is replaced by
+`/FeedForwardVoltage`, the feedforward volts the Talon computed from its gains.
+`AppliedVoltage` stays, and the difference between the two is what kP contributed.

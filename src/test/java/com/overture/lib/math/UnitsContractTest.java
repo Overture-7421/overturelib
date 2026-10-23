@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.overture.lib.subsystems.swerve.SwerveModuleConfig;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import org.junit.jupiter.api.Test;
@@ -57,7 +56,7 @@ class UnitsContractTest {
    */
   @Test
   void swerveModuleConfigDefaults() {
-    SwerveModuleConfig config = new SwerveModuleConfig(new SimpleMotorFeedforward(0, 0, 0), 1, 2);
+    SwerveModuleConfig config = new SwerveModuleConfig(1, 2);
 
     // 4 inch wheel, expressed in meters.
     assertEquals(0.1016, config.WheelDiameter, 1e-12);
@@ -88,9 +87,8 @@ class UnitsContractTest {
    */
   @Test
   void moduleConfigsDoNotShareGainObjects() {
-    SimpleMotorFeedforward ff = new SimpleMotorFeedforward(0, 0, 0);
-    SwerveModuleConfig a = new SwerveModuleConfig(ff, 1, 2);
-    SwerveModuleConfig b = new SwerveModuleConfig(ff, 3, 4);
+    SwerveModuleConfig a = new SwerveModuleConfig(1, 2);
+    SwerveModuleConfig b = new SwerveModuleConfig(3, 4);
 
     a.TurnMotorConfig.Slot0.withKP(40);
     b.TurnMotorConfig.Slot0.withKP(12);

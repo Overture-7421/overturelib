@@ -15,13 +15,13 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.overture.lib.motorcontrollers.OverTalonFX;
 import com.overture.lib.sensors.OverCANCoder;
 import com.overture.lib.utils.Logging;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 /** A single swerve module: one drive motor, one turn motor and one absolute encoder. */
@@ -41,16 +41,14 @@ public class SwerveModule extends SubsystemBase {
   private final StatusSignal<Angle> drivePositionSignal;
   private final StatusSignal<AngularVelocity> driveVelocitySignal;
   private final StatusSignal<Voltage> driveVoltageSignal;
+  private final StatusSignal<Double> driveFeedForwardSignal;
   private final StatusSignal<Angle> turnAngleSignal;
 
-  // The four above, for BaseStatusSignal.refreshAll. All on config.CanBus, as refreshAll requires.
+  // The five above, for BaseStatusSignal.refreshAll. All on config.CanBus, as refreshAll requires.
   private final BaseStatusSignal[] inputSignals;
 
   // Set once a chassis has taken over refreshing this module's sensors.
   private boolean updatedByChassis = false;
-
-  // FeedForward
-  private final SimpleMotorFeedforward feedForward;
 
   // State
   private SwerveModuleState targetState = new SwerveModuleState();
@@ -69,11 +67,13 @@ public class SwerveModule extends SubsystemBase {
   // Static-brakes the drive motor while its output is neutral, whatever its neutral mode config.
   private boolean driveBrakeOverride = false;
 
-  // The feedforward of the latest setState, kept for telemetry so it is computed once a loop.
-  private double requestedVolts = 0.0;
+  // The wheel speed of the last setState and when it was asked for, so the next one can derive the
+  // acceleration the Talon's kA acts on.
+  private double lastWheelRotationsPerSecond = 0.0;
+  private double lastSetStateTimestamp = 0.0;
 
   // Telemetry paths, built once instead of concatenated every loop.
-  private final String requestedVoltagePath;
+  private final String feedForwardVoltagePath;
   private final String appliedVoltagePath;
 
   /**
@@ -97,7 +97,6 @@ public class SwerveModule extends SubsystemBase {
     this.turnMotor =
         new OverTalonFX(this.config.TurnMotorConfig, this.config.turnMotorId, this.config.CanBus);
     this.canCoder = new OverCANCoder(this.config.EncoderConfig, this.config.CanBus);
-    this.feedForward = this.config.FeedForward;
 
     turnMotor.setControl(turnVoltage.withPosition(0).withEnableFOC(this.config.useFOCTurn));
 
@@ -110,14 +109,22 @@ public class SwerveModule extends SubsystemBase {
     drivePositionSignal = driveMotor.getPosition(false);
     driveVelocitySignal = driveMotor.getVelocity(false);
     driveVoltageSignal = driveMotor.getMotorVoltage(false);
+    driveFeedForwardSignal = driveMotor.getClosedLoopFeedForward(false);
     turnAngleSignal = canCoder.getAbsolutePosition(false);
     inputSignals =
         new BaseStatusSignal[] {
-          drivePositionSignal, driveVelocitySignal, driveVoltageSignal, turnAngleSignal
+          drivePositionSignal,
+          driveVelocitySignal,
+          driveVoltageSignal,
+          driveFeedForwardSignal,
+          turnAngleSignal
         };
 
+    // Only logged, so the loop rate is plenty; the closed loop frames default to much slower.
+    driveFeedForwardSignal.setUpdateFrequency(50);
+
     String base = "/Swerve/Modules/" + this.config.ModuleName;
-    requestedVoltagePath = base + "/RequestedVoltage";
+    feedForwardVoltagePath = base + "/FeedForwardVoltage";
     appliedVoltagePath = base + "/AppliedVoltage";
   }
 
@@ -133,12 +140,17 @@ public class SwerveModule extends SubsystemBase {
   /**
    * Sets the state of the module.
    *
-   * <p>The drive motor runs a closed velocity loop with the feedforward on top, rather than the
-   * feedforward alone. Open loop meant carpet, a sagging battery and the robot's own weight all
-   * came out as speed error that nothing corrected, and the four modules erred by different
-   * amounts, so the chassis translated slower than asked and pulled off heading. Gains live in
-   * {@code DriveMotorConfig.Slot0}; leaving them at zero reproduces the old behaviour exactly,
-   * because the feedforward term is unchanged.
+   * <p>The drive motor runs the Talon's own velocity loop: kS, kV and kA feed forward and kP
+   * corrects the error, all from {@code DriveMotorConfig.Slot0} and all in wheel rotations per
+   * second. Open loop meant carpet, a sagging battery and the robot's own weight all came out as
+   * speed error that nothing corrected, and the four modules erred by different amounts, so the
+   * chassis translated slower than asked and pulled off heading. A kP of zero is that behaviour
+   * again.
+   *
+   * <p>The acceleration kA acts on is the change in the requested wheel speed since the last call,
+   * so a request that steps shows up as a voltage spike for one loop; a drive command that limits
+   * its own acceleration keeps it honest. It is skipped on the loop the request changes sign, where
+   * {@code optimize} may have flipped the wheel rather than the robot.
    *
    * @param state the desired state of the module
    */
@@ -167,12 +179,20 @@ public class SwerveModule extends SubsystemBase {
     // second, not rotor.
     double wheelRotationsPerSecond =
         targetState.speedMetersPerSecond / (Math.PI * config.WheelDiameter);
-    requestedVolts = feedForward.calculate(targetState.speedMetersPerSecond);
+
+    double now = Timer.getFPGATimestamp();
+    double dt = now - lastSetStateTimestamp;
+    double wheelAcceleration = 0.0;
+    if (dt > 0.0 && dt < 0.5 && wheelRotationsPerSecond * lastWheelRotationsPerSecond >= 0.0) {
+      wheelAcceleration = (wheelRotationsPerSecond - lastWheelRotationsPerSecond) / dt;
+    }
+    lastSetStateTimestamp = now;
+    lastWheelRotationsPerSecond = wheelRotationsPerSecond;
 
     driveMotor.setControl(
         driveVelocity
             .withVelocity(wheelRotationsPerSecond)
-            .withFeedForward(requestedVolts)
+            .withAcceleration(wheelAcceleration)
             .withEnableFOC(config.useFOCDrive)
             .withOverrideBrakeDurNeutral(driveBrakeOverride)
             .withSlot(0));
@@ -251,14 +271,19 @@ public class SwerveModule extends SubsystemBase {
   }
 
   /**
-   * Publishes what only this module knows: the feedforward it asked for and the voltage applied.
+   * Publishes what only this module knows: the feedforward volts the Talon computed from its gains
+   * and the voltage it applied. The difference between the two is what kP contributed.
    *
    * <p>Its measured and target states and its distance are logged by the chassis, as the
    * /Swerve/Modules/States, TargetStates and Positions arrays (front left, front right, back left,
    * back right). Logging them here as well wrote every value twice.
    */
   public void shuffleboardPeriodic() {
-    Logging.logDouble(requestedVoltagePath, requestedVolts, "V", Logging.Destination.LOG_ONLY);
+    Logging.logDouble(
+        feedForwardVoltagePath,
+        driveFeedForwardSignal.getValueAsDouble(),
+        "V",
+        Logging.Destination.LOG_ONLY);
     Logging.logDouble(appliedVoltagePath, getVoltageDrive(), "V", Logging.Destination.LOG_ONLY);
   }
 

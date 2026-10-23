@@ -35,6 +35,9 @@ directories, lowercased:
 - **Units are plain SI doubles**, matching WPILib Java itself: meters, meters per second,
   seconds, radians, volts, amps. Motor-native quantities stay in rotations, which is what
   Phoenix 6's `double` overloads expect.
+- **Drive gains live on the Talon**, in the module's `DriveMotorConfig.Slot0` and in wheel
+  rotations per second, not in a WPILib feedforward computed on the roboRIO.
+  [documentation/swerve](documentation/swerve/README.md) has the conversion.
 - **Simulation is selected at runtime, not compile time.** The C++ code switches on the
   `__FRC_ROBORIO__` macro; Java has no preprocessor, so the simulation managers are always
   linked and only driven when `RobotBase.isSimulation()` is true.

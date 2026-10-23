@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.overture.lib.sensors.CanCoderConfig;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -25,8 +24,7 @@ class ConfigValueSemanticsTest {
   /** The classic four-module pattern: build one config, re-stamp it between modules. */
   @Test
   void swerveModuleConfigCopyIsIndependent() {
-    SwerveModuleConfig original =
-        new SwerveModuleConfig(new SimpleMotorFeedforward(0, 2.0, 0.1), 6, 5);
+    SwerveModuleConfig original = new SwerveModuleConfig(6, 5);
     original.WheelDiameter = 0.1016;
     original.DriveGearRatio = 7.03;
     original.ModuleName = "Front Left";
@@ -65,7 +63,7 @@ class ConfigValueSemanticsTest {
     assertNotSame(original.TurnMotorConfig, copy.TurnMotorConfig);
     assertNotSame(original.EncoderConfig, copy.EncoderConfig);
     assertNotSame(original.TurnMotorConfig.Slot0, copy.TurnMotorConfig.Slot0);
-    assertNotSame(original.FeedForward, copy.FeedForward);
+    assertNotSame(original.DriveMotorConfig.Slot0, copy.DriveMotorConfig.Slot0);
   }
 
   /**
@@ -112,15 +110,21 @@ class ConfigValueSemanticsTest {
     assertEquals(0.464111328125, copy.Offset, kEpsilon);
   }
 
-  /** The feedforward gains must survive the copy, not reset to zero. */
+  /**
+   * The drive gains live in the Talon config's Slot0 and must survive the copy, not reset to zero
+   * or follow the original when it is re-stamped for the next corner.
+   */
   @Test
-  void feedForwardGainsSurviveTheCopy() {
-    SwerveModuleConfig original =
-        new SwerveModuleConfig(new SimpleMotorFeedforward(0.1, 2.0879, 0.098433), 1, 2);
+  void driveGainsSurviveTheCopy() {
+    SwerveModuleConfig original = new SwerveModuleConfig(1, 2);
+    original.DriveMotorConfig.Slot0.withKS(0.1).withKV(0.666).withKA(0.0314).withKP(0.3);
     SwerveModuleConfig copy = new SwerveModuleConfig(original);
 
-    assertEquals(0.1, copy.FeedForward.getKs(), kEpsilon);
-    assertEquals(2.0879, copy.FeedForward.getKv(), kEpsilon);
-    assertEquals(0.098433, copy.FeedForward.getKa(), kEpsilon);
+    original.DriveMotorConfig.Slot0.withKS(0.0).withKV(0.0).withKA(0.0).withKP(0.0);
+
+    assertEquals(0.1, copy.DriveMotorConfig.Slot0.kS, kEpsilon);
+    assertEquals(0.666, copy.DriveMotorConfig.Slot0.kV, kEpsilon);
+    assertEquals(0.0314, copy.DriveMotorConfig.Slot0.kA, kEpsilon);
+    assertEquals(0.3, copy.DriveMotorConfig.Slot0.kP, kEpsilon);
   }
 }
